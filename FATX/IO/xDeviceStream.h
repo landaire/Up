@@ -44,8 +44,7 @@ namespace Streams
         INT64 Length		( void );
 
 		/* Writing Functions	 */
-		 int	Write			( BYTE* Buffer,			// Default function for writing data
-									int offset,
+         int	Write			( BYTE* Buffer,			// Default function for writing data
 									int count		);
 
 		 void	WriteUInt16		( unsigned short	_UInt16	);	// Function for writing	an unsigned Int16	
@@ -73,8 +72,7 @@ namespace Streams
 		 int				ReadInt32		( void );			// Reads a signed Int32 (DWORD)
 		 short				ReadInt16		( void );			// Reads a signed Int16 (WORD)
 
-		 int				ReadBytes	( BYTE* DestBuff,
-										int Offset,
+         int				Read	( BYTE* DestBuff,
 										int Count );			// Function for reading a byte array
 
 		 string			ReadString		( size_t Count );		// Function for reading a string

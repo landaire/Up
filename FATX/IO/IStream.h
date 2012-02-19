@@ -54,8 +54,7 @@ namespace Streams
                 void DetermineAndDoEndianSwap( void* Data, size_t DataLength, size_t ElementSize );
 
 		/* Writing Functions	 */
-		virtual int	Write			( BYTE* Buffer,			// Default function for writing data
-									int offset,
+        virtual int	Write			( BYTE* Buffer,			// Default function for writing data
 									int count		) =0;
 
 
@@ -85,8 +84,7 @@ namespace Streams
 		virtual int					ReadInt32		( void ) =0;			// Reads a signed Int32 (DWORD)
 		virtual short				ReadInt16		( void ) =0;			// Reads a signed Int16 (WORD)
 
-		virtual int					ReadBytes		( BYTE* DestBuff,
-														int Offset,
+        virtual int					Read		( BYTE* DestBuff,
 														int Count ) =0;	// Function for reading a byte array
 
 		virtual string	ReadString		( size_t Count ) =0;				// Function for reading a string

@@ -142,7 +142,7 @@ BYTE xDeviceStream::ReadByte( void )
     }
 
     BYTE Return;
-    ReadBytes(&Return, 0, 1);
+    Read(&Return, 1);
 
     return Return;
 }
@@ -159,7 +159,7 @@ short xDeviceStream::ReadInt16( void )
     }
 
     BYTE temp[2];
-    ReadBytes((BYTE*)&temp, 0, 2);
+    Read((BYTE*)&temp, 2);
 
     short Return = (short)temp[0] << 8 | temp[1];
 
@@ -183,7 +183,7 @@ int xDeviceStream::ReadInt32( void )
     // Create a new temporary buffer that will hold the bytes for the object
     BYTE temp[4];
     // Read the data
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     // Initialize our return value
     int Return = 0;
@@ -212,7 +212,7 @@ INT64 xDeviceStream::ReadInt64( void )
     int size = sizeof(INT64);
 
     BYTE temp[8];
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     INT64 Return = 0;
 
@@ -238,7 +238,7 @@ UINT16 xDeviceStream::ReadUInt16( void )
     int size = sizeof(UINT16);
 
     BYTE temp[2];
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     UINT16 Return = 0;
 
@@ -264,7 +264,7 @@ UINT32 xDeviceStream::ReadUInt32( void )
     int size = sizeof(UINT32);
 
     BYTE temp[4];
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     UINT32 Return = 0;
 
@@ -290,7 +290,7 @@ UINT64 xDeviceStream::ReadUInt64( void )
     int size = sizeof(UINT64);
 
     BYTE temp[8];
-    ReadBytes(temp, 0, size);
+    Read(temp, size);
 
     UINT64 Return = 0;
 
@@ -302,16 +302,16 @@ UINT64 xDeviceStream::ReadUInt64( void )
     return Return;
 }
 
-int xDeviceStream::ReadBytes( BYTE* DestBuff, int offset, int Count )
+int xDeviceStream::Read( BYTE* DestBuff, int Count )
 {
     if (IsClosed)
     {
-        throw xException("Stream is closed. At: xDeviceStream::ReadBytes");
+        throw xException("Stream is closed. At: xDeviceStream::Read");
     }
 #ifdef __WINDOWS__
     else if (DeviceHandle == INVALID_HANDLE_VALUE)
     {
-        throw xException("Error: INVALID_HANDLE_VALUE. At: xDeviceStream::ReadBytes");
+        throw xException("Error: INVALID_HANDLE_VALUE. At: xDeviceStream::Read");
     }
 #endif
     //SetPosition(Position());
@@ -339,7 +339,7 @@ int xDeviceStream::ReadBytes( BYTE* DestBuff, int offset, int Count )
                                                                                               * (AllDataLength / 0x200 should equal MaxSectors */
     if (MaxSectors != AllDataLength / 0x200)
     {
-        throw xException("Assertion fail: MaxSectors != AllDataLength / 0x200.  At: xDeviceStream::ReadBytes");
+        throw xException("Assertion fail: MaxSectors != AllDataLength / 0x200.  At: xDeviceStream::Read");
     }
 
     BYTE* AllData = 0;
@@ -390,17 +390,17 @@ int xDeviceStream::ReadBytes( BYTE* DestBuff, int offset, int Count )
         SetPosition(Position() + (Count - BytesThatAreInLastDataRead));
     }
     int countRead = ((BytesThatAreInLastDataRead <= Count) ? BytesThatAreInLastDataRead : Count);
-    memcpy(DestBuff + offset, LastReadData + BytesToShaveOffBeginning, countRead);
+    memcpy(DestBuff, LastReadData + BytesToShaveOffBeginning, countRead);
     if (AllData)
     {
-        memcpy(DestBuff + offset + BytesThatAreInLastDataRead, AllData, Count - BytesThatAreInLastDataRead);
+        memcpy(DestBuff + BytesThatAreInLastDataRead, AllData, Count - BytesThatAreInLastDataRead);
         // Cache
         memcpy(&LastReadData, AllData + AllDataLength - ((0x200 * 2)), 0x200);
         LastReadOffset = RealPosition();
         delete[] AllData;
     }
 
-    DetermineAndDoArraySwap(DestBuff + offset, Count);
+    DetermineAndDoArraySwap(DestBuff, Count);
 
     return Count;
 }
@@ -418,7 +418,7 @@ string xDeviceStream::ReadString( size_t Count )
     BYTE* Buffer = new BYTE[Count + 1];
     memset(Buffer, 0, Count + 1);
 
-    ReadBytes(Buffer, 0, Count);
+    Read(Buffer, Count);
     string ret((char*)Buffer);
     delete[] Buffer;
 
@@ -472,7 +472,7 @@ wstring xDeviceStream::ReadUnicodeString( size_t Count )
     BYTE* Buffer = new BYTE[Count + 1];
     memset(Buffer, 0, Count + 1);
 
-    ReadBytes(Buffer, 0, Count + 1);
+    Read(Buffer, Count + 1);
     wstring ret((TCHAR*)Buffer);
     delete[] Buffer;
 
@@ -489,7 +489,7 @@ void xDeviceStream::WriteByte( BYTE _Byte )
     {
         throw xException("End of file reached.  At: xDeviceStream::WriteByte");
     }
-    Write(&_Byte, 0, 1);
+    Write(&_Byte, 1);
 }
 
 void xDeviceStream::WriteInt16( short _Int16 )
@@ -503,7 +503,7 @@ void xDeviceStream::WriteInt16( short _Int16 )
         throw xException("End of file reached.  At: xDeviceStream::WriteInt16");
     }
     DetermineAndDoEndianSwap((BYTE*)&_Int16, sizeof(short), sizeof(BYTE));
-    Write((BYTE*)&_Int16, 0, sizeof(short));
+    Write((BYTE*)&_Int16, sizeof(short));
 }
 
 void xDeviceStream::WriteInt32( int _Int32 )
@@ -518,7 +518,7 @@ void xDeviceStream::WriteInt32( int _Int32 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_Int32, sizeof(int), sizeof(BYTE));
-    Write((BYTE*)&_Int32, 0, sizeof(int));
+    Write((BYTE*)&_Int32, sizeof(int));
 }
 
 void xDeviceStream::WriteInt64( INT64 _Int64 )
@@ -533,7 +533,7 @@ void xDeviceStream::WriteInt64( INT64 _Int64 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_Int64, sizeof(INT64), sizeof(BYTE));
-    Write((BYTE*)&_Int64, 0, sizeof(INT64));
+    Write((BYTE*)&_Int64, sizeof(INT64));
 }
 
 void xDeviceStream::WriteUInt16( UINT16 _UInt16 )
@@ -548,7 +548,7 @@ void xDeviceStream::WriteUInt16( UINT16 _UInt16 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt16, sizeof(UINT16), sizeof(BYTE));
-    Write((BYTE*)&_UInt16, 0, sizeof(UINT16));
+    Write((BYTE*)&_UInt16, sizeof(UINT16));
 }
 
 void xDeviceStream::WriteUInt32( UINT32 _UInt32 )
@@ -563,7 +563,7 @@ void xDeviceStream::WriteUInt32( UINT32 _UInt32 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt32, sizeof(UINT32), sizeof(BYTE));
-    Write((BYTE*)&_UInt32, 0, sizeof(UINT32));
+    Write((BYTE*)&_UInt32, sizeof(UINT32));
 }
 
 void xDeviceStream::WriteUInt64( UINT64 _UInt64 )
@@ -578,10 +578,10 @@ void xDeviceStream::WriteUInt64( UINT64 _UInt64 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt64, sizeof(UINT64), sizeof(BYTE));
-    Write((BYTE*)&_UInt64, 0, sizeof(UINT64));
+    Write((BYTE*)&_UInt64, sizeof(UINT64));
 }
 
-int xDeviceStream::Write( BYTE* Buffer, int offset, int count )
+int xDeviceStream::Write( BYTE* Buffer, int count )
 {
     if (IsClosed)
     {
@@ -644,7 +644,7 @@ int xDeviceStream::Write( BYTE* Buffer, int offset, int count )
 #endif
 
         // Write over the data in memory
-        memcpy(AllData + Position() - RealPosition(), Buffer + offset, count);
+        memcpy(AllData + Position() - RealPosition(), Buffer, count);
 
         // Copy the last part of the data to our cached stuff
         memcpy(LastReadData, AllData + BytesWeNeedToRead - (0x200), 0x200);
@@ -667,7 +667,7 @@ int xDeviceStream::Write( BYTE* Buffer, int offset, int count )
     }
     else
     {
-        memcpy(LastReadData + Position() - RealPosition(), Buffer + offset, count);
+        memcpy(LastReadData + Position() - RealPosition(), Buffer, count);
 
         void* Data = DetermineAndDoEndianSwap(AllData, BytesWeNeedToRead, sizeof(BYTE), true);
 

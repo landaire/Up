@@ -76,7 +76,7 @@ BYTE xDeviceFileStream::ReadByte( void )
     }
 
     BYTE Return;
-    ReadBytes(&Return, 0, 1);
+    Read(&Return, 1);
 
     return Return;
 }
@@ -93,7 +93,7 @@ short xDeviceFileStream::ReadInt16( void )
     }
 
     BYTE temp[2];
-    ReadBytes((BYTE*)&temp, 0, 2);
+    Read((BYTE*)&temp, 2);
 
     short Return = (short)temp[0] << 8 | temp[1];
 
@@ -117,7 +117,7 @@ int xDeviceFileStream::ReadInt32( void )
     // Create a new temporary buffer that will hold the bytes for the object
     BYTE temp[4];
     // Read the data
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     // Initialize our return value
     int Return = 0;
@@ -146,7 +146,7 @@ INT64 xDeviceFileStream::ReadInt64( void )
     int size = sizeof(INT64);
 
     BYTE temp[8];
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     INT64 Return = 0;
 
@@ -172,7 +172,7 @@ UINT16 xDeviceFileStream::ReadUInt16( void )
     int size = sizeof(UINT16);
 
     BYTE temp[2];
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     UINT16 Return = 0;
 
@@ -199,7 +199,7 @@ UINT32 xDeviceFileStream::ReadUInt32( void )
 
     BYTE temp[4];
 
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     UINT32 Return = 0;
 
@@ -225,7 +225,7 @@ UINT64 xDeviceFileStream::ReadUInt64( void )
     int size = sizeof(UINT64);
 
     BYTE temp[8];
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     UINT64 Return = 0;
 
@@ -237,39 +237,38 @@ UINT64 xDeviceFileStream::ReadUInt64( void )
     return Return;
 }
 
-int xDeviceFileStream::ReadBytes( BYTE* DestBuff, int Offset, int Count )
+int xDeviceFileStream::Read( BYTE* DestBuff, int Count )
 {
     //SetPosition(Position());
     // How many clusters the data we're reading is spread across
     int ClustersSpanned = (Count + (UserPosition - Helpers::DownToNearestX(UserPosition, xf->Volume->ClusterSize))) / xf->Volume->ClusterSize;
-    if (ClustersSpanned == 0)
-        ++ClustersSpanned;
+    ++ClustersSpanned;
     // Read the first amount of data...
     int DataReadableInFirstCluster = xf->Volume->ClusterSize - (UserPosition - Helpers::DownToNearestX(UserPosition, (INT64)xf->Volume->ClusterSize));
     if (DataReadableInFirstCluster < Count)
     {
-        int o = 0;
-        int c = 0;
-        c += device->DeviceStream->ReadBytes(DestBuff, 0, DataReadableInFirstCluster);
-        o += c;
-        SetPosition(Position() + c);
-        Count -= c;
+        int offset = 0;
+        int tcount = 0;
+        tcount += device->DeviceStream->Read(DestBuff, DataReadableInFirstCluster);
+        offset += tcount;
+        SetPosition(Position() + tcount);
+        Count -= tcount;
         for (int i = 1; i < ClustersSpanned - 1; i++)
         {
-            c = device->DeviceStream->ReadBytes(DestBuff + o, 0, Count);
-            o += c;
-            Count -= c;
-            SetPosition(Position() + c);
+            tcount = device->DeviceStream->Read(DestBuff + offset, Count);
+            offset += tcount;
+            Count -= tcount;
+            SetPosition(Position() + tcount);
         }
         // Read the last bit of data
-        c = device->DeviceStream->ReadBytes(DestBuff + o, 0, Count);
-        SetPosition(Position() + c);
-        o += c;
-        return o;
+        tcount = device->DeviceStream->Read(DestBuff + offset, Count);
+        SetPosition(Position() + tcount);
+        offset += tcount;
+        return offset;
     }
     else
     {
-        int c = device->DeviceStream->ReadBytes(DestBuff, 0, Count);
+        int c = device->DeviceStream->Read(DestBuff, Count);
         SetPosition(Position() + Count);
         return c;
     }
@@ -288,7 +287,7 @@ string xDeviceFileStream::ReadString( size_t Count )
     BYTE* Buffer = new BYTE[Count + 1];
     memset(Buffer, 0, Count + 1);
 
-    ReadBytes(Buffer, 0, Count);
+    Read(Buffer, Count);
     string ret((char*)Buffer);
     delete[] Buffer;
 
@@ -342,7 +341,7 @@ wstring xDeviceFileStream::ReadUnicodeString( size_t Count )
     BYTE* Buffer = new BYTE[Count + 1];
     memset(Buffer, 0, Count + 1);
 
-    ReadBytes(Buffer, 0, Count);
+    Read(Buffer, Count);
     for (int i = 0; i < Count; i += sizeof(wchar_t))
     {
         DetermineAndDoEndianSwap(Buffer + i, sizeof(wchar_t), sizeof(char));
@@ -363,7 +362,7 @@ void xDeviceFileStream::WriteByte( BYTE _Byte )
     {
         throw xException("End of file reached.  At: xDeviceFileStream::WriteByte");
     }
-    Write(&_Byte, 0, 1);
+    Write(&_Byte, 1);
 }
 
 void xDeviceFileStream::WriteInt16( short _Int16 )
@@ -377,7 +376,7 @@ void xDeviceFileStream::WriteInt16( short _Int16 )
         throw xException("End of file reached.  At: xDeviceFileStream::WriteInt16");
     }
     DetermineAndDoEndianSwap((BYTE*)&_Int16, sizeof(short), sizeof(BYTE));
-    Write((BYTE*)&_Int16, 0, sizeof(short));
+    Write((BYTE*)&_Int16, sizeof(short));
 }
 
 void xDeviceFileStream::WriteInt32( int _Int32 )
@@ -392,7 +391,7 @@ void xDeviceFileStream::WriteInt32( int _Int32 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_Int32, sizeof(int), sizeof(BYTE));
-    Write((BYTE*)&_Int32, 0, sizeof(int));
+    Write((BYTE*)&_Int32, sizeof(int));
 }
 
 void xDeviceFileStream::WriteInt64( INT64 _Int64 )
@@ -407,7 +406,7 @@ void xDeviceFileStream::WriteInt64( INT64 _Int64 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_Int64, sizeof(INT64), sizeof(BYTE));
-    Write((BYTE*)&_Int64, 0, sizeof(INT64));
+    Write((BYTE*)&_Int64, sizeof(INT64));
 }
 
 void xDeviceFileStream::WriteUInt16( UINT16 _UInt16 )
@@ -422,7 +421,7 @@ void xDeviceFileStream::WriteUInt16( UINT16 _UInt16 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt16, sizeof(UINT16), sizeof(BYTE));
-    Write((BYTE*)&_UInt16, 0, sizeof(UINT16));
+    Write((BYTE*)&_UInt16, sizeof(UINT16));
 }
 
 void xDeviceFileStream::WriteUInt32( UINT32 _UInt32 )
@@ -437,7 +436,7 @@ void xDeviceFileStream::WriteUInt32( UINT32 _UInt32 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt32, sizeof(UINT32), sizeof(BYTE));
-    Write((BYTE*)&_UInt32, 0, sizeof(UINT32));
+    Write((BYTE*)&_UInt32, sizeof(UINT32));
 }
 
 void xDeviceFileStream::WriteUInt64( UINT64 _UInt64 )
@@ -452,10 +451,10 @@ void xDeviceFileStream::WriteUInt64( UINT64 _UInt64 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt64, sizeof(UINT64), sizeof(BYTE));
-    Write((BYTE*)&_UInt64, 0, sizeof(UINT64));
+    Write((BYTE*)&_UInt64, sizeof(UINT64));
 }
 
-int xDeviceFileStream::Write( BYTE* Buffer, int offset, int count )
+int xDeviceFileStream::Write( BYTE* Buffer, int count )
 {
 #warning "ADD HANDING FOR EXTENDING FILES"
     //SetPosition(Position());
@@ -465,28 +464,28 @@ int xDeviceFileStream::Write( BYTE* Buffer, int offset, int count )
     int DataWritableInFirstCluster = xf->Volume->ClusterSize - (UserPosition - Helpers::DownToNearestX(UserPosition, (INT64)xf->Volume->ClusterSize));
     if (DataWritableInFirstCluster < count)
     {
-        int o = 0;
-        int c = 0;
-        c += device->DeviceStream->ReadBytes(Buffer, 0, DataWritableInFirstCluster);
-        o += c;
-        SetPosition(Position() + c);
-        count -= c;
+        int offset = 0;
+        int tcount = 0;
+        tcount += device->DeviceStream->Read(Buffer, DataWritableInFirstCluster);
+        offset += tcount;
+        SetPosition(Position() + tcount);
+        count -= tcount;
         for (int i = 1; i < ClustersSpanned - 1; i++)
         {
-            c = device->DeviceStream->ReadBytes(Buffer + o, 0, count);
-            o += c;
-            count -= c;
-            SetPosition(Position() + c);
+            tcount = device->DeviceStream->Read(Buffer + offset, count);
+            offset += tcount;
+            count -= tcount;
+            SetPosition(Position() + tcount);
         }
         // Read the last bit of data
-        c = device->DeviceStream->ReadBytes(Buffer + o, 0, count);
-        SetPosition(Position() + c);
-        o += c;
-        return o;
+        tcount = device->DeviceStream->Read(Buffer + offset, count);
+        SetPosition(Position() + tcount);
+        offset += tcount;
+        return offset;
     }
     else
     {
-        int c = device->DeviceStream->ReadBytes(Buffer, 0, count);
+        int c = device->DeviceStream->Read(Buffer, count);
         SetPosition(Position() + c);
         return c;
     }

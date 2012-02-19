@@ -149,7 +149,7 @@ string xFileStream::ReadString( size_t Count )
 {
     char* buff = new char[Count + 1];
     memset(buff, 0, Count + 1);
-    ReadBytes((BYTE*)buff, 0, Count);
+    Read((BYTE*)buff, Count);
     string Return(buff);
     delete[] buff;
     return Return;
@@ -159,7 +159,7 @@ wstring xFileStream::ReadUnicodeString( size_t Count)
 {
     char* buff = new char[Count + 1];
     memset(buff, 0, Count + 1);
-    ReadBytes((BYTE*)buff, 0, Count);
+    Read((BYTE*)buff, Count);
     DetermineAndDoArraySwap((BYTE*)buff, Count, false);
     wstring Return((TCHAR*)buff);
 
@@ -292,12 +292,12 @@ UINT64 xFileStream::ReadUInt64( void )
     return Return;
 }
 
-int xFileStream::ReadBytes( BYTE* DestBuff, int Offset, int Count )
+int xFileStream::Read( BYTE* DestBuff, int Count )
 {
-    qDebug("DestBuff address: %p\nOffset: %d\nCount: %d", DestBuff, Offset, Count);
+    qDebug("DestBuff address: %p\nCount: %d", DestBuff, Count);
     if (IsClosed)
     {
-        throw xException("Stream is closed. At: xFileStream::ReadBytes");
+        throw xException("Stream is closed. At: xFileStream::Read");
     }
 
     // Calculate the amount of data we can read
@@ -306,9 +306,9 @@ int xFileStream::ReadBytes( BYTE* DestBuff, int Offset, int Count )
         // We can't read beyond the end of the stream, so let's just read as much as we can
         Count = (DWORD)((Position() >= Length()) ? 0 : Length() - Position());
     }
-    _FileStream.read((char*)(DestBuff + Offset), Count);
+    _FileStream.read((char*)DestBuff, Count);
 
-    DetermineAndDoEndianSwap(DestBuff + Offset, Count, sizeof(BYTE));
+    DetermineAndDoEndianSwap(DestBuff, Count, sizeof(BYTE));
 
     return Count;
 }
@@ -394,45 +394,45 @@ void xFileStream::WriteUInt64( UINT64 _UInt64 )
     _FileStream.write((char*)&_UInt64, sizeof(UINT64));
 }
 
-int xFileStream::Write( BYTE* Buffer, int offset, int count )
+int xFileStream::Write( BYTE* Buffer, int count )
 {
     if (IsClosed)
     {
         throw xException("Stream is closed. At: xFileStream::Write");
     }
 
-    void* temp = DetermineAndDoEndianSwap(Buffer + offset, count, sizeof(BYTE), true);
+    void* temp = DetermineAndDoEndianSwap(Buffer, count, sizeof(BYTE), true);
 
     if (!temp)
     {
-        _FileStream.write((char*)(Buffer + offset), count);
+        _FileStream.write((char*)(Buffer), count);
         return count;
     }
     else
     {
-        _FileStream.write(((char*)(temp) + offset), count);
+        _FileStream.write((char*)temp, count);
         delete[] temp;
         return count;
     }
 }
 
-size_t xFileStream::Write( void* Buffer, size_t ElementSize, int offset, int count)
+size_t xFileStream::Write( void* Buffer, size_t ElementSize, int count)
 {
     if (IsClosed)
     {
         throw xException("Stream is closed. At: xFileStream::Write (the one with more arguments and stuff)");
     }
 
-    void* temp = DetermineAndDoEndianSwap((BYTE*)Buffer + offset, count * ElementSize, sizeof(Buffer), true);
+    void* temp = DetermineAndDoEndianSwap((BYTE*)Buffer, count * ElementSize, sizeof(Buffer), true);
 
     if (!temp)
     {
-        _FileStream.write(((char*)(Buffer) + (offset * ElementSize)), count * ElementSize);
+        _FileStream.write((char*)Buffer, count * ElementSize);
         return count;
     }
     else
     {
-        _FileStream.write(((char*)(temp) + (offset * ElementSize)), count * ElementSize);
+        _FileStream.write((char*)temp, count * ElementSize);
         delete[] temp;
         return count;
     }

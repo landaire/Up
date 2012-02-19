@@ -94,7 +94,7 @@ BYTE xMultiFileStream::ReadByte( void )
     }
 
     BYTE Return;
-    ReadBytes(&Return, 0, 1);
+    Read(&Return, 1);
 
     return Return;
 }
@@ -111,7 +111,7 @@ short xMultiFileStream::ReadInt16( void )
     }
 
     BYTE temp[2];
-    ReadBytes((BYTE*)&temp, 0, 2);
+    Read((BYTE*)&temp, 2);
 
     short Return = (short)temp[0] << 8 | temp[1];
 
@@ -135,7 +135,7 @@ int xMultiFileStream::ReadInt32( void )
     // Create a new temporary buffer that will hold the bytes for the object
     BYTE temp[4];
     // Read the data
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     // Initialize our return value
     int Return = 0;
@@ -164,7 +164,7 @@ INT64 xMultiFileStream::ReadInt64( void )
     int size = sizeof(INT64);
 
     BYTE temp[8];
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     INT64 Return = 0;
 
@@ -190,7 +190,7 @@ UINT16 xMultiFileStream::ReadUInt16( void )
     int size = sizeof(UINT16);
 
     BYTE temp[2];
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     UINT16 Return = 0;
 
@@ -217,7 +217,7 @@ UINT32 xMultiFileStream::ReadUInt32( void )
 
     BYTE temp[4];
 
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     UINT32 Return = 0;
 
@@ -243,7 +243,7 @@ UINT64 xMultiFileStream::ReadUInt64( void )
     int size = sizeof(UINT64);
 
     BYTE temp[8];
-    ReadBytes((BYTE*)&temp, 0, size);
+    Read((BYTE*)&temp, size);
 
     UINT64 Return = 0;
 
@@ -255,12 +255,13 @@ UINT64 xMultiFileStream::ReadUInt64( void )
     return Return;
 }
 
-int xMultiFileStream::ReadBytes( BYTE* DestBuff, int Offset, int Count )
+int xMultiFileStream::Read( BYTE* DestBuff, int Count )
 {
-    qDebug("DestBuff address: %p\nOffset: %d\nCount: %d", DestBuff, Offset, Count);
+    int Offset = 0;
+    qDebug("DestBuff address: %d\nCount: %d", DestBuff, Count);
     if (IsClosed)
     {
-        throw xException("Stream is closed. At: xMultiFileStream::ReadBytes");
+        throw xException("Stream is closed. At: xMultiFileStream::Read");
     }
 
     //SetPosition(Position());
@@ -271,7 +272,7 @@ int xMultiFileStream::ReadBytes( BYTE* DestBuff, int Offset, int Count )
         // Balls, we can't. For each stream, loop for how much data we can read until we've read all of it
         while (Count > 0)
         {
-            DWORD Read = FileStreams.at(CurrentStream)->ReadBytes(DestBuff, Offset, Count);
+            DWORD Read = FileStreams.at(CurrentStream)->Read(DestBuff, Count);
             Offset += Read;
             Count -= Read;
             SetPosition(Position() + Read);
@@ -282,7 +283,7 @@ int xMultiFileStream::ReadBytes( BYTE* DestBuff, int Offset, int Count )
     else
     {
         // We can. Yay.
-        DWORD Read = FileStreams.at(CurrentStream)->ReadBytes(DestBuff, Offset, Count);
+        DWORD Read = FileStreams.at(CurrentStream)->Read(DestBuff, Count);
         SetPosition(Position() + Read);
         DetermineAndDoArraySwap(DestBuff, Count, true);
         return Read;
@@ -302,7 +303,7 @@ string xMultiFileStream::ReadString( size_t Count )
     BYTE* Buffer = new BYTE[Count + 1];
     memset(Buffer, 0, Count + 1);
 
-    ReadBytes(Buffer, 0, Count);
+    Read(Buffer, Count);
 
     string ret((char*)Buffer);
     delete[] Buffer;
@@ -356,7 +357,7 @@ wstring xMultiFileStream::ReadUnicodeString( size_t Count )
     BYTE* Buffer = new BYTE[Count + 1];
     memset(Buffer, 0, Count + 1);
 
-    ReadBytes(Buffer, 0, Count + 1);
+    Read(Buffer, Count + 1);
 
     wstring ret((TCHAR*)Buffer);
     delete[] Buffer;
@@ -373,7 +374,7 @@ void xMultiFileStream::WriteByte( BYTE _Byte )
     {
         throw xException("End of file reached.  At: xMultiFileStream::WriteByte");
     }
-    Write(&_Byte, 0, 1);
+    Write(&_Byte, 1);
 }
 
 void xMultiFileStream::WriteInt16( short _Int16 )
@@ -387,7 +388,7 @@ void xMultiFileStream::WriteInt16( short _Int16 )
         throw xException("End of file reached.  At: xMultiFileStream::WriteInt16");
     }
     DetermineAndDoEndianSwap((BYTE*)&_Int16, sizeof(short), sizeof(BYTE));
-    Write((BYTE*)&_Int16, 0, sizeof(short));
+    Write((BYTE*)&_Int16, sizeof(short));
 }
 
 void xMultiFileStream::WriteInt32( int _Int32 )
@@ -402,7 +403,7 @@ void xMultiFileStream::WriteInt32( int _Int32 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_Int32, sizeof(int), sizeof(BYTE));
-    Write((BYTE*)&_Int32, 0, sizeof(int));
+    Write((BYTE*)&_Int32, sizeof(int));
 }
 
 void xMultiFileStream::WriteInt64( INT64 _Int64 )
@@ -417,7 +418,7 @@ void xMultiFileStream::WriteInt64( INT64 _Int64 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_Int64, sizeof(INT64), sizeof(BYTE));
-    Write((BYTE*)&_Int64, 0, sizeof(INT64));
+    Write((BYTE*)&_Int64, sizeof(INT64));
 }
 
 void xMultiFileStream::WriteUInt16( UINT16 _UInt16 )
@@ -432,7 +433,7 @@ void xMultiFileStream::WriteUInt16( UINT16 _UInt16 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt16, sizeof(UINT16), sizeof(BYTE));
-    Write((BYTE*)&_UInt16, 0, sizeof(UINT16));
+    Write((BYTE*)&_UInt16, sizeof(UINT16));
 }
 
 void xMultiFileStream::WriteUInt32( UINT32 _UInt32 )
@@ -447,7 +448,7 @@ void xMultiFileStream::WriteUInt32( UINT32 _UInt32 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt32, sizeof(UINT32), sizeof(BYTE));
-    Write((BYTE*)&_UInt32, 0, sizeof(UINT32));
+    Write((BYTE*)&_UInt32, sizeof(UINT32));
 }
 
 void xMultiFileStream::WriteUInt64( UINT64 _UInt64 )
@@ -462,11 +463,12 @@ void xMultiFileStream::WriteUInt64( UINT64 _UInt64 )
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt64, sizeof(UINT64), sizeof(BYTE));
-    Write((BYTE*)&_UInt64, 0, sizeof(UINT64));
+    Write((BYTE*)&_UInt64, sizeof(UINT64));
 }
 
-int xMultiFileStream::Write( BYTE* Buffer, int offset, int count )
+int xMultiFileStream::Write( BYTE* Buffer, int count )
 {
+    int offset;
     if (IsClosed)
     {
         throw xException("Stream is closed. At: xMultiFileStream::WriteBytes");
