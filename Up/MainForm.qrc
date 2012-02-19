@@ -1,0 +1,10 @@
+<RCC>
+  <qresource prefix="File System Icons">
+    <file alias="iDisk">Images/Disk.png</file>
+    <file alias="iFile">Images/File.png</file>
+    <file alias="iFolder">Images/Folder.png</file>
+    <file alias="iForward">Images/Forward.png</file>
+    <file alias="iPartition">Images/Partition.png</file>
+    <file alias="iUsb">Images/ThumbDrive.png</file>
+  </qresource>
+</RCC>
