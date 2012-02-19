@@ -1,7 +1,7 @@
-Up is a cross-platform FATX file system explorer, licensed under the GNU Lesser General Public License (v3).  Copyright © 2012 Lander Brandt.
+Up is a cross-platform FATX file system explorer, licensed under the GNU Lesser General Public License (v3) and uses Qt technologies developed by Nokia (that Japanese company that is now basically owned by Microsoft).  Copyright © 2012 Lander Brandt.
 
 
-				GNU LESSER GENERAL PUBLIC LICENSE
+			GNU LESSER GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
  Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
