@@ -44,7 +44,7 @@ DWORD STFSPackage::TitleId( void )
 
 UINT64 STFSPackage::ConsoleId( void )
 {
-    Stream->SetPosition(0x36C - 3);
+    Stream->SetPosition(0x369);
     return Stream->ReadUInt64() & 0xFFFFFF0000000000;
 }
 
@@ -58,7 +58,7 @@ QString STFSPackage::DisplayName( int Locale )
 {
     Stream->SetPosition(0x411 + (0x80 * Locale));
     BYTE dn[0x80] = {0};
-    Stream->ReadBytes((BYTE*)&dn, 0, 0x80);
+    Stream->Read((BYTE*)&dn, 0x80);
     for (int i = 0; i < 0x80; i+=2)
         Stream->DetermineAndDoEndianSwap((BYTE*)&dn + i, sizeof(short), sizeof(char));
     return QString::fromUtf16((const ushort*)&dn);
@@ -68,7 +68,7 @@ QString STFSPackage::Description( int Locale )
 {
     Stream->SetPosition(0xD11 + (80 * Locale));
     BYTE dd[0x80] = {0};
-    Stream->ReadBytes((BYTE*)&dd, 0, 0x80);
+    Stream->Read((BYTE*)&dd, 0x80);
     for (int i = 0; i < 0x80; i+=2)
         Stream->DetermineAndDoEndianSwap((BYTE*)&dd + i, sizeof(short), sizeof(char));
     return QString::fromUtf16((const ushort*)&dd);
@@ -80,7 +80,7 @@ QImage STFSPackage::ThumbnailImage( void )
     DWORD Size = Stream->ReadUInt32();
     Stream->SetPosition(0x171A);
     BYTE Image[0x4000] = {0};
-    Stream->ReadBytes((BYTE*)&Image, 0, Size);
+    Stream->Read((BYTE*)&Image, Size);
     return QImage::fromData(QByteArray::fromRawData((const char*)&Image, Size));
 }
 
@@ -90,7 +90,7 @@ QImage STFSPackage::TitleImage( void )
     DWORD Size = Stream->ReadUInt32();
     Stream->SetPosition(0x571A);
     BYTE Image[0x4000] = {0};
-    Stream->ReadBytes((BYTE*)&Image, 0, Size);
+    Stream->Read((BYTE*)&Image, Size);
     return QImage::fromData(QByteArray::fromRawData((const char*)&Image, Size));
 }
 
