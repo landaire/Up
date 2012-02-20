@@ -68,6 +68,21 @@ enum DeviceType
     DeviceBackup
 };
 
+typedef union _FAT_TIME_STAMP
+{
+    struct
+    {
+        UINT16 Seconds  : 5;
+        UINT16 Minute   : 6;
+        UINT16 Hour     : 5;
+        UINT16 Day      : 5;
+        UINT16 Month    : 4;
+        UINT16 Year     : 7; // Relative to 2000
+    } DateTime;
+    DWORD AsDWORD;
+} FAT_TIME_STAMP;
+typedef FAT_TIME_STAMP *PFAT_TIME_STAMP;
+
 struct xDirent
 {
     // Size of the file/folder name
@@ -81,11 +96,11 @@ struct xDirent
     // Size of the file; 0 if folder/null
     UINT32 FileSize;
     // Entry creation date
-    UINT32 DateCreated;
-    // Entry access date
-    UINT32 DateAccessed;
-    // Entry modified date
-    UINT32 DateModified;
+    FAT_TIME_STAMP DateCreated;
+    // Entry date for when it was last written
+    FAT_TIME_STAMP DateLastWritten;
+    // Entry date for when it was last accessed
+    FAT_TIME_STAMP DateAccessed;
     // Offset of the entry (relative to disk start)
     UINT64 Offset;
 };
@@ -132,14 +147,14 @@ struct File
 
 typedef struct _DEV_PARTITION
 {
-	string Name;
+    std::string Name;
 	unsigned int Sector;
 	INT64 Size;
 } DevPartition;
 
 struct xVolume
 {
-	string		 Name;
+    std::string		 Name;
 	unsigned int Magic;					// Partition magic
     unsigned int SerialNumber;			// Partition serial number
 	unsigned int SectorsPerCluster;		// Number of sectors per cluster
