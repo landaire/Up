@@ -1,6 +1,7 @@
 #ifndef __HELPERS__HG
 #define __HELPERS__HG
 #include "../typedefs.h"
+#include "../FATX/StaticInformation.h"
 #include <QDateTime>
 #include <QDate>
 #include <QTime>
@@ -8,7 +9,7 @@ using namespace std;
 class Helpers
 {
 public:
-    static QDateTime IntToQDateTime( int Date );
+    static QDateTime IntToQDateTime( FAT_TIME_STAMP Date );
     static int   QDateTimeToInt( QDateTime Date );
 	static INT64 DownToNearestSector( INT64 Offset );
 	static INT64 UpToNearestSector( INT64 Offset );

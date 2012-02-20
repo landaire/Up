@@ -2,19 +2,17 @@
 #include "Helpers.h"
 #include <QDebug>
 
-QDateTime Helpers::IntToQDateTime( int Date )
+QDateTime Helpers::IntToQDateTime( FAT_TIME_STAMP Date )
 {
-    int Second, Minute, Hour, Day, Month, Year;
-    Second  = UpToNearestX(Date & 0x1F, 2);         // Bits 0-4
-    Minute  = (Date & 0x7E0) >> 5;                  // Bits 5-11
-    Hour    = (Date & 0xFC00) >> 11;                // Bits 11-15
-    Day     = (Date & 0x1F0000) >> 16;              // Bits 16-20
-    Month   = (Date & 0x1E00000) >> 21;             // Bits 21-24
-    Year    = ((Date & 0xFE000000) >> 25) + 1980;   // Bits 25-31
-
-    QDate d(Year, Month, Day);
-    QTime t(Hour, Minute, Second);
-    QDateTime r(QDate(Year, Month, Day), QTime(Hour, Minute, Second));
+//    int Second, Minute, Hour, Day, Month, Year;
+//    Second  = UpToNearestX(Date & 0x1F, 2);         // Bits 0-4
+//    Minute  = (Date & 0x7E0) >> 5;                  // Bits 5-11
+//    Hour    = (Date & 0xFC00) >> 11;                // Bits 11-15
+//    Day     = (Date & 0x1F0000) >> 16;              // Bits 16-20
+//    Month   = (Date & 0x1E00000) >> 21;             // Bits 21-24
+//    Year    = ((Date & 0xFE000000) >> 25) + 1980;   // Bits 25-31
+    QDateTime r(QDate(Date.DateTime.Year, Date.DateTime.Month, Date.DateTime.Day),
+                QTime(Date.DateTime.Hour, Date.DateTime.Minute, Date.DateTime.Seconds * 2));
     return r;
 }
 
@@ -37,9 +35,10 @@ INT64 Helpers::UpToNearestSector( INT64 Offset )
 
 INT64 Helpers::UpToNearestX(INT64 Value, int x)
 {
-    int Add = x - (Value % x);
+    int Remainder = Value % x;
+    int Add = x - Remainder;
     // If add doesn't equal x, return value + add
-    return (Add != x) ? Value + Add : x;
+    return (Remainder != 0) ? Value + Add : Value;
 }
 
 INT64 Helpers::DownToNearestX( INT64 Value, int x)
