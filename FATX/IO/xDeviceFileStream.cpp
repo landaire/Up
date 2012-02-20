@@ -55,13 +55,15 @@ void xDeviceFileStream::SetPosition( INT64 Position )
 
 INT64 xDeviceFileStream::GetPhysicalPosition(int FilePosition)
 {
-    int ClusterIndex = Helpers::UpToNearestX(FilePosition, xf->Volume->ClusterSize) / xf->Volume->ClusterSize;
+    int ClusterIndex = Helpers::DownToNearestX(FilePosition, xf->Volume->ClusterSize) / xf->Volume->ClusterSize;
     int Index = 0;
-    for (; Index < ClusterIndex - 1; Index++)
+    FilePosition -= (xf->Volume->ClusterSize * ClusterIndex);
+    if (ClusterIndex >= xf->ClusterChain.size())
     {
-        FilePosition -= xf->Volume->ClusterSize;
+        // Return the last cluster offset + one cluster more
+        return ((xf->ClusterChain.at(xf->ClusterChain.size() - 1) - 1) * xf->Volume->ClusterSize) + xf->Volume->DataStart + xf->Volume->ClusterSize;
     }
-    return ((xf->ClusterChain.at(Index) - 1) * xf->Volume->ClusterSize) + xf->Volume->DataStart + FilePosition;
+    return ((xf->ClusterChain.at(ClusterIndex) - 1) * xf->Volume->ClusterSize) + xf->Volume->DataStart + FilePosition;
 }
 
 BYTE xDeviceFileStream::ReadByte( void )
@@ -241,8 +243,7 @@ int xDeviceFileStream::Read( BYTE* DestBuff, int Count )
 {
     //SetPosition(Position());
     // How many clusters the data we're reading is spread across
-    int ClustersSpanned = (Count + (UserPosition - Helpers::DownToNearestX(UserPosition, xf->Volume->ClusterSize))) / xf->Volume->ClusterSize;
-    ++ClustersSpanned;
+    int ClustersSpanned = Helpers::UpToNearestX(Count + (UserPosition - Helpers::DownToNearestX(UserPosition, xf->Volume->ClusterSize)), xf->Volume->ClusterSize) / xf->Volume->ClusterSize;
     // Read the first amount of data...
     int DataReadableInFirstCluster = xf->Volume->ClusterSize - (UserPosition - Helpers::DownToNearestX(UserPosition, (INT64)xf->Volume->ClusterSize));
     if (DataReadableInFirstCluster < Count)
@@ -460,6 +461,7 @@ int xDeviceFileStream::Write( BYTE* Buffer, int count )
     //SetPosition(Position());
     // How many clusters the data we're writing is spread across
     int ClustersSpanned = (count + (UserPosition - Helpers::DownToNearestX(UserPosition, xf->Volume->ClusterSize))) / xf->Volume->ClusterSize;
+    ++ClustersSpanned;
     // Read the first amount of data...
     int DataWritableInFirstCluster = xf->Volume->ClusterSize - (UserPosition - Helpers::DownToNearestX(UserPosition, (INT64)xf->Volume->ClusterSize));
     if (DataWritableInFirstCluster < count)
