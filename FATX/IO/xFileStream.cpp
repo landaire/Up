@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "xFileStream.h"
-#include <QDebug>
 
 namespace Streams
 {
@@ -117,7 +116,6 @@ void xFileStream::Close( void )
 INT64 xFileStream::Position( void )
 {
     int x = _FileStream.tellg();
-    qDebug("Returning position: 0x%X", x);
     return (IsClosed) ? 0 : (INT64)_FileStream.tellg();
 }
 
@@ -127,7 +125,6 @@ void xFileStream::SetPosition( INT64 Position )
     {
         throw xException("Stream is closed. At: xFileStream::SetPosition");
     }
-    qDebug("Seeking to position: 0x%X", Position);
     _FileStream.seekg((DWORD)Position);
     _FileStream.seekp((DWORD)Position);
 }
@@ -294,7 +291,6 @@ UINT64 xFileStream::ReadUInt64( void )
 
 int xFileStream::Read( BYTE* DestBuff, int Count )
 {
-    qDebug("DestBuff address: %p\nCount: %d", DestBuff, Count);
     if (IsClosed)
     {
         throw xException("Stream is closed. At: xFileStream::Read");

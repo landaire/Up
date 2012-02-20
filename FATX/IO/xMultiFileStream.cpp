@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "xMultiFileStream.h"
 #include <QDebug>
-
 namespace Streams
 {
 xMultiFileStream::xMultiFileStream( vector<wstring> InPaths )
@@ -48,11 +47,6 @@ void xMultiFileStream::SetPosition( INT64 Position )
         throw xException("Can not seek beyond end of stream");
     }
     UserOffset = Position;
-    // Set all of the streams to 0
-//    for (int i = 0; i < (int)FileStreams.size(); i++)
-//    {
-//        FileStreams.at(i)->SetPosition(0);
-//    }
 
     // Find out which stream we can use
     for (int i = 0; i < (int)FileStreams.size(); i++)
@@ -65,6 +59,7 @@ void xMultiFileStream::SetPosition( INT64 Position )
         {
             CurrentStream = i;
             FileStreams.at(i)->SetPosition(Position);
+            qDebug("File stream at index %d position set to 0x%lX", i, Position);
             break;
         }
     }
@@ -258,7 +253,6 @@ UINT64 xMultiFileStream::ReadUInt64( void )
 int xMultiFileStream::Read( BYTE* DestBuff, int Count )
 {
     int Offset = 0;
-    qDebug("DestBuff address: %d\nCount: %d", DestBuff, Count);
     if (IsClosed)
     {
         throw xException("Stream is closed. At: xMultiFileStream::Read");

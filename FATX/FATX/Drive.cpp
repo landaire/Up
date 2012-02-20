@@ -99,12 +99,12 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     while (size > 0x4000)
     {
         size -= 0x4000;
-        xf->ReadBytes(Buffer, 0, 0x4000);
-        output->Write(Buffer, 0, 0x4000);
+        xf->Read(Buffer, 0x4000);
+        output->Write(Buffer, 0x4000);
     }
     // Read the last section of data
-    xf->ReadBytes(Buffer, 0, size);
-    output->Write(Buffer, 0, size);
+    xf->Read(Buffer, size);
+    output->Write(Buffer, size);
 
     xf->Close();
     output->Close();
@@ -328,12 +328,14 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
 
             Entry.Attributes = DeviceStream->ReadByte();
             sprintf(Entry.Name, "%s", DeviceStream->ReadString(Entry.NameSize).c_str());
+
             DeviceStream->SetPosition((DeviceStream->Position() + 0x2A) - Entry.NameSize);
-            Entry.ClusterStart  = DeviceStream->ReadUInt32();
-            Entry.FileSize      = DeviceStream->ReadUInt32();
-            Entry.DateCreated   = DeviceStream->ReadUInt32();
-            Entry.DateAccessed  = DeviceStream->ReadUInt32();
-            Entry.DateModified  = DeviceStream->ReadUInt32();
+
+            Entry.ClusterStart              = DeviceStream->ReadUInt32();
+            Entry.FileSize                  = DeviceStream->ReadUInt32();
+            Entry.DateCreated.AsDWORD       = DeviceStream->ReadUInt32();
+            Entry.DateLastWritten.AsDWORD   = DeviceStream->ReadUInt32();
+            Entry.DateAccessed.AsDWORD      = DeviceStream->ReadUInt32();
 
             // All of that's done, now determine what type of entry it is
             if (Entry.Attributes & Attributes::DIRECTORY)
@@ -346,9 +348,9 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
                 f->Parent           = Directory;
                 f->FatxEntriesRead  = false;
                 f->Volume           = Directory->Volume;
-                f->DateAccessed     = Helpers::IntToQDateTime(Entry.DateAccessed);
+                f->DateAccessed     = Helpers::IntToQDateTime(Entry.DateLastWritten);
                 f->DateCreated      = Helpers::IntToQDateTime(Entry.DateCreated);
-                f->DateModified     = Helpers::IntToQDateTime(Entry.DateModified);
+                f->DateModified     = Helpers::IntToQDateTime(Entry.DateAccessed);
                 Directory->CachedFolders.push_back(f);
             }
             else
@@ -359,9 +361,9 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
                 f->FullPath     += Entry.Name;
                 f->Parent       = Directory;
                 f->Volume       = Directory->Volume;
-                f->DateAccessed = Helpers::IntToQDateTime(Entry.DateAccessed);
+                f->DateAccessed = Helpers::IntToQDateTime(Entry.DateLastWritten);
                 f->DateCreated  = Helpers::IntToQDateTime(Entry.DateCreated);
-                f->DateModified = Helpers::IntToQDateTime(Entry.DateModified);
+                f->DateModified = Helpers::IntToQDateTime(Entry.DateAccessed);
                 Directory->CachedFiles.push_back(f);
             }
         }

@@ -29,8 +29,8 @@ unix:!symbian {
     INSTALLS += target
 }
 
-release {
-//DEFINES += QT_NO_DEBUG_OUTPUT
+CONFIG(release, debug|release) {
+ DEFINES += QT_NO_DEBUG_OUTPUT
 }
 
 HEADERS += \

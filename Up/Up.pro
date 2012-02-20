@@ -33,21 +33,20 @@ INCLUDEPATH += $$PWD/../FATX/FATX
 RESOURCES += \
     MainForm.qrc
 
-#release {
-#macx: LIBS += -L$$PWD/../FATX-OSXRelease/ -lFATX
 
-#INCLUDEPATH += $$PWD/../FATX-OSXRelease
-#DEPENDPATH += $$PWD/../FATX-OSXRelease
-
-#macx: PRE_TARGETDEPS += $$PWD/../FATX-OSXRelease/libFATX.a
-#DEFINES += QT_NO_DEBUG_OUTPUT
-#}
-
-debug {
+CONFIG(debug, debug|release) {
 macx: LIBS += -L$$PWD/../FATX-OSXDebug/ -lFATX
 
 INCLUDEPATH += $$PWD/../FATX-OSXDebug
 DEPENDPATH += $$PWD/../FATX-OSXDebug
 
 macx: PRE_TARGETDEPS += $$PWD/../FATX-OSXDebug/libFATX.a
+} else {
+macx: LIBS += -L$$PWD/../FATX-OSXRelease/ -lFATX
+
+INCLUDEPATH += $$PWD/../FATX-OSXRelease
+DEPENDPATH += $$PWD/../FATX-OSXRelease
+
+macx: PRE_TARGETDEPS += $$PWD/../FATX-OSXRelease/libFATX.a
+DEFINES += QT_NO_DEBUG_OUTPUT
 }
