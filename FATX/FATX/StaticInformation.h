@@ -8,6 +8,10 @@
 #include <QMetaType>
 
 class Drive;
+namespace Streams
+{
+class xDeviceFileStream;
+}
 
 #define FAT_CLUSTER_AVAILABLE           (UINT32)0x00000000
 #define FAT_CLUSTER_RESERVED            (UINT32)0xfffffff0
@@ -117,6 +121,7 @@ struct Progress
     int TotalMinimum;
     int TotalMaximum;
     Drive *Device;
+    Streams::xDeviceFileStream *Stream;
 };
 
 Q_DECLARE_METATYPE(Progress)
