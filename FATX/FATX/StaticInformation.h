@@ -115,7 +115,7 @@ struct xDirent
 struct Progress
 {
     int Current;
-    int Maximium;
+    int Maximum;
     std::string FilePath;
     std::string FileName;
     std::string FolderPath;
