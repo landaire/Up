@@ -103,6 +103,7 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     p.FilePath = dest->FullPath;
     p.Device = this;
     p.Stream = xf;
+    p.FileName = std::string(dest->Dirent.Name);
     while (size > 0x4000)
     {
         size -= 0x4000;
