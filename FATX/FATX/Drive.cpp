@@ -99,6 +99,8 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     BYTE Buffer[0x4000] = {0};
     Progress p;
     p.Maximium = Helpers::UpToNearestX(dest->Dirent.FileSize, dest->Volume->ClusterSize) / 0x4000;
+    if (p.Maximium == 0)
+        p.Maximum++;
     p.Current = 0;
     p.FilePath = dest->FullPath;
     p.Device = this;
