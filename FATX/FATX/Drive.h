@@ -7,11 +7,12 @@ using namespace std;
 #include "../IO/xFileStream.h"
 #include "../IO/xMultiFileStream.h"
 #include "../typedefs.h"
-#include "StaticInformation.h"
+#include "../FATX/StaticInformation.h"
 #include <QRegExp>
 #include <QDateTime>
 #include <QDebug>
 #include <sstream>
+#include <QObject>
 
 #ifdef __WINDOWS__
 #include <windows.h>
@@ -48,8 +49,9 @@ using namespace std;
 #pragma warning(disable : 4018 4482)
 #endif
 
-class Drive
+class Drive : public QObject
 {
+    Q_OBJECT
 private:
 
     typedef struct _DISK_DRIVE_INFORMATION
@@ -60,7 +62,7 @@ private:
 
 
 
-    static vector<Drive> GetLogicalPartitions( void );
+    static vector<Drive *> GetLogicalPartitions( void );
 
     static vector<DISK_DRIVE_INFORMATION> GetPhysicalDisks( void );
 
@@ -76,7 +78,6 @@ private:
     void    DestroyFolder           (Folder *Directory);
 
 public:
-
     Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb );
     ~Drive(void);
 
@@ -85,7 +86,7 @@ public:
     void    ReadClusterChain        (std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition);
 
     Streams::IStream*       DeviceStream;
-    static vector<Drive>    GetFATXDrives       ( bool HardDisks );
+    static vector<Drive *> GetFATXDrives( bool HardDisks );
     vector<string>          Partitions          ( void );
     UINT64                  PartitionGetLength  ( string Partition );
     void                    Close               ( void );
@@ -100,6 +101,6 @@ public:
     DeviceType              Type;
     bool                    IsDevKitDrive;
 signals:
-    void                    ProgressChanged(Progress progress);
+    void                    FileProgressChanged(const Progress &progress);
 };
 #endif
