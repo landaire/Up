@@ -117,6 +117,7 @@ struct Progress
     int Current;
     int Maximium;
     std::string FilePath;
+    std::string FileName;
     std::string FolderPath;
     int TotalMinimum;
     int TotalMaximum;
