@@ -5,6 +5,9 @@
 #include "../StdAfx.h"
 #include <vector>
 #include <QDateTime>
+#include <QMetaType>
+
+class Drive;
 
 #define FAT_CLUSTER_AVAILABLE           (UINT32)0x00000000
 #define FAT_CLUSTER_RESERVED            (UINT32)0xfffffff0
@@ -107,13 +110,16 @@ struct xDirent
 
 struct Progress
 {
-    int Minimum;
+    int Current;
     int Maximium;
     std::string FilePath;
     std::string FolderPath;
     int TotalMinimum;
     int TotalMaximum;
+    Drive *Device;
 };
+
+Q_DECLARE_METATYPE(Progress)
 
 struct File;
 struct xVolume;
