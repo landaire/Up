@@ -56,7 +56,7 @@ private:
         void                    Center          ( void );
         void                    DoEvents        ( void );
         std::string             GetItemPath     (QTreeWidgetItem* Item);
-        vector<Drive>           ActiveDrives;
+        vector<Drive*>           ActiveDrives;
         QTreeWidgetItem         *AddFolder      (QTreeWidgetItem *Item, Folder *f);
         QTreeWidgetItem         *AddFile        (QTreeWidgetItem *Item, File *f, Drive *device);
         void                    PopulateTreeItems(QTreeWidgetItem *Item, bool expand);
