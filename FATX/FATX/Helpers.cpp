@@ -93,3 +93,11 @@ string Helpers::ConvertToFriendlySize( INT64 Size )
 
         return returnVal;
 }
+void Helpers::split(const string &s, char delim, vector<string> &elems) {
+    qDebug("String stream s: %s", s.c_str());
+    stringstream ss(s);
+    string item;
+    while(getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+}

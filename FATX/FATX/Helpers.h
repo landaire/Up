@@ -16,5 +16,6 @@ public:
     static INT64 UpToNearestX( INT64 Value, int x);
     static INT64 DownToNearestX( INT64 Value, int x);
 	static string ConvertToFriendlySize( INT64 Size );
+    static void split(const string &s, char delim, vector<string> &elems);
 };
 #endif
