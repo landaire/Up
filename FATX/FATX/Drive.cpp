@@ -100,7 +100,8 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     Progress p;
     p.Maximium = Helpers::UpToNearestX(dest->Dirent.FileSize, dest->Volume->ClusterSize) / 0x4000;
     p.Current = 0;
-    p.FilePath = std::string(dest->Dirent.Name);
+    p.FilePath = dest->FullPath;
+    p.Device = this;
     while (size > 0x4000)
     {
         size -= 0x4000;
