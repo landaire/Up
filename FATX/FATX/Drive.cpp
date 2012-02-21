@@ -102,14 +102,17 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     p.Current = 0;
     p.FilePath = dest->FullPath;
     p.Device = this;
+    p.Stream = xf;
     while (size > 0x4000)
     {
         size -= 0x4000;
+        xf->SetPosition(xf->Length() - size);
         xf->Read(Buffer, 0x4000);
         output->Write(Buffer, 0x4000);
         p.Current++;
         emit FileProgressChanged(p);
     }
+    xf->SetPosition(xf->Length() - size);
     // Read the last section of data
     xf->Read(Buffer, size);
     output->Write(Buffer, size);
