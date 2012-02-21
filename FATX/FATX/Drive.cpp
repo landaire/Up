@@ -1,8 +1,9 @@
 #include "StdAfx.h"
 #include "Drive.h"
 #include "../IO/xDeviceFileStream.h"
+#include <QMetaType>
 
-Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb )
+Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
 {
     IsDevKitDrive = false;
     if (!IsUsb)
@@ -96,15 +97,23 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     Streams::xFileStream *output = new Streams::xFileStream(Output.c_str(), Streams::Create);
     UINT64 size = xf->Length();
     BYTE Buffer[0x4000] = {0};
+    Progress p;
+    p.Maximium = Helpers::UpToNearestX(dest->Dirent.FileSize, dest->Volume->ClusterSize) / 0x4000;
+    p.Current = 0;
+    p.FilePath = std::string(dest->Dirent.Name);
     while (size > 0x4000)
     {
         size -= 0x4000;
         xf->Read(Buffer, 0x4000);
         output->Write(Buffer, 0x4000);
+        p.Current++;
+        emit FileProgressChanged(p);
     }
     // Read the last section of data
     xf->Read(Buffer, size);
     output->Write(Buffer, size);
+    p.Current++;
+    emit FileProgressChanged(p);
 
     xf->Close();
     output->Close();
@@ -134,6 +143,7 @@ void Drive::DestroyFolder(Folder *Directory)
 }
 
 void Drive::split(const string &s, char delim, vector<string> &elems) {
+    qDebug("String stream s: %s", s.c_str());
     stringstream ss(s);
     string item;
     while(getline(ss, item, delim)) {
@@ -605,9 +615,9 @@ void Drive::InitializePartitions( void )
     SetValidPartitions();
 }
 
-vector<Drive> Drive::GetFATXDrives( bool HardDisks )
+vector<Drive *> Drive::GetFATXDrives( bool HardDisks )
 {
-    vector<Drive> Return;
+    vector<Drive *> Return;
     if (HardDisks)
     {
         vector<DISK_DRIVE_INFORMATION> Disks = GetPhysicalDisks();
@@ -645,13 +655,13 @@ vector<Drive> Drive::GetFATXDrives( bool HardDisks )
             // Compare the magic we read to the *actual* FATX magic
             if (Magic == FatxMagic)
             {
-                Drive d(Disks.at(i).Path, Disks.at(i).FriendlyName, false);
+                Drive *d = new Drive(Disks.at(i).Path, Disks.at(i).FriendlyName, false);
                 Return.push_back(d);
             }
         }
     }
 
-    vector<Drive> LogicalDisks = GetLogicalPartitions();
+    vector<Drive *> LogicalDisks = GetLogicalPartitions();
     for (int i = 0; i < (int)LogicalDisks.size(); i++)
     {
         Return.push_back(LogicalDisks.at(i));
@@ -665,9 +675,9 @@ INT64 Drive::GetLength( void )
     return DeviceStream->Length();
 }
 
-vector<Drive> Drive::GetLogicalPartitions( void )
+vector<Drive *> Drive::GetLogicalPartitions( void )
 {
-    vector<Drive> ReturnVector;
+    vector<Drive *> ReturnVector;
 
 #ifdef __WINDOWS__
     DWORD LettersSize = (26 * 2) + 1;
@@ -702,7 +712,7 @@ for (int i = 0; i < 26; i+= 4)
         Streams::xFileStream tempFile(temp, Streams::Open);
         tempFile.Close();
         // Stream opened with no exception, we're good!
-        Drive d(&(Letters[i]), Name, true);
+        Drive *d = new Drive(&(Letters[i]), Name, true);
         ReturnVector.push_back(d);
     }
     catch(...)
@@ -746,7 +756,7 @@ if (dir != NULL)
             {
                 swprintf(curdir.FriendlyName, wcslen(curdir.Path) - 9, &(curdir.Path[0]) + 9);
             }
-            Drive d(curdir.Path, curdir.FriendlyName, true);
+            Drive *d = new Drive(curdir.Path, curdir.FriendlyName, true);
             ReturnVector.push_back(d);
         }
         catch(...)
