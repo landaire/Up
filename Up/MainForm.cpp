@@ -94,7 +94,7 @@ Drive *MainForm::GetCurrentItemDrive(QTreeWidgetItem* Item)
 
     for (int i = 0; i < (int)ActiveDrives.size(); i++)
     {
-        Drive* d = &ActiveDrives.at(i);
+        Drive* d = ActiveDrives.at(i);
         qDebug(QString::fromWCharArray(d->FriendlyName.c_str()).toStdString().c_str());
         if (QString::fromWCharArray(d->FriendlyName.c_str()) == Parent->text(0))
             return d;
@@ -244,7 +244,7 @@ void MainForm::ShowAbout( void )
 
 void MainForm::OnLoadDevicesClick( void )
 {
-    vector<Drive> Drives;
+    vector<Drive *> Drives;
     try
     {
         Drives = Drive::GetFATXDrives(true);
@@ -258,12 +258,12 @@ void MainForm::OnLoadDevicesClick( void )
 
     for (int i = 0; i < (int)Drives.size(); i++)
     {
-        Drive current = Drives.at(i);
+        Drive *current = Drives.at(i);
         bool Skip = false;
         // Do a check to make sure we aren't adding the same device twice
         for (int j = 0; j < (int)ui.fileSystemTree->topLevelItemCount(); j++)
         {
-            if (QString::fromWCharArray(current.FriendlyName.c_str()) == ui.fileSystemTree->topLevelItem(j)->text(0))
+            if (QString::fromWCharArray(current->FriendlyName.c_str()) == ui.fileSystemTree->topLevelItem(j)->text(0))
             {
                 // Skip this item
                 Skip = true;
@@ -272,14 +272,15 @@ void MainForm::OnLoadDevicesClick( void )
         }
         if (Skip)
         {
-            current.Close();
+            current->Close();
+            delete current;
             continue;
         }
         ActiveDrives.push_back(current);
         QTreeWidgetItem* item = new QTreeWidgetItem();
-        item->setText(0, QString::fromWCharArray(current.FriendlyName.c_str()));			// Drive name
+        item->setText(0, QString::fromWCharArray(current->FriendlyName.c_str()));			// Drive name
         char* Type = 0;
-        switch (current.Type)
+        switch (current->Type)
         {
         case DeviceUsb:
             Type = "USB Removable Storage";
@@ -293,9 +294,9 @@ void MainForm::OnLoadDevicesClick( void )
         }
 
         item->setText(2, QString::fromAscii(Type));     									// Drive type
-        item->setText(3, QString::fromAscii(current.FriendlySize.c_str()));					// Drive size
+        item->setText(3, QString::fromAscii(current->FriendlySize.c_str()));                // Drive size
         // if it's a USB device
-        if (current.Type == DeviceUsb)
+        if (current->Type == DeviceUsb)
         {
             // Assign it the USB icon
             item->setIcon(0, iUsb);
@@ -305,17 +306,17 @@ void MainForm::OnLoadDevicesClick( void )
             item->setIcon(0, iDisk);
         }
 
-        for (int j = 0; j < (int)current.Partitions().size(); j++)
+        for (int j = 0; j < (int)current->Partitions().size(); j++)
         {
             if (!item)
             {
                 break;
             }
             QTreeWidgetItem* partition = new QTreeWidgetItem(item);
-            string currentVolume = current.Partitions().at(j);
+            string currentVolume = current->Partitions().at(j);
             partition->setText(0, QString::fromAscii(currentVolume.c_str()));	// Partition name
             partition->setText(2, QString::fromAscii("Partition"));
-            partition->setText(3, QString::fromAscii(Helpers::ConvertToFriendlySize((INT64)current.PartitionGetLength(currentVolume)).c_str()));
+            partition->setText(3, QString::fromAscii(Helpers::ConvertToFriendlySize((INT64)current->PartitionGetLength(currentVolume)).c_str()));
             partition->setIcon(0, iPartition);
             partition->setData(0, Qt::UserRole, QVariant(false));
 
