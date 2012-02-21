@@ -12,6 +12,8 @@ STFSPackage::~STFSPackage( void )
 
 bool STFSPackage::IsStfsPackage( void )
 {
+    if (Stream->Length() < 0xA000)
+        return false;
     DWORD Magic = this->Magic();
     switch (Magic)
     {
