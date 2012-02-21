@@ -55,7 +55,8 @@ void MainForm::OnCopyToLocalDiskClick( void )
     }
     QTreeWidgetItem *item = ui.fileSystemTree->selectedItems().at(0);
     ProgressDialog *pd = new ProgressDialog(0, OperationCopyToDisk, &GetCurrentItemPath(item), s.toStdString(), GetCurrentItemDrive(item));
-    pd->exec();
+    pd->setModal(true);
+    pd->show();
 }
 
 void MainForm::SetContextMenus( void )
