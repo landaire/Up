@@ -118,9 +118,6 @@ struct Progress
     int Maximum;
     std::string FilePath;
     std::string FileName;
-    std::string FolderPath;
-    int TotalMinimum;
-    int TotalMaximum;
     Drive *Device;
     Streams::xDeviceFileStream *Stream;
 };
