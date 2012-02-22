@@ -48,13 +48,32 @@ string MainForm::GetCurrentItemPath(QTreeWidgetItem *Item)
 
 void MainForm::OnCopyToLocalDiskClick( void )
 {
-    QString s = QFileDialog::getSaveFileName(0, QString::fromAscii("Choose where to save the file"));
+    QString s;
+    int size = ui.fileSystemTree->selectedItems().size();
+    if (size == 0)
+        return;
+    else if (size == 1 && ui.fileSystemTree->selectedItems().at(0)->text(2) != QString::fromAscii("Folder"))
+    {
+        s = QFileDialog::getSaveFileName(this, QString::fromAscii("Select Where to Save File"), ui.fileSystemTree->selectedItems().at(0)->text(0));
+    }
+    else
+    {
+        QFileDialog qfd;
+        qfd.setFileMode(QFileDialog::Directory);
+        qfd.setOption(QFileDialog::ShowDirsOnly);
+        s = qfd.getExistingDirectory(this, QString::fromAscii("Select Directory to Save Files"));
+    }
     if (s.isEmpty() || s.isNull())
     {
         return;
     }
-    QTreeWidgetItem *item = ui.fileSystemTree->selectedItems().at(0);
-    ProgressDialog *pd = new ProgressDialog(0, OperationCopyToDisk, &GetCurrentItemPath(item), s.toStdString(), GetCurrentItemDrive(item));
+
+    // Get the paths of all selected items
+    vector<std::string> Paths;
+    for (int i = 0; i < ui.fileSystemTree->selectedItems().size(); i++)
+        Paths.push_back(GetCurrentItemPath(ui.fileSystemTree->selectedItems().at(i)));
+
+    ProgressDialog *pd = new ProgressDialog(this, OperationCopyToDisk, Paths, s.toStdString(), ActiveDrives);
     pd->setModal(true);
     pd->show();
 }
@@ -205,12 +224,9 @@ void MainForm::PopulateTreeItems(QTreeWidgetItem *Item, bool expand)
             }
         }
 
-
         for (int j = 0; j < (int)sub->CachedFolders.size(); j++)
-        {
-            Folder *cur = sub->CachedFolders.at(j);
-            QTreeWidgetItem *thirdLevel = AddFolder(subItem, sub->CachedFolders.at(j));
-        }
+            AddFolder(subItem, sub->CachedFolders.at(j));
+
         for (int x = 0;  x < (int)sub->CachedFiles.size(); x++)
             AddFile(subItem, sub->CachedFiles.at(x), currentDrive);
     }
