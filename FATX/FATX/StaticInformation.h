@@ -6,7 +6,7 @@
 #include <vector>
 #include <QDateTime>
 #include <QMetaType>
-
+#include <../QtGui/QImage>
 class Drive;
 namespace Streams
 {
@@ -119,7 +119,9 @@ struct Progress
     std::string FilePath;
     std::string FileName;
     Drive *Device;
-    Streams::xDeviceFileStream *Stream;
+    QImage PackageImage;
+    bool IsStfsPackage;
+    QString PackageName;
 };
 
 Q_DECLARE_METATYPE(Progress)
