@@ -20,16 +20,16 @@ class ProgressDialog : public QDialog
     Q_OBJECT
     
 public:
-    //explicit ProgressDialog(QWidget *parent = 0, Operations Operation, std::string Path[], std::string OutPath);
-    ProgressDialog(QWidget *parent, Operations Operation, std::string *Path, std::string OutPath, Drive *drive);
+    ProgressDialog(QWidget *parent, Operations Operation, std::vector<std::string> Paths, std::string OutPath, std::vector<Drive*>& Drives);
     ~ProgressDialog();
-    void PerformOperation( Operations Operation, std::string Path, std::string OutPath, Drive *Drive );
+    void PerformOperation( Operations Operation, std::vector<std::string> Paths, std::string OutPath, std::vector<Drive*>& Drives);
 
 private:
     Ui::ProgressDialog *ui;
-    void CopyFileToLocalDisk( string *Path, std::string OutPath, Drive *Drive );
+    void CopyFileToLocalDisk( std::vector<std::string> Paths, std::string OutPath, std::vector<Drive*>& Drives );
     Operations operation;
     QGraphicsScene *scene;
+    int PathCount;
 public slots:
     void OnFileProgressChanged(const Progress& p);
 };
