@@ -49,7 +49,6 @@ INT64 xDeviceFileStream::Length( void )
 void xDeviceFileStream::SetPosition( INT64 Position )
 {
     device->DeviceStream->SetPosition(GetPhysicalPosition(Position));
-    qDebug("Device filestream position set: 0x%X\nPhysical disk position:0x%X", Position, GetPhysicalPosition(Position));
     UserPosition = Position;
 }
 
@@ -61,6 +60,7 @@ INT64 xDeviceFileStream::GetPhysicalPosition(int FilePosition)
     if (ClusterIndex >= xf->ClusterChain.size())
     {
         // Return the last cluster offset + one cluster more
+        qDebug("File offset invalid!");
         return ((xf->ClusterChain.at(xf->ClusterChain.size() - 1) - 1) * xf->Volume->ClusterSize) + xf->Volume->DataStart + xf->Volume->ClusterSize;
     }
     return ((xf->ClusterChain.at(ClusterIndex) - 1) * xf->Volume->ClusterSize) + xf->Volume->DataStart + FilePosition;

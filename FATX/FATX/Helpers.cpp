@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "Helpers.h"
 #include <QDebug>
+#include <sstream>
 
 QDateTime Helpers::IntToQDateTime( FAT_TIME_STAMP Date )
 {
