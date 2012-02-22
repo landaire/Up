@@ -11,7 +11,6 @@ using namespace std;
 #include <QRegExp>
 #include <QDateTime>
 #include <QDebug>
-#include <sstream>
 #include <QObject>
 
 #ifdef __WINDOWS__
@@ -74,7 +73,6 @@ private:
     vector<string> _partitions;
     void    ReadDirectoryEntries    (Folder* Directory);
 
-    void    split(const string &s, char delim, vector<string> &elems);
     void    DestroyFolder           (Folder *Directory);
 
 public:

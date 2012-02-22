@@ -2,6 +2,7 @@
 #include "Drive.h"
 #include "../IO/xDeviceFileStream.h"
 #include <QMetaType>
+#include "stfspackage.h"
 
 Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
 {
@@ -97,6 +98,7 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     Streams::xFileStream *output = new Streams::xFileStream(Output.c_str(), Streams::Create);
     UINT64 size = xf->Length();
     BYTE Buffer[0x4000] = {0};
+
     Progress p;
     p.Maximum = Helpers::UpToNearestX(dest->Dirent.FileSize, dest->Volume->ClusterSize) / 0x4000;
     if (p.Maximum == 0)
@@ -104,12 +106,19 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     p.Current = 0;
     p.FilePath = dest->FullPath;
     p.Device = this;
-    p.Stream = xf;
     p.FileName = std::string(dest->Dirent.Name);
+    STFSPackage pack(xf);
+    p.IsStfsPackage = pack.IsStfsPackage();
+    if (p.IsStfsPackage)
+    {
+        p.PackageImage = pack.ThumbnailImage();
+        p.PackageName = pack.DisplayName();
+    }
+    emit FileProgressChanged(p);
     while (size > 0x4000)
     {
-        size -= 0x4000;
         xf->SetPosition(xf->Length() - size);
+        size -= 0x4000;
         xf->Read(Buffer, 0x4000);
         output->Write(Buffer, 0x4000);
         p.Current++;
@@ -149,15 +158,6 @@ void Drive::DestroyFolder(Folder *Directory)
     delete Directory;
 }
 
-void Drive::split(const string &s, char delim, vector<string> &elems) {
-    qDebug("String stream s: %s", s.c_str());
-    stringstream ss(s);
-    string item;
-    while(getline(ss, item, delim)) {
-        elems.push_back(item);
-    }
-}
-
 Folder *Drive::FolderFromPath(string Path)
 {
     for (int i = 0; i < (int)ValidVolumes.size(); i++)
@@ -166,7 +166,7 @@ Folder *Drive::FolderFromPath(string Path)
 
         // Split the path so by the backslash
         vector<string> PathSplit;
-        split(Path, '/', PathSplit);
+        Helpers::split(Path, '/', PathSplit);
         // Match the partition name to that of the one we were given
         QRegExp reg(PathSplit.at(0).c_str());
         reg.setCaseSensitivity(Qt::CaseInsensitive);
@@ -221,6 +221,7 @@ Folder *Drive::FolderFromPath(string Path)
 
 File *Drive::FileFromPath(string Path)
 {
+    int MOTHERFUCKINGCOUNT = 19;
     char Friendly[0x50] = {0};
     wcstombs(Friendly, FriendlyName.c_str(), FriendlyName.size());
     string cmp = Path.substr(0, Path.find('/'));
@@ -231,11 +232,9 @@ File *Drive::FileFromPath(string Path)
     for (int i = 0; i < (int)ValidVolumes.size(); i++)
     {
         xVolume* activePartition = ValidVolumes.at(i);
-
         // Split the path so by the backslash
         vector<string> PathSplit;
-        split(Path, '/', PathSplit);
-
+        Helpers::split(Path, '/', PathSplit);
         // Match the partition name to that of the one we were given
         QRegExp reg(PathSplit.at(0).c_str());
         reg.setCaseSensitivity(Qt::CaseInsensitive);
@@ -269,7 +268,6 @@ File *Drive::FileFromPath(string Path)
                     {
                         // Get the subfolder
                         Folder *f = current->CachedFolders.at(j);
-
                         // Try to match the name to whatever we're looking for
                         QRegExp fReg(PathSplit.at(0).c_str());
                         fReg.setCaseSensitivity(Qt::CaseInsensitive);
