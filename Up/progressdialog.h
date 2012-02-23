@@ -30,6 +30,8 @@ private:
     Operations operation;
     QGraphicsScene *scene;
     int PathCount;
+    int FilesTotal;
+    int FilesCompleted;
 public slots:
     void OnFileProgressChanged(const Progress& p);
 };
