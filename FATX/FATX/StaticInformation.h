@@ -7,6 +7,10 @@
 #include <QDateTime>
 #include <QMetaType>
 #include <../QtGui/QImage>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 class Drive;
 namespace Streams
 {

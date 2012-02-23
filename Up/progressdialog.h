@@ -3,7 +3,9 @@
 
 #include <QDialog>
 #include <QtConcurrentRun>
-#include <../FATX/Drive.h>
+#include "../FATX/FATX/StaticInformation.h"
+#include "../FATX/IO/xDeviceFileStream.h"
+#include "../FATX/FATX/stfspackage.h"
 #include <qgraphicsscene.h>
 
 enum Operations

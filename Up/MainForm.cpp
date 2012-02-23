@@ -18,6 +18,10 @@ MainForm::MainForm(QWidget *parent, Qt::WFlags flags)
     iUsb.addFile(QString::fromUtf8(":/File System Icons/iUsb"), QSize(), QIcon::Normal, QIcon::Off);
     iFolder.addFile(QString::fromUtf8(":/File System Icons/iFolder"), QSize(), QIcon::Normal, QIcon::Off);
     iPartition.addFile(QString::fromUtf8(":/File System Icons/iPartition"), QSize(), QIcon::Normal, QIcon::Off);
+
+    std::string s("dicks");
+    QString::fromAscii(s.c_str());
+    return;
 }
 
 MainForm::~MainForm()
@@ -31,8 +35,8 @@ string MainForm::GetCurrentItemPath(QTreeWidgetItem *Item)
     QTreeWidgetItem *temp = Item;
     while (temp != 0)
     {
-        ItemNames.push_back(temp->text(0).toStdString());
-        qDebug("Item: %s", temp->text(0).toStdString().c_str());
+        ItemNames.push_back(Helpers::QStringToStdString(temp->text(0)));
+        qDebug("Item: %s", Helpers::QStringToStdString(temp->text(0)).c_str());
         temp = temp->parent();
     }
     string built;
@@ -73,7 +77,7 @@ void MainForm::OnCopyToLocalDiskClick( void )
     for (int i = 0; i < ui.fileSystemTree->selectedItems().size(); i++)
         Paths.push_back(GetCurrentItemPath(ui.fileSystemTree->selectedItems().at(i)));
 
-    ProgressDialog *pd = new ProgressDialog(this, OperationCopyToDisk, Paths, s.toStdString(), ActiveDrives);
+    ProgressDialog *pd = new ProgressDialog(this, OperationCopyToDisk, Paths, Helpers::QStringToStdString(s), ActiveDrives);
     pd->setModal(true);
     pd->show();
 }
@@ -106,15 +110,15 @@ void MainForm::DoEvents( void )
 Drive *MainForm::GetCurrentItemDrive(QTreeWidgetItem* Item)
 {
     QString text = Item->text(0);
-    qDebug(text.toStdString().c_str());
-    QTreeWidgetItem* Parent = Item;
+    qDebug(Helpers::QStringToStdString(text).c_str());
+    QTreeWidgetItem *Parent = Item;
     while (Parent->parent() != 0)
         Parent = Parent->parent();
 
     for (int i = 0; i < (int)ActiveDrives.size(); i++)
     {
         Drive* d = ActiveDrives.at(i);
-        qDebug(QString::fromWCharArray(d->FriendlyName.c_str()).toStdString().c_str());
+
         if (QString::fromWCharArray(d->FriendlyName.c_str()) == Parent->text(0))
             return d;
     }
@@ -128,10 +132,6 @@ std::string MainForm::GetItemPath(QTreeWidgetItem *Item)
     QTreeWidgetItem* Parent = Item;
     do
     {
-        if (Parent->parent() == 0)
-        {
-            break;
-        }
         if (Path.length() != 0)
         {
             string pathtemp = Path;
@@ -139,7 +139,8 @@ std::string MainForm::GetItemPath(QTreeWidgetItem *Item)
             Path += pathtemp;
         }
         string pathtemp = Path;
-        Path = Parent->text(0).toStdString() + pathtemp;
+
+        Path = string(Parent->text(0).toLocal8Bit().data()) + pathtemp;
         Parent = Parent->parent();
     }
     while (Parent != 0);
@@ -168,7 +169,7 @@ QTreeWidgetItem *MainForm::AddFile(QTreeWidgetItem* Item, File *f, Drive *device
     QDateTime ModifiedDate = f->DateModified;
     fItem->setText(1, ModifiedDate.toString());
     fItem->setText(2, QString::fromAscii("File"));
-    fItem->setText(3, QString::fromStdString(Helpers::ConvertToFriendlySize(f->Dirent.FileSize)));
+    fItem->setText(3, QString::fromLocal8Bit(Helpers::ConvertToFriendlySize(f->Dirent.FileSize).c_str()));
 
     // Determine if the file is a valid STFS package
     Streams::xDeviceFileStream *fs = new Streams::xDeviceFileStream(f->FullPath, device);
@@ -336,6 +337,7 @@ void MainForm::OnLoadDevicesClick( void )
             partition->setIcon(0, iPartition);
             partition->setData(0, Qt::UserRole, QVariant(false));
 
+            QString text(partition->text(0));
             PopulateTreeItems(partition, false);
         }
         ui.fileSystemTree->insertTopLevelItem(ui.fileSystemTree->topLevelItemCount(), item);

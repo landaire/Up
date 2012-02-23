@@ -12,7 +12,7 @@ QDateTime Helpers::IntToQDateTime( FAT_TIME_STAMP Date )
 
 int Helpers::QDateTimeToInt( QDateTime Date )
 {
-
+    return 0;
 }
 
 INT64 Helpers::DownToNearestSector( INT64 Offset )
@@ -101,4 +101,14 @@ void Helpers::split(const string &s, char delim, vector<string> &elems) {
     while(getline(ss, item, delim)) {
         elems.push_back(item);
     }
+}
+
+string Helpers::QStringToStdString(QString& stringData)
+{
+    return string(stringData.toLocal8Bit().data());
+}
+
+QString Helpers::QStringFromStdString(string stringData)
+{
+    return QString::fromLocal8Bit(stringData.c_str());
 }

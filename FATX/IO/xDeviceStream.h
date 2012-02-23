@@ -3,7 +3,7 @@
 #include "IStream.h"
 #include "../xexception.h"
 
-#ifdef __WINDOWS__
+#ifdef _WIN32
 #include <windows.h>
 #include <WinIoCtl.h>
 #else
@@ -15,15 +15,16 @@
 
 #include "../FATX/Helpers.h"
 
-#ifndef __WINDOWS__
+#ifndef _WIN32
 #include <sys/stat.h>
 #endif
+
 namespace Streams
 {
 	class xDeviceStream : public IStream
 	{
 	private:
-#ifdef __WINDOWS__
+#ifdef _WIN32
 		HANDLE DeviceHandle;
 		OVERLAPPED Offset;
 #else

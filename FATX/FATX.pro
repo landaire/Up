@@ -11,23 +11,15 @@ QT       -= gui
 TARGET = FATX
 TEMPLATE = lib
 CONFIG += staticlib
-DEFINES += UNICODE _UNICODE _LARGEFILE64_SOURCE
+DEFINES += UNICODE _UNICODE QT_NO_DEBUG_OUTPUT # _LARGEFILE64_SOURCE
 
 #QMAKE_CXXFLAGS += -D_FILE_OFFSET_BITS=64
 
-win32{
-QMAKE_CFLAGS_RELEASE += -Zi
-QMAKE_CXXFLAGS_RELEASE += -Zi -g
-QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF}
+#win32{
+#QMAKE_CFLAGS_RELEASE += -Zi
+#QMAKE_CXXFLAGS_RELEASE += -Zi -g
+#QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF}
 
-unix:!symbian {
-    maemo5 {
-        target.path = /opt/usr/lib
-    } else {
-        target.path = /usr/lib
-    }
-    INSTALLS += target
-}
 
 CONFIG(release, debug|release) {
  DEFINES += QT_NO_DEBUG_OUTPUT

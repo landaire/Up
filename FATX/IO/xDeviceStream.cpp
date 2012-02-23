@@ -9,14 +9,14 @@ xDeviceStream::xDeviceStream( TCHAR* DevicePath )
     _Length = 0;
     _Endian = Big;
     IsClosed = false;
-#ifdef __WINDOWS__
+#ifdef _WIN32
     memset(&Offset, 0, sizeof(OVERLAPPED));
 #endif
     memset(&LastReadData, 0, 0x200);
     LastReadOffset = -1;
     UserOffset = 0;
 
-#ifdef __WINDOWS__
+#ifdef _WIN32
     // Attempt to get a handle to the device
     DeviceHandle = CreateFile(
                 DevicePath,							// File name (device path)
@@ -53,7 +53,7 @@ xDeviceStream::~xDeviceStream(void)
 
 void xDeviceStream::Close( void )
 {
-#if defined __WINDOWS__
+#if defined _WIN32
     if (DeviceHandle != INVALID_HANDLE_VALUE)
     {
         CloseHandle(DeviceHandle);
@@ -72,7 +72,7 @@ INT64 xDeviceStream::Position( void )
 
 INT64 xDeviceStream::RealPosition( void )
 {
-#ifdef __WINDOWS__
+#ifdef _WIN32
     return (INT64)(((INT64)Offset.OffsetHigh << 32) | Offset.Offset);
 #else
     return Offset;
@@ -87,7 +87,7 @@ void xDeviceStream::SetPosition( INT64 Position )
     }
     UserOffset = Position;
     Position = Helpers::DownToNearestSector(Position); // Round the position down to the nearest sector offset
-#ifdef __WINDOWS__
+#ifdef _WIN32
     Offset.Offset = (DWORD)Position;
     Offset.OffsetHigh = (DWORD)(Position >> 32);
 #else
@@ -100,7 +100,7 @@ INT64 xDeviceStream::Length( void )
 {
     if (!IsClosed && !_Length)
     {
-#ifdef __WINDOWS__
+#ifdef _WIN32
         DISK_GEOMETRY Geometry;
         DWORD BytesReturned;
         memset(&Geometry, 0, sizeof(DISK_GEOMETRY));
@@ -308,7 +308,7 @@ int xDeviceStream::Read( BYTE* DestBuff, int Count )
     {
         throw xException("Stream is closed. At: xDeviceStream::Read");
     }
-#ifdef __WINDOWS__
+#ifdef _WIN32
     else if (DeviceHandle == INVALID_HANDLE_VALUE)
     {
         throw xException("Error: INVALID_HANDLE_VALUE. At: xDeviceStream::Read");
@@ -349,7 +349,7 @@ int xDeviceStream::Read( BYTE* DestBuff, int Count )
     if (LastReadOffset != RealPosition())
     {
         // Cache
-#ifdef __WINDOWS__
+#ifdef _WIN32
         ReadFile(
                     DeviceHandle,	// Device to read from
                     LastReadData,	// Output buffer
@@ -376,7 +376,7 @@ int xDeviceStream::Read( BYTE* DestBuff, int Count )
         AllData = new BYTE[AllDataLength - 0x200];
 
         // Read for all sectors EXCEPT the last one
-#ifdef __WINDOWS__
+#ifdef _WIN32
         ReadFile(
                     DeviceHandle,	// Device to read from
                     AllData,		// Output buffer
@@ -587,7 +587,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
     {
         throw xException("Stream is closed. At: xDeviceStream::Write");
     }
-#ifdef __WINDOWS__
+#ifdef _WIN32
     else if (DeviceHandle == INVALID_HANDLE_VALUE)
     {
         throw xException("Error: INVALID_HANDLE_VALUE. At: xDeviceStream::Write");
@@ -615,7 +615,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
     if (LastReadOffset != RealPosition())
     {
         // Cache
-#ifdef __WINDOWS__
+#ifdef _WIN32
         ReadFile(
                     DeviceHandle,	// Device to read from
                     LastReadData,	// Output buffer
@@ -632,7 +632,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
     {
         AllData = new BYTE[BytesWeNeedToRead];
         // Read the data
-#ifdef __WINDOWS__
+#ifdef _WIN32
         ReadFile(
                     DeviceHandle,
                     AllData,
@@ -652,7 +652,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
         DetermineAndDoArraySwap(AllData, BytesWeNeedToRead);
 
         // Write the data
-#ifdef __WINDOWS__
+#ifdef _WIN32
         WriteFile(
                     DeviceHandle,		// Device to read from
                     AllData,			// Data to write
@@ -674,7 +674,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
         if (!Data)
         {
             // Write the data
-#ifdef __WINDOWS__
+#ifdef _WIN32
             WriteFile(
                         DeviceHandle,		// Device to read from
                         LastReadData,		// Data to write
@@ -688,7 +688,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
         else
         {
             // Write the data
-#ifdef __WINDOWS__
+#ifdef _WIN32
             WriteFile(
                         DeviceHandle,		// Device to read from
                         Data,				// Data to write

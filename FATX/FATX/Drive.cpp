@@ -15,8 +15,8 @@ Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
     else
     {
         // USB
-#ifdef __WINDOWS__
-        QRegExp qr("*:/");
+#ifdef _WIN32
+        QRegExp qr("*:\\");
         qr.setPatternSyntax(QRegExp::Wildcard);
         qr.setCaseSensitivity(Qt::CaseInsensitive);
 #else
@@ -35,7 +35,7 @@ Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
             {
                 memset(TempPath, 0, 0x100);
                 TCHAR* FilePath = 0;
-#warning "Fix for windows you fucking son of a bitch cunt ass nigger"
+
                 if (i < 10)
                 {
                     FilePath = L"Xbox360/Data000";
@@ -160,6 +160,12 @@ void Drive::DestroyFolder(Folder *Directory)
 
 Folder *Drive::FolderFromPath(string Path)
 {
+    char Friendly[0x50] = {0};
+    wcstombs(Friendly, FriendlyName.c_str(), FriendlyName.size());
+    string cmp = Path.substr(0, Path.find('/'));
+    if (cmp == string(Friendly))
+        Path = Path.substr(Path.find('/') + 1);
+
     for (int i = 0; i < (int)ValidVolumes.size(); i++)
     {
         xVolume* activePartition = ValidVolumes.at(i);
@@ -167,6 +173,7 @@ Folder *Drive::FolderFromPath(string Path)
         // Split the path so by the backslash
         vector<string> PathSplit;
         Helpers::split(Path, '/', PathSplit);
+
         // Match the partition name to that of the one we were given
         QRegExp reg(PathSplit.at(0).c_str());
         reg.setCaseSensitivity(Qt::CaseInsensitive);
@@ -221,7 +228,6 @@ Folder *Drive::FolderFromPath(string Path)
 
 File *Drive::FileFromPath(string Path)
 {
-    int MOTHERFUCKINGCOUNT = 19;
     char Friendly[0x50] = {0};
     wcstombs(Friendly, FriendlyName.c_str(), FriendlyName.size());
     string cmp = Path.substr(0, Path.find('/'));
@@ -684,7 +690,7 @@ vector<Drive *> Drive::GetLogicalPartitions( void )
 {
     vector<Drive *> ReturnVector;
 
-#ifdef __WINDOWS__
+#ifdef _WIN32
     DWORD LettersSize = (26 * 2) + 1;
 
     TCHAR Letters[(26 * 2) + 1] = {0}; // 26 for every leter, multiplied by 2 for each null byte, plus 1 for the last null
@@ -700,7 +706,7 @@ TCHAR Name[MAX_PATH + 1] = {0};
 for (int i = 0; i < 26; i+= 4)
 {
     memset(&Name, 0, sizeof(Name));
-    GetxVolumeInformation(
+    GetVolumeInformation(
                 &Letters[i],	// Path name
                 Name,			// xVolume name
                 MAX_PATH + 1,	// xVolume name length
@@ -778,7 +784,7 @@ return ReturnVector;
 
 vector<Drive::DISK_DRIVE_INFORMATION> Drive::GetPhysicalDisks( void )
 {
-#ifdef __WINDOWS__
+#ifdef _WIN32
     unsigned i;
     DWORD dwSize, dwPropertyRegDataType = SPDRP_PHYSICAL_DEVICE_OBJECT_NAME;
     CONFIGRET r;
@@ -795,7 +801,7 @@ vector<Drive::DISK_DRIVE_INFORMATION> Drive::GetPhysicalDisks( void )
 
     vector<Drive::DISK_DRIVE_INFORMATION> ReturnVector;
 
-#ifdef __WINDOWS__
+#ifdef _WIN32
     // List all connected disk drives
     hDevInfo = SetupDiGetClassDevs (&HddClass, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
     if (hDevInfo == INVALID_HANDLE_VALUE)

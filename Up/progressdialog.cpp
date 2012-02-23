@@ -2,9 +2,6 @@
 #include "ui_progressdialog.h"
 #include <QThread>
 #include <QtConcurrentRun.h>
-#include "../FATX/StaticInformation.h"
-#include "../FATX/IO/xDeviceFileStream.h"
-#include "../FATX/stfspackage.h"
 #include <algorithm>
 
 ProgressDialog::ProgressDialog(QWidget *parent, Operations Operation, std::vector<std::string> Paths, std::string OutPath, std::vector<Drive*>& Drives) :
@@ -45,7 +42,7 @@ void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::st
         for (int j = 0; j < Drives.size(); j++)
         {
             d = Drives.at(j);
-            if (QString::fromStdWString(d->FriendlyName) == QString::fromStdString(Split.at(0)))
+            if (QString::fromStdWString(d->FriendlyName) == Helpers::QStringFromStdString(Split.at(0)))
                 break;
         }
         vector<Drive*>::iterator it = std::find(ConnectedDrives.begin(), ConnectedDrives.end(), d);
@@ -81,9 +78,9 @@ void ProgressDialog::OnFileProgressChanged(const Progress& p)
             ui->progressTotal->setMaximum(p.Maximum);
     }
 
-    if (ui->groupBoxCurrent->title().toStdString() != p.FilePath)
+    if (Helpers::QStringToStdString(ui->groupBoxCurrent->title()) != p.FilePath)
     {
-        ui->groupBoxCurrent->setTitle(QString::fromStdWString(p.Device->FriendlyName + L"/") + QString::fromStdString(p.FilePath));
+        ui->groupBoxCurrent->setTitle(QString::fromWCharArray((p.Device->FriendlyName + L"/").c_str()) + Helpers::QStringFromStdString(p.FilePath));
 
         if (p.IsStfsPackage)
         {
@@ -108,7 +105,7 @@ void ProgressDialog::OnFileProgressChanged(const Progress& p)
             if (scene)
                 delete scene;
 
-            ui->labelFileName->setText(QString::fromStdString(p.FileName));
+            ui->labelFileName->setText(Helpers::QStringFromStdString(p.FileName));
 
 
             QImage image(":/File System Icons/iFile");

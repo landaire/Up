@@ -10,16 +10,17 @@
 #include "ui_MainForm.h"
 #include "AboutForm.h"
 #include "../FATX/typedefs.h"
-#include "../FATX/Helpers.h"
-#include "../FATX/Drive.h"
-#include "../IO/xDeviceFileStream.h"
-#include "../FATX/StaticInformation.h"
-#include "../FATX/stfspackage.h"
+#include "../FATX/FATX/Helpers.h"
+#include "../FATX/FATX/Drive.h"
+#include "../FATX/IO/xDeviceFileStream.h"
+#include "../FATX/FATX/StaticInformation.h"
+#include "../FATX/FATX/stfspackage.h"
 #include <map>
 #include <QPainter>
 #include "progressdialog.h"
+#include <string>
 
-#ifndef __WINDOWS__
+#ifndef _WIN32
 #include <sys/types.h>
 #include <unistd.h>
 

@@ -1,6 +1,6 @@
 #include "stfspackage.h"
 
-STFSPackage::STFSPackage( IStream *Stream )
+STFSPackage::STFSPackage( Streams::IStream *Stream )
 {
     this->Stream = Stream;
 }

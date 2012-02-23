@@ -1,7 +1,7 @@
 #ifndef STFSPACKAGE_H
 #define STFSPACKAGE_H
 #include "../typedefs.h"
-#include "../IO/IStream.h"
+#include "../FATX/IO/IStream.h"
 #include "StaticInformation.h"
 #include <QString>
 #include <../QtGui/QImage>
@@ -11,9 +11,9 @@ using namespace Streams;
 class STFSPackage
 {
 private:
-    IStream *Stream;
+    Streams::IStream *Stream;
 public:
-    STFSPackage( IStream *Stream );
+    STFSPackage( Streams::IStream *Stream );
     ~STFSPackage( void );
     bool IsStfsPackage( void );
     DWORD Magic( void );

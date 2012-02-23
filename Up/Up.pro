@@ -8,6 +8,7 @@ QT       += core gui
 
 TARGET = Up
 TEMPLATE = app
+DEFINES += QT_NO_DEBUG_OUTPUT UNICODE _UNICODE
 
 
 SOURCES += main.cpp\
@@ -23,30 +24,21 @@ FORMS    += MainForm.ui \
     AboutForm.ui \
     progressdialog.ui
 
-win32{
-QMAKE_CFLAGS_RELEASE += -Zi
-QMAKE_CXXFLAGS_RELEASE += -Zi -g
-QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF}
+#win32{
+#QMAKE_CFLAGS_RELEASE += -Zi
+#QMAKE_CXXFLAGS_RELEASE += -Zi -g
+#QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF}
 
-INCLUDEPATH += $$PWD/../FATX/FATX
 
 RESOURCES += \
     MainForm.qrc
 
 
-CONFIG(debug, debug|release) {
-macx: LIBS += -L$$PWD/../FATX-OSXDebug/ -lFATX
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../FATX-Windows-Debug/release/ -lFATX
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../FATX-Windows-Debug/debug/ -lFATX
 
-INCLUDEPATH += $$PWD/../FATX-OSXDebug
-DEPENDPATH += $$PWD/../FATX-OSXDebug
+INCLUDEPATH += $$PWD/../FATX-Windows-Debug/debug
+DEPENDPATH += $$PWD/../FATX-Windows-Debug/debug
 
-macx: PRE_TARGETDEPS += $$PWD/../FATX-OSXDebug/libFATX.a
-} else {
-macx: LIBS += -L$$PWD/../FATX-OSXRelease/ -lFATX
-
-INCLUDEPATH += $$PWD/../FATX-OSXRelease
-DEPENDPATH += $$PWD/../FATX-OSXRelease
-
-macx: PRE_TARGETDEPS += $$PWD/../FATX-OSXRelease/libFATX.a
-DEFINES += QT_NO_DEBUG_OUTPUT
-}
+win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../FATX-Windows-Debug/release/FATX.lib
+else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../FATX-Windows-Debug/debug/FATX.lib

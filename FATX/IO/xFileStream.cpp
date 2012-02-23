@@ -30,7 +30,7 @@ void xFileStream::Initialize(void *FilePath, int Mode, bool wchar)
     _Endian = Big;
     IsClosed = false;
     int iosMode = ios::binary;
-#ifndef __WINDOWS__
+#ifndef _WIN32
     char CharPath[0x200] = {0};
     if (wchar)
     {
@@ -41,8 +41,8 @@ void xFileStream::Initialize(void *FilePath, int Mode, bool wchar)
         strcpy(CharPath, (char*)FilePath);
     }
 #endif
-#ifdef __WINDOWS__
-    TCHAR *CharPath = FilePath;
+#ifdef _WIN32
+    TCHAR *CharPath = (TCHAR*)FilePath;
 #endif
     switch (Mode)
     {
@@ -91,7 +91,7 @@ void xFileStream::Initialize(void *FilePath, int Mode, bool wchar)
     }
         break;
     }
-    _FileStream.open(CharPath, (std::_Ios_Openmode)iosMode);
+    _FileStream.open(CharPath, (std::ios::openmode)iosMode);
     if (!_FileStream.is_open())
     {
         throw new xException("Can not open file.");

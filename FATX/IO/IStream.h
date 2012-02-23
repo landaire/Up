@@ -4,6 +4,7 @@
 #include "../typedefs.h"
 #include "../xexception.h"
 #include <vector>
+
 using namespace std;
 
 namespace Streams

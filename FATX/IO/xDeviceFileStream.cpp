@@ -457,7 +457,9 @@ void xDeviceFileStream::WriteUInt64( UINT64 _UInt64 )
 
 int xDeviceFileStream::Write( BYTE* Buffer, int count )
 {
+#ifndef _WIN32
 #warning "ADD HANDING FOR EXTENDING FILES"
+#endif
     //SetPosition(Position());
     // How many clusters the data we're writing is spread across
     int ClustersSpanned = (count + (UserPosition - Helpers::DownToNearestX(UserPosition, xf->Volume->ClusterSize))) / xf->Volume->ClusterSize;

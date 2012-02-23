@@ -1,6 +1,5 @@
 #ifndef __DRIVE__HG
 #define __DRIVE__HG
-using namespace std;
 #include "../StdAfx.h"
 #include <vector>
 #include "../IO/xDeviceStream.h"
@@ -13,7 +12,10 @@ using namespace std;
 #include <QDebug>
 #include <QObject>
 
-#ifdef __WINDOWS__
+
+using namespace std;
+
+#ifdef _WIN32
 #include <windows.h>
 #include <devguid.h>    // for GUID_DEVCLASS_CDROM etc
 #include <setupapi.h>
@@ -44,7 +46,7 @@ using namespace std;
 
 // Disable warnings 4018 and 4082
 //(unsigned type mismatch and nonstandard extension used in qualified name, respectively)
-#ifdef __WINDOWS__
+#ifdef _WIN32
 #pragma warning(disable : 4018 4482)
 #endif
 
