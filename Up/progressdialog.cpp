@@ -11,6 +11,8 @@ ProgressDialog::ProgressDialog(QWidget *parent, Operations Operation, std::vecto
     ui->setupUi(this);
     scene = 0;
     PathCount = Paths.size();
+    FilesTotal = PathCount;
+    FilesCompleted = 0;
     QtConcurrent::run(this, &ProgressDialog::PerformOperation, Operation, Paths, OutPath, Drives);
     operation = Operation;
 }
@@ -61,6 +63,7 @@ void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::st
             std::string path(Paths.at(i));
             d->CopyFileToLocalDisk(path, OutPath);
         }
+        FilesCompleted++;
     }
 }
 
@@ -71,12 +74,13 @@ void ProgressDialog::OnFileProgressChanged(const Progress& p)
 
     ui->progressCurrent->setValue(p.Current);
 
-    if (PathCount == 1)
+    if (FilesTotal == 1 && PathCount == 1)
     {
         ui->progressTotal->setValue(p.Current);
         if (ui->progressTotal->maximum() != p.Maximum)
             ui->progressTotal->setMaximum(p.Maximum);
     }
+    ui->groupBoxTotal->setTitle(QString("Total - File %1 out of %2").arg(FilesCompleted + 1).arg(FilesTotal));
 
     if (Helpers::QStringToStdString(ui->groupBoxCurrent->title()) != p.FilePath)
     {

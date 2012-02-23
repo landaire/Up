@@ -77,7 +77,12 @@ void MainForm::OnCopyToLocalDiskClick( void )
     for (int i = 0; i < ui.fileSystemTree->selectedItems().size(); i++)
         Paths.push_back(GetCurrentItemPath(ui.fileSystemTree->selectedItems().at(i)));
 
+<<<<<<< HEAD
     ProgressDialog *pd = new ProgressDialog(this, OperationCopyToDisk, Paths, Helpers::QStringToStdString(s), ActiveDrives);
+=======
+    ProgressDialog *pd = new ProgressDialog(this, OperationCopyToDisk, Paths, s.toStdString(), ActiveDrives);
+    //pd->setWindowFlags(Qt::WindowMaximizeButtonHint);
+>>>>>>> cd72b699f02f1c9bc8f3b14c44d3d3a8dbd21b8a
     pd->setModal(true);
     pd->show();
 }
