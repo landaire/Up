@@ -103,7 +103,7 @@ void Helpers::split(const string &s, char delim, vector<string> &elems) {
     }
 }
 
-string Helpers::QStringToStdString(QString& stringData)
+string Helpers::QStringToStdString(QString stringData)
 {
     return string(stringData.toLocal8Bit().data());
 }

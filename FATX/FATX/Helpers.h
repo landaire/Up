@@ -17,8 +17,7 @@ public:
     static INT64 DownToNearestX( INT64 Value, int x);
 	static string ConvertToFriendlySize( INT64 Size );
     static void split(const string &s, char delim, vector<string> &elems);
-    static string QStringToStdString(QString& stringData);
+    static string QStringToStdString(QString stringData);
     static QString QStringFromStdString(string stringData);
-    static QString QStringFromStdWString(wstring& stringData);
 };
 #endif

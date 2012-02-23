@@ -24,7 +24,6 @@ typedef          short      INT16, *PINT16;
 typedef unsigned short      UINT16, *PUINT16;
 #endif
 
-#else
 #ifdef UNICODE
 
 #define _tcslen     wcslen
