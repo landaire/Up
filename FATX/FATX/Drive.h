@@ -21,7 +21,7 @@ using namespace std;
 #include <setupapi.h>
 #include <cfgmgr32.h>   // for MAX_DEVICE_ID_LEN, CM_Get_Parent and CM_Get_Device_ID
 #define INITGUID
-#include "c:\WinDDK\7600.16385.1\inc\api\devpkey.h"
+#include <DEVPKEY.h>
 
 #define ARRAY_SIZE(arr)     (sizeof(arr)/sizeof(arr[0]))
 
