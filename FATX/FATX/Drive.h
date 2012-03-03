@@ -90,6 +90,10 @@ public:
     vector<string>          Partitions          ( void );
     UINT64                  PartitionGetLength  ( string Partition );
     void                    Close               ( void );
+    DWORD                   GetFileCount( Folder *f );
+    DWORD                   GetTotalFileCount   ( Folder *f );
+    DWORD                   GetFolderCount      ( Folder *f );
+    DWORD                   GetTotalFolderCount ( Folder *f );
     Folder                  *FolderFromPath     ( string Path );
     File                    *FileFromPath       ( string Path );
     void                    CopyFileToLocalDisk ( File *dest, string Output);

@@ -140,6 +140,62 @@ void Drive::CopyFileToLocalDisk(string Path, string Output)
     CopyFileToLocalDisk(FileFromPath(Path), Output);
 }
 
+DWORD Drive::GetFileCount(Folder *f)
+{
+    // If we haven't yet read the dirents for this folder...
+    if (!f->FatxEntriesRead)
+        // Read the dirents
+        ReadDirectoryEntries(f);
+
+    // Return file vector size
+    return f->CachedFiles.size();
+}
+
+DWORD Drive::GetTotalFileCount(Folder *f)
+{
+    // If we haven't yet read the dirents for this folder...
+    if (!f->FatxEntriesRead)
+        // Read them!
+        ReadDirectoryEntries(f);
+
+    DWORD TotalCount = f->CachedFiles.size();
+
+    // For each one of the folders within this folder, add that to our total count
+    for (int i = 0; i < f->CachedFolders.size(); i++)
+        TotalCount += GetTotalFileCount(f->CachedFolders.at(i));
+
+    // Return the total count
+    return TotalCount;
+}
+
+DWORD Drive::GetFolderCount(Folder *f)
+{
+    // If we haven't yet read the dirents for this folder...
+    if (!f->FatxEntriesRead)
+        // Read the dirents
+        ReadDirectoryEntries(f);
+
+    // Return file vector size
+    return f->CachedFolders.size();
+}
+
+DWORD Drive::GetTotalFolderCount(Folder *f)
+{
+    // If we haven't yet read the dirents for this folder...
+    if (!f->FatxEntriesRead)
+        // Read them!
+        ReadDirectoryEntries(f);
+
+    DWORD TotalCount = f->CachedFolders.size();
+
+    // For each one of the folders within this folder, add that to our total count
+    for (int i = 0; i < f->CachedFolders.size(); i++)
+        TotalCount += GetTotalFolderCount(f->CachedFolders.at(i));
+
+    // Return the total count
+    return TotalCount;
+}
+
 void Drive::DestroyFolder(Folder *Directory)
 {
     while(Directory->CachedFiles.size())
