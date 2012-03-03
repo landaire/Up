@@ -177,6 +177,7 @@ Folder *Drive::FolderFromPath(string Path)
         // Match the partition name to that of the one we were given
         QRegExp reg(PathSplit.at(0).c_str());
         reg.setCaseSensitivity(Qt::CaseInsensitive);
+        reg.setPatternSyntax(QRegExp::FixedString);
         if (reg.exactMatch(activePartition->Name.c_str()))
         {
             qDebug("Active volume found: %s", activePartition->Name.c_str());
@@ -201,12 +202,11 @@ Folder *Drive::FolderFromPath(string Path)
                 for (int j = 0; j < (int)current->CachedFolders.size(); j++)
                 {
                     Folder *f = current->CachedFolders.at(j);
-                    qDebug("f = %s", f->Dirent.Name);
                     QRegExp fReg(PathSplit.at(0).c_str());
                     fReg.setCaseSensitivity(Qt::CaseInsensitive);
+                    fReg.setPatternSyntax(QRegExp::FixedString);
                     if (fReg.exactMatch(f->Dirent.Name))
                     {
-                        qDebug("Match!");
                         Found = true;
                         current = f;
                         break;
@@ -244,6 +244,7 @@ File *Drive::FileFromPath(string Path)
         // Match the partition name to that of the one we were given
         QRegExp reg(PathSplit.at(0).c_str());
         reg.setCaseSensitivity(Qt::CaseInsensitive);
+        reg.setPatternSyntax(QRegExp::FixedString);
         if (reg.exactMatch(activePartition->Name.c_str()))
         {
             // We've found the partition, now get the root folder
@@ -277,6 +278,7 @@ File *Drive::FileFromPath(string Path)
                         // Try to match the name to whatever we're looking for
                         QRegExp fReg(PathSplit.at(0).c_str());
                         fReg.setCaseSensitivity(Qt::CaseInsensitive);
+                        fReg.setPatternSyntax(QRegExp::FixedString);
                         if (fReg.exactMatch(f->Dirent.Name))
                         {
                             Found = true;
@@ -295,6 +297,7 @@ File *Drive::FileFromPath(string Path)
                         // Try to make a match!
                         QRegExp fReg(PathSplit.at(0).c_str());
                         fReg.setCaseSensitivity(Qt::CaseInsensitive);
+                        fReg.setPatternSyntax(QRegExp::FixedString);
                         if (fReg.exactMatch(f->Dirent.Name))
                         {
                             return f;
