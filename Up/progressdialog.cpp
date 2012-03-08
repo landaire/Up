@@ -36,32 +36,62 @@ void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::st
 {
     qRegisterMetaType<Progress>();
     std::vector<Drive*> ConnectedDrives;
+    // For each top-level path
     for (int i = 0; i < Paths.size(); i++)
     {
+        // Split the path so that we can get the disk name
         std::vector<std::string> Split;
         Helpers::split(Paths.at(i), '/', Split);
         Drive *d;
+        // For each drive
         for (int j = 0; j < Drives.size(); j++)
         {
+            // Set d, break when we've found the proper drive.
+            // POSSIBLE BUG: we'll go ahead and trust that everything is handled properly in MainForm though
             d = Drives.at(j);
             if (QString::fromStdWString(d->FriendlyName) == Helpers::QStringFromStdString(Split.at(0)))
                 break;
         }
+
+        // Find the drive in our ConnectedDrives vector
         vector<Drive*>::iterator it = std::find(ConnectedDrives.begin(), ConnectedDrives.end(), d);
         if (it == ConnectedDrives.end())
         {
+            // If the drive was not connected, connect it
             connect(d, SIGNAL(FileProgressChanged(const Progress&)), this, SLOT(OnFileProgressChanged(const Progress&)), Qt::QueuedConnection);
+            // Add the drive to our vector of connected drives
             ConnectedDrives.push_back(d);
         }
-        // We were passed a folder
+        // We were passed a folder path
         if (PathCount > 1)
         {
-            d->CopyFileToLocalDisk(Paths.at(i), (OutPath + "/") + Split.at(Split.size() - 1));
+            try
+            {
+                // Get the file
+                File *f = d->FileFromPath(Paths.at(i));
+                // Write the files to folder path + file name
+                d->CopyFileToLocalDisk(f, (OutPath + "/") + Split.at(Split.size() - 1));
+            }
+            // Exception was thrown, we're dealing with a folder path
+            catch(...)
+            {
+                // Add folder handling
+            }
         }
         else
         {
-            std::string path(Paths.at(i));
-            d->CopyFileToLocalDisk(path, OutPath);
+            // See if this is a file...
+            try
+            {
+                std::string path(Paths.at(i));
+                File *f = d->FileFromPath(path);
+                // Succeeded, write the file to the destined folder
+                d->CopyFileToLocalDisk(f, OutPath);
+            }
+            catch (...)
+            {
+                // Add folder handling here
+            }
         }
         FilesCompleted++;
     }
