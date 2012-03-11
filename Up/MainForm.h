@@ -43,8 +43,9 @@ public:
 public slots:
         void OnLoadDevicesClick( void );
         void ShowAbout( void );
-        void OnTreeExpand(QTreeWidgetItem* Item);
+        void OnTreeItemExpand(QTreeWidgetItem* Item);
         void OnCopyToLocalDiskClick( void );
+        void OnTreeItemDoubleClick(QTreeWidgetItem* Item, int);
 private:
         QIcon iFolder;
         QIcon iDisk;

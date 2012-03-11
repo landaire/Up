@@ -105,7 +105,8 @@ void MainForm::DoEvents( void )
 {
     connect(ui.actionLoad_Devices, SIGNAL(triggered()), this, SLOT(OnLoadDevicesClick()));
     connect(ui.actionAbout, SIGNAL(triggered()), this, SLOT(ShowAbout()));
-    connect(ui.fileSystemTree, SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(OnTreeExpand(QTreeWidgetItem*)));
+    connect(ui.fileSystemTree, SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(OnTreeItemExpand(QTreeWidgetItem*)));
+    connect(ui.fileSystemTree, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(OnTreeItemDoubleClick(QTreeWidgetItem*, int)));
 }
 
 Drive *MainForm::GetCurrentItemDrive(QTreeWidgetItem* Item)
@@ -243,7 +244,7 @@ void MainForm::PopulateTreeItems(QTreeWidgetItem *Item, bool expand)
     Item->setData(0, Qt::UserRole, QVariant(true));
 }
 
-void MainForm::OnTreeExpand( QTreeWidgetItem* Item)
+void MainForm::OnTreeItemExpand( QTreeWidgetItem* Item)
 {
     if (Item->parent() != 0 && Item->parent()->parent() != 0)
     {
@@ -252,6 +253,11 @@ void MainForm::OnTreeExpand( QTreeWidgetItem* Item)
             PopulateTreeItems(Item, true);
         }
     }
+}
+
+void MainForm::OnTreeItemDoubleClick(QTreeWidgetItem *Item, int)
+{
+    ui.textEdit->setText(Helpers::QStringFromStdString(GetCurrentItemPath(Item)));
 }
 
 void MainForm::ShowAbout( void )
