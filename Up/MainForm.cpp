@@ -18,10 +18,6 @@ MainForm::MainForm(QWidget *parent, Qt::WFlags flags)
     iUsb.addFile(QString::fromUtf8(":/File System Icons/iUsb"), QSize(), QIcon::Normal, QIcon::Off);
     iFolder.addFile(QString::fromUtf8(":/File System Icons/iFolder"), QSize(), QIcon::Normal, QIcon::Off);
     iPartition.addFile(QString::fromUtf8(":/File System Icons/iPartition"), QSize(), QIcon::Normal, QIcon::Off);
-
-    std::string s("dicks");
-    QString::fromAscii(s.c_str());
-    return;
 }
 
 MainForm::~MainForm()
@@ -195,6 +191,8 @@ QTreeWidgetItem *MainForm::AddFile(QTreeWidgetItem* Item, File *f, Drive *device
         fItem->setIcon(0, *Icon);
         fItem->setText(4, pack.DisplayName());
     }
+    fs->Close();
+    delete fs;
 
     return fItem;
 }
@@ -329,6 +327,13 @@ void MainForm::OnLoadDevicesClick( void )
         {
             item->setIcon(0, iDisk);
         }
+
+        try
+        {
+            QString Name = current->GetDiskName();
+            item->setText(4, Name);
+        }
+        catch (...){}
 
         for (int j = 0; j < (int)current->Partitions().size(); j++)
         {
