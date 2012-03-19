@@ -24,11 +24,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#ifdef __APPLE__
-#include <security/Authorization.h>
-#include <security/AuthorizationTags.h>
-#include <security/AuthorizationDB.h>
-#endif
 #endif
 
 using namespace Streams;
