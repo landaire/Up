@@ -971,7 +971,7 @@ if (dir != NULL)
                     swprintf(curdir.FriendlyName, strlen(hd) * 2, L"%hs", hd.model);
                 }
 #elif defined __APPLE__
-                swprintf(curdir.FriendlyName, strlen("diskx"), L"diskx");
+                mbstowcs(curdir.FriendlyName, ent->d_name, strlen(ent->d_name));
 #endif
                 ReturnVector.push_back(curdir);
             }
