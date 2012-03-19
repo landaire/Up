@@ -387,7 +387,7 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
         DeviceStream->SetPosition(Directory->Volume->DataStart +
                         ((UINT64)(Directory->ClusterChain.at(i) - 1)   * Directory->Volume->ClusterSize));
         // Loop for the maximum amount of entries per cluster
-        for (int j = 0; j < 0x40 * Directory->Volume->ClusterSize; j++)
+        for (int j = 0; j < Directory->Volume->ClusterSize / 0x40; j++)
         {
             xDirent Entry;
             memset(&Entry, 0, sizeof(Entry));
