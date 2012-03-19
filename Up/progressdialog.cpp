@@ -99,57 +99,93 @@ void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::st
 
 void ProgressDialog::OnFileProgressChanged(const Progress& p)
 {
+    // If the maximums don't match
     if (ui->progressCurrent->maximum() != p.Maximum)
+        // Set the progress bar maximum value
         ui->progressCurrent->setMaximum(p.Maximum);
 
+    // Set the progress bar's current value
     ui->progressCurrent->setValue(p.Current);
 
+    // If we're dealing with one file and the path count is one
     if (FilesTotal == 1 && PathCount == 1)
     {
+        // Set the total progress bar's valuesto that of the current progress bar
         ui->progressTotal->setValue(p.Current);
         if (ui->progressTotal->maximum() != p.Maximum)
             ui->progressTotal->setMaximum(p.Maximum);
     }
+
+    // Set the title of the total groupbox to reflect the current file out of x
     ui->groupBoxTotal->setTitle(QString("Total - File %1 out of %2").arg(FilesCompleted + 1).arg(FilesTotal));
 
+    // If we've just moved on to a new file
     if (Helpers::QStringToStdString(ui->groupBoxCurrent->title()) != p.FilePath)
     {
         ui->groupBoxCurrent->setTitle(QString::fromWCharArray((p.Device->FriendlyName + L"/").c_str()) + Helpers::QStringFromStdString(p.FilePath));
 
+        // If the file is an STFS package
         if (p.IsStfsPackage)
         {
+            // Delete the current scene for the graphics view
             if (scene)
             {
                 delete scene;
             }
+            // Get the package image
             QImage image(p.PackageImage);
+
+            // Create a new scene with the dimensions of the image
             scene = new QGraphicsScene(ui->graphicsView);
             scene->setSceneRect(0,0,image.width(), image.height());
+
+            // Set the graphics view size
             ui->graphicsView->setFixedSize(64, 64);
+
+            // Set the image that the scene will display
             scene->addPixmap(QPixmap::fromImage(image));
+
+            // Set the scene and display the image
             ui->graphicsView->setScene(scene);
             ui->graphicsView->show();
+
+            // Makes the graphics view scale the image down so there's no scrolling
             ui->graphicsView->fitInView(ui->graphicsView->rect(), Qt::KeepAspectRatio);
 
             // Get the package name (real)
             ui->labelFileName->setText(p.PackageName);
         }
+        // Not an STFS package -- use the default file image
         else
         {
+            // Delete the current scene if there is one
             if (scene)
                 delete scene;
 
             ui->labelFileName->setText(Helpers::QStringFromStdString(p.FileName));
 
 
+            // Get the file icon image
             QImage image(":/File System Icons/iFile");
+
+            // Get the file icon pixmap
             QPixmap pixmap = QPixmap::fromImage(image);
+
+            // Create a new scene
             scene = new QGraphicsScene(ui->graphicsView);
             scene->setSceneRect(0,0,64, 64);
+
+            // Set the graphics view's fixed size
             ui->graphicsView->setFixedSize(64, 64);
+
+            // Set the scene image
             scene->addPixmap(pixmap.scaled(QSize(64, 64), Qt::KeepAspectRatio));
+
+            // Set the graphics view's scene, display the image
             ui->graphicsView->setScene(scene);
             ui->graphicsView->show();
+
+            // Makes the image fit within the bounds of the graphics view without scrolling
             ui->graphicsView->fitInView(ui->graphicsView->rect(), Qt::KeepAspectRatio);
         }
     }
