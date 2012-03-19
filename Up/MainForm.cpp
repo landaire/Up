@@ -253,11 +253,22 @@ void MainForm::OnTreeItemExpand( QTreeWidgetItem* Item)
             PopulateTreeItems(Item, true);
         }
     }
+    if (Item->parent() != 0)
+    {
+        string path = GetCurrentItemPath(Item);
+        string pathNoDrive = path.substr(path.find_first_of('/') + 1);
+        ui.textEdit->setText(Helpers::QStringFromStdString(pathNoDrive));
+    }
 }
 
 void MainForm::OnTreeItemDoubleClick(QTreeWidgetItem *Item, int)
 {
-    ui.textEdit->setText(Helpers::QStringFromStdString(GetCurrentItemPath(Item)));
+    if (Item->parent() != 0)
+    {
+        string path = GetCurrentItemPath(Item);
+        string pathNoDrive = path.substr(path.find_first_of('/') + 1);
+        ui.textEdit->setText(Helpers::QStringFromStdString(pathNoDrive));
+    }
 }
 
 void MainForm::ShowAbout( void )
