@@ -133,6 +133,8 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
 
     xf->Close();
     output->Close();
+    delete xf;
+    delete output;
 }
 
 void Drive::CopyFileToLocalDisk(string Path, string Output)
@@ -212,6 +214,27 @@ void Drive::DestroyFolder(Folder *Directory)
         DestroyFolder(f);
     }
     delete Directory;
+}
+
+QString Drive::GetDiskName( void )
+{
+    // Get the Data/name.txt file
+    File *name = FileFromPath(string("Data/name.txt"));
+    // Open a stream to that file
+    Streams::xDeviceFileStream *fs = new Streams::xDeviceFileStream(name, this);
+
+    // Skip the first two bytes -- I have no idea what they're there for
+    fs->SetPosition(2);
+
+    // Create a new buffer to hold the name
+    BYTE charArray[0x50] = {0};
+    // Read the name
+    fs->Read((BYTE*)&charArray, fs->Length() - 2);
+    for (int i = 0; i < fs->Length() - 2; i+=2)
+        fs->DetermineAndDoEndianSwap((BYTE*)&charArray + i, sizeof(short), sizeof(char));
+    fs->Close();
+    delete fs;
+    return QString::fromUtf16((const ushort*)&charArray);
 }
 
 Folder *Drive::FolderFromPath(string Path)
