@@ -112,3 +112,8 @@ QString Helpers::QStringFromStdString(string stringData)
 {
     return QString::fromLocal8Bit(stringData.c_str());
 }
+
+QString Helpers::QStringFromStdWString(wstring stringData)
+{
+    return QString::fromUtf16((const ushort*)stringData.c_str());
+}
