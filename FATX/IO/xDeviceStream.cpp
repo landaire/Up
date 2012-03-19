@@ -15,6 +15,7 @@ xDeviceStream::xDeviceStream( TCHAR* DevicePath )
     memset(&LastReadData, 0, 0x200);
     LastReadOffset = -1;
     UserOffset = 0;
+    Offset = 0;
 
 #ifdef _WIN32
     // Attempt to get a handle to the device
@@ -35,7 +36,10 @@ xDeviceStream::xDeviceStream( TCHAR* DevicePath )
 #if (defined __APPLE__ || defined __linux)
     // UNIX/LINUX/APPLE
     char Path[0x200] = {0};
+
+    // Convert wchar_t string to standard ASCII string
     wcstombs(Path, DevicePath, wcslen(DevicePath));
+    // Open the device
     Device = open(Path, O_RDWR);
     if (Device == -1)
     {
@@ -122,8 +126,14 @@ INT64 xDeviceStream::Length( void )
                 (INT64)Geometry.SectorsPerTrack		*
                 (INT64)Geometry.BytesPerSector;
 #else
-        _Length = static_cast<INT64>(lseek(Device, 0L, SEEK_SET));//20003880960L, SEEK_SET));
-        lseek(Device, 0, SEEK_SET);
+        unsigned int NumberOfSectors = 0;
+        // Queue number of sectors
+        ioctl(Device, DKIOCGETBLOCKCOUNT, &NumberOfSectors);
+
+        unsigned int SectorSize = 0;
+        ioctl(Device, DKIOCGETBLOCKSIZE, &SectorSize);
+
+        _Length = (UINT64)NumberOfSectors * (UINT64)SectorSize;
 #endif
 
     }
