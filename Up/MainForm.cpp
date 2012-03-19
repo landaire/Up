@@ -186,9 +186,11 @@ QTreeWidgetItem *MainForm::AddFile(QTreeWidgetItem* Item, File *f, Drive *device
         if (!Icon)
         {
             Icon = new QIcon(QPixmap::fromImage(pack.ThumbnailImage()));
-            Icons.insert(Icons.begin(), pair<DWORD, QIcon*>(pack.TitleId(), Icon));
+            if (!Icon->isNull())
+                Icons.insert(Icons.begin(), pair<DWORD, QIcon*>(pack.TitleId(), Icon));
         }
-        fItem->setIcon(0, *Icon);
+        if (!Icon->isNull())
+            fItem->setIcon(0, *Icon);
         fItem->setText(4, pack.DisplayName());
     }
     fs->Close();
