@@ -13,8 +13,9 @@ ProgressDialog::ProgressDialog(QWidget *parent, Operations Operation, std::vecto
     PathCount = Paths.size();
     FilesTotal = PathCount;
     FilesCompleted = 0;
-    QtConcurrent::run(this, &ProgressDialog::PerformOperation, Operation, Paths, OutPath, Drives);
+    WorkerThread = QtConcurrent::run(this, &ProgressDialog::PerformOperation, Operation, Paths, OutPath, Drives);
     operation = Operation;
+    Finished = false;
 }
 
 ProgressDialog::~ProgressDialog()
@@ -30,6 +31,7 @@ void ProgressDialog::PerformOperation(Operations Operation, std::vector<std::str
         CopyFileToLocalDisk(Paths, OutPath, Drives);
         break;
     }
+    Finished = true;
 }
 
 void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::string OutPath, std::vector<Drive*>& Drives)
@@ -188,5 +190,8 @@ void ProgressDialog::OnFileProgressChanged(const Progress& p)
             // Makes the image fit within the bounds of the graphics view without scrolling
             ui->graphicsView->fitInView(ui->graphicsView->rect(), Qt::KeepAspectRatio);
         }
+
+        if (*((volatile bool*)&Finished))
+            this->close();
     }
 }
