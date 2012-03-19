@@ -88,6 +88,7 @@ public:
     Streams::IStream*       DeviceStream;
     static vector<Drive *> GetFATXDrives( bool HardDisks );
     vector<string>          Partitions          ( void );
+    QString                 GetDiskName         ( void );
     UINT64                  PartitionGetLength  ( string Partition );
     void                    Close               ( void );
     DWORD                   GetFileCount( Folder *f );
