@@ -37,46 +37,13 @@ Thumbs.db
 ############
 *.pro
 *.pro.user
-Up-OSXDebug/Up.app/Contents/PkgInfo
+*.autosave
+Up-OSXDebug/
 
-FATX-OSXDebug/moc_Drive.cpp
+FATX-OSXDebug/
 
-FATX-OSXRelease/Makefile
+FATX-OSXRelease/
 
-FATX-OSXRelease/libFATX.a
+Up-OSXDebug/
 
-Up-OSXDebug/Makefile
-
-Up-OSXDebug/Up.app/Contents/Info.plist
-
-Up-OSXDebug/Up.app/Contents/MacOS/Minecraft2
-
-Up-OSXDebug/Up.app/Contents/MacOS/Test
-
-Up-OSXDebug/Up.app/Contents/MacOS/Up
-
-FATX-OSXDebug/Makefile
-
-FATX-OSXDebug/libFATX.a
-
-Up-OSXDebug/Up.app/Contents/Resources/empty.lproj
-
-Up-OSXDebug/moc_AboutForm.cpp
-
-Up-OSXDebug/moc_MainForm.cpp
-
-Up-OSXDebug/moc_progressdialog.cpp
-
-Up-OSXDebug/qrc_MainForm.cpp
-
-Up-OSXDebug/moc_progressrunner.cpp
-
-Up-OSXDebug/ui_MainForm.h
-
-Up-OSXDebug/ui_AboutForm.h
-
-Up-OSXDebug/ui_progressdialog.h
-
-Up/progressrunner.cpp
-
-Up/progressrunner.h
+Up-OSXRelease/
