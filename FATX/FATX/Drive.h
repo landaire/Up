@@ -73,7 +73,6 @@ private:
     void	FatxProcessBootSector   ( xVolume* ref );
     BYTE	cntlzw                  (unsigned int val);
     vector<string> _partitions;
-    void    ReadDirectoryEntries    (Folder* Directory);
 
     void    DestroyFolder           (Folder *Directory);
 
@@ -86,7 +85,7 @@ public:
     void    ReadClusterChain        (std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition);
 
     Streams::IStream*       DeviceStream;
-    static vector<Drive *> GetFATXDrives( bool HardDisks );
+    static vector<Drive *>  GetFATXDrives( bool HardDisks );
     vector<string>          Partitions          ( void );
     QString                 GetDiskName         ( void );
     UINT64                  PartitionGetLength  ( string Partition );
@@ -95,6 +94,7 @@ public:
     DWORD                   GetTotalFileCount   ( Folder *f );
     DWORD                   GetFolderCount      ( Folder *f );
     DWORD                   GetTotalFolderCount ( Folder *f );
+    void                    ReadDirectoryEntries(Folder* Directory);
     Folder                  *FolderFromPath     ( string Path );
     File                    *FileFromPath       ( string Path );
     void                    CopyFileToLocalDisk ( File *dest, string Output);
