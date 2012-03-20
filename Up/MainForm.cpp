@@ -258,6 +258,19 @@ void MainForm::OnTreeItemExpand( QTreeWidgetItem* Item)
         string path = GetCurrentItemPath(Item);
         string pathNoDrive = path.substr(path.find_first_of('/') + 1);
         ui.textEdit->setText(Helpers::QStringFromStdString(pathNoDrive));
+
+        int index = 0;
+        for (int i = 0; i < ActiveDrives.size(); i++)
+        {
+            QString DeviceName = Helpers::QStringFromStdString(path.substr(0, path.find_first_of('/')));
+            QString FriendlyName = QString::fromStdWString(((Drive*)ActiveDrives.at(i))->FriendlyName);
+            if (DeviceName == FriendlyName)
+            {
+                index = i;
+                break;
+            }
+        }
+        ui.activeDevicesComboBox->setCurrentIndex(index);
     }
 }
 
@@ -268,6 +281,19 @@ void MainForm::OnTreeItemDoubleClick(QTreeWidgetItem *Item, int)
         string path = GetCurrentItemPath(Item);
         string pathNoDrive = path.substr(path.find_first_of('/') + 1);
         ui.textEdit->setText(Helpers::QStringFromStdString(pathNoDrive));
+
+        int index = 0;
+        for (int i = 0; i < ActiveDrives.size(); i++)
+        {
+            QString DeviceName = Helpers::QStringFromStdString(path.substr(0, path.find_first_of('/')));
+            QString FriendlyName = QString::fromStdWString(((Drive*)ActiveDrives.at(i))->FriendlyName);
+            if (DeviceName == FriendlyName)
+            {
+                index = i;
+                break;
+            }
+        }
+        ui.activeDevicesComboBox->setCurrentIndex(index);
     }
 }
 
