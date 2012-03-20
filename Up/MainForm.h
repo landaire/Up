@@ -1,23 +1,31 @@
 #ifndef MAINFORM_H
 #define MAINFORM_H
 
+// Qt referencces
 #include <QtGui/QMainWindow>
 #include <qmessagebox.h>
 #include <qfiledialog.h>
 #include <qcommandlinkbutton.h>
 #include <qdesktopwidget.h>
 #include <qdatetime>
+#include <QPainter>
+
+// Form references
 #include "ui_MainForm.h"
 #include "AboutForm.h"
+#include "progressdialog.h"
+
+// FATX references
 #include "../FATX/typedefs.h"
 #include "../FATX/FATX/Helpers.h"
 #include "../FATX/FATX/Drive.h"
 #include "../FATX/IO/xDeviceFileStream.h"
 #include "../FATX/FATX/StaticInformation.h"
 #include "../FATX/FATX/stfspackage.h"
+
+// std lib references
 #include <map>
-#include <QPainter>
-#include "progressdialog.h"
+#include <algorithm>
 #include <string>
 
 #ifndef _WIN32
