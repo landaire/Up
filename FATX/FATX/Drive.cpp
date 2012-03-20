@@ -1084,4 +1084,6 @@ void Drive::FatxProcessBootSector( xVolume* ref )
     ref->AllocationTableSize = PartitionSize;
     ref->EntrySize = (Clusters < FAT_CLUSTER16_RESERVED) ? 2 : 4;
     ref->DataStart = ref->Offset + 0x1000 + PartitionSize;
+
+    ref->Disk = this;
 }
