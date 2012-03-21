@@ -235,6 +235,7 @@ struct xVolume
 	UINT64		 ClusterSize;
     unsigned int FatEntryShift;
     Folder       *Root;
+    Drive        *Disk;
 };
 
 enum StfsOffsets
