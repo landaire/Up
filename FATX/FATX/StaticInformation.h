@@ -168,6 +168,36 @@ struct Folder
     QDateTime               DateCreated;
     QDateTime               DateModified;
     QDateTime               DateAccessed;
+
+    bool IsTitleIDFolder( void )
+    {
+        std::string Name(Dirent.Name);
+        // Title ID's are 8 digits long; this shit isn't a Title ID folder if it's
+        // longer or shorter
+        if (Name.length() != 8)
+        {
+            return false;
+        }
+        // It was 8 digits long, let's check if the characters are valid hex digits
+        char AcceptableChars[17] = "0123456789ABCDEF";
+        for (int i = 0; i < Dirent.NameSize; i++)
+        {
+            bool Acceptable = false;
+            for (int j = 0; j < 16; j++)
+            {
+                if (Dirent.Name[i] == AcceptableChars[j])
+                {
+                    Acceptable = true;
+                    break;
+                }
+            }
+            if (!Acceptable)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 };
 
 struct File
