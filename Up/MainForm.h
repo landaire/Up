@@ -9,6 +9,7 @@
 #include <qdesktopwidget.h>
 #include <qdatetime>
 #include <QPainter>
+#include <QSettings>
 
 // Form references
 #include "ui_MainForm.h"
@@ -68,6 +69,8 @@ private:
         Drive                   *GetCurrentItemDrive(QTreeWidgetItem* Item);
         void                    SetContextMenus ( void );
         std::string             GetCurrentItemPath( QTreeWidgetItem *Item );
+        void                    SetTitleIdName  (QTreeWidgetItem* Item);
+        QSettings               *cache;
 };
 
 #endif // MAINFORM_H

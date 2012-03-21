@@ -10,6 +10,8 @@ MainForm::MainForm(QWidget *parent, Qt::WFlags flags)
     ui.fileSystemTree->setColumnWidth(0, 240);
     ui.fileSystemTree->setColumnWidth(1, 150);
 
+    cache = new QSettings("threexortwo", "Up");
+
     // Set the context menus
     SetContextMenus();
 
@@ -155,6 +157,7 @@ QTreeWidgetItem *MainForm::AddFolder(QTreeWidgetItem* Item, Folder *f)
     fItem->setText(1, ModifiedDate.toString());
     fItem->setText(2, QString::fromAscii("Folder"));
     fItem->setIcon(0, iFolder);
+
     return fItem;
 }
 
@@ -244,6 +247,101 @@ void MainForm::PopulateTreeItems(QTreeWidgetItem *Item, bool expand)
     Item->setData(0, Qt::UserRole, QVariant(true));
 }
 
+void MainForm::SetTitleIdName(QTreeWidgetItem *Item)
+{
+    if (Item->text(0) != "FFFE07D1")
+    {
+        for (int i = 0; i < sizeof(KnownIds) / sizeof(KnownIds[0]); i++)
+        {
+            if (Item->text(0) == KnownIds[i])
+            {
+                return;
+            }
+        }
+    }
+
+    cache->beginGroup("titles");
+
+    for (int items = 0; items < Item->childCount(); items++)
+    {
+        QTreeWidgetItem *fItem = Item->child(items);
+
+        bool Known = false;
+        for (int i = 0; i < sizeof(KnownIds) / sizeof(KnownIds[0]); i++)
+        {
+            if (fItem->text(0) == KnownIds[i])
+            {
+                fItem->setText(4, QString::fromLocal8Bit(KnownEquivalent[i]));
+                Known = true;
+                break;
+            }
+        }
+
+        if (Known)
+            continue;
+
+        Folder* f = GetCurrentItemDrive(fItem)->FolderFromPath(GetCurrentItemPath(fItem));
+        // Check if this folder is a title ID folder
+        if (f->IsTitleIDFolder())
+        {
+            // Check if the cache contains the title id
+            if (cache->contains(fItem->text(0)))
+            {
+                // yabba dabba doo, it does!
+                fItem->setText(4, cache->value(fItem->text(0)).toString());
+                continue;
+            }
+            // It is!  See if it has any subdirs
+            if (!f->FatxEntriesRead)
+                f->Volume->Disk->ReadDirectoryEntries(f);
+            if (f->CachedFolders.size())
+            {
+                // has subdirectories, check if one of them is a title id folder
+                for (int i = 0; i < f->CachedFolders.size(); i++)
+                {
+                    if (((Folder*)f->CachedFolders.at(i))->IsTitleIDFolder())
+                    {
+                        Folder *id = f->CachedFolders.at(i);
+                        if (!id->FatxEntriesRead)
+                            id->Volume->Disk->ReadDirectoryEntries(id);
+
+                        // If this folder has no files, skip it
+                        if (!id->CachedFiles.size())
+                            continue;
+
+                        bool StfsPackageFound = false;
+                        // it's a title ID folder, get an STFS package from this guy
+                        for (int j = 0; j < id->CachedFiles.size(); j++)
+                        {
+                            File *f = id->CachedFiles.at(j);
+                            Streams::xDeviceFileStream *fs = new Streams::xDeviceFileStream(f, f->Volume->Disk);
+                            STFSPackage pack(fs);
+                            if (pack.IsStfsPackage())
+                            {
+                                QString game = pack.TitleName();
+                                if (game.isEmpty())
+                                    continue;
+
+                                // Set the "Xbox Name" column
+                                fItem->setText(4, game);
+
+                                // Store the game name in the cache
+                                cache->setValue(fItem->text(0), game);
+                                StfsPackageFound = true;
+                                break;
+                            }
+                        }
+
+                        if (StfsPackageFound)
+                            break;
+                    }
+                }
+            }
+        }
+    }
+    cache->endGroup();
+}
+
 void MainForm::OnTreeItemExpand( QTreeWidgetItem* Item)
 {
     if (Item->parent() != 0 && Item->parent()->parent() != 0)
@@ -252,6 +350,7 @@ void MainForm::OnTreeItemExpand( QTreeWidgetItem* Item)
         {
             PopulateTreeItems(Item, true);
         }
+        SetTitleIdName(Item);
     }
     if (Item->parent() != 0)
     {
@@ -295,6 +394,9 @@ void MainForm::OnTreeItemDoubleClick(QTreeWidgetItem *Item, int)
         }
         ui.activeDevicesComboBox->setCurrentIndex(index);
     }
+
+    if (Item->text(2) == "Folder")
+        SetTitleIdName(Item);
 }
 
 void MainForm::ShowAbout( void )
