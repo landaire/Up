@@ -72,6 +72,28 @@ class xDeviceFileStream;
 #define STFS_CONTENT_TYPE_XBOX_360_TITLE    0x1000
 #define STFS_CONTENT_TYPE_XNA               0xE0000
 
+static char KnownIds[][9] =
+{
+    "000D0000","00009000","00040000","02000000","00080000",
+    "00020000","000A0000","000C0000","00400000","00004000",
+    "000B0000","00002000","000F0000","00000002","00100000",
+    "00300000","00500000","00010000","00000003","00000001",
+    "00050000","00030000","00200000","00090000","00600000",
+    "00070000","00005000","00060000","00001000","00005000",
+    "000E0000","FFFE07D1", "00007000","00008000"
+};
+
+static char KnownEquivalent[][0x20] =
+{
+    "Arcade Title", "Avatar Item",              "Cache File",       "Community Game",           "Game Demo",
+    "Gamer Picture","Game Title",               "Game Trailer",     "Game Video",               "Installed Game",
+    "Installer",    "IPTV Pause Buffer",        "License Store",    "Marketplace Content",      "Movie",
+    "Music Video",  "Podcast Video","Profile",  "Publisher",        "Saved Game",               "Storage Download",
+    "Theme",        "TV",                       "Video",            "Viral Video",              "Xbox Download",
+    "Xbox Original Game","Xbox Saved Game",     "Installed Xbox 360 Title","Xbox Title",        "XNA",
+    "Xbox 360 Dashboard","Games on Demand",     "Storage Pack"
+};
+
 enum DeviceType
 {
 	DeviceDisk,
