@@ -410,16 +410,8 @@ void MainForm::ShowAbout( void )
 void MainForm::OnLoadDevicesClick( void )
 {
     vector<Drive *> Drives;
-    try
-    {
-        Drives = Drive::GetFATXDrives(true);
-    }
-    catch (exception e)
-    {
-        QMessageBox mb;
-        mb.setText("Exception was thrown");
-        mb.show();
-    }
+
+    Drives = Drive::GetFATXDrives(true);
 
     for (int i = 0; i < (int)Drives.size(); i++)
     {
