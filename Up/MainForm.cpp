@@ -484,7 +484,6 @@ void MainForm::OnLoadDevicesClick( void )
             partition->setIcon(0, iPartition);
             partition->setData(0, Qt::UserRole, QVariant(false));
 
-            QString text(partition->text(0));
             PopulateTreeItems(partition, false);
         }
         ui.fileSystemTree->insertTopLevelItem(ui.fileSystemTree->topLevelItemCount(), item);
