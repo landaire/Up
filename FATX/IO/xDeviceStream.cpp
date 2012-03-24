@@ -11,11 +11,12 @@ xDeviceStream::xDeviceStream( TCHAR* DevicePath )
     IsClosed = false;
 #ifdef _WIN32
     memset(&Offset, 0, sizeof(OVERLAPPED));
-#endif
+#else
     memset(&LastReadData, 0, 0x200);
     LastReadOffset = -1;
     UserOffset = 0;
     Offset = 0;
+#endif
 
 #ifdef _WIN32
     // Attempt to get a handle to the device
