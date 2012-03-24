@@ -8,7 +8,7 @@ QT       += core gui
 
 TARGET = Up
 TEMPLATE = app
-
+DEFINES += QT_NO_DEBUG_OUTPUT
 
 SOURCES += main.cpp\
         MainForm.cpp \
@@ -35,18 +35,17 @@ RESOURCES += \
 
 
 CONFIG(debug, debug|release) {
-macx: LIBS += -L$$PWD/../FATX-OSXDebug/ -lFATX
+macx: LIBS += -L$$PWD/../FATX-OSX/debug/ -lFATX
 
-INCLUDEPATH += $$PWD/../FATX-OSXDebug
-DEPENDPATH += $$PWD/../FATX-OSXDebug
+INCLUDEPATH += $$PWD/../FATX-OSX/debug
+DEPENDPATH += $$PWD/../FATX-OSX/debug
 
-macx: PRE_TARGETDEPS += $$PWD/../FATX-OSXDebug/libFATX.a
+macx: PRE_TARGETDEPS += $$PWD/../FATX-OSX/debug/libFATX.a
 } else {
-macx: LIBS += -L$$PWD/../FATX-OSXRelease/ -lFATX
+macx: LIBS += -L$$PWD/../FATX-OSX/release/ -lFATX
 
-INCLUDEPATH += $$PWD/../FATX-OSXRelease
-DEPENDPATH += $$PWD/../FATX-OSXRelease
+INCLUDEPATH += $$PWD/../FATX-OSX/release
+DEPENDPATH += $$PWD/../FATX-OSX/release
 
-macx: PRE_TARGETDEPS += $$PWD/../FATX-OSXRelease/libFATX.a
-DEFINES += QT_NO_DEBUG_OUTPUT
+macx: PRE_TARGETDEPS += $$PWD/../FATX-OSX/release/libFATX.a
 }
