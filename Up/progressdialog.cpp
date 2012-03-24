@@ -15,7 +15,6 @@ ProgressDialog::ProgressDialog(QWidget *parent, Operations Operation, std::vecto
     FilesCompleted = 0;
     WorkerThread = QtConcurrent::run(this, &ProgressDialog::PerformOperation, Operation, Paths, OutPath, Drives);
     operation = Operation;
-    Finished = false;
 }
 
 ProgressDialog::~ProgressDialog()
@@ -31,7 +30,6 @@ void ProgressDialog::PerformOperation(Operations Operation, std::vector<std::str
         CopyFileToLocalDisk(Paths, OutPath, Drives);
         break;
     }
-    Finished = true;
 }
 
 void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::string OutPath, std::vector<Drive*>& Drives)
@@ -121,8 +119,9 @@ void ProgressDialog::OnFileProgressChanged(const Progress& p)
     // Set the title of the total groupbox to reflect the current file out of x
     ui->groupBoxTotal->setTitle(QString("Total - File %1 out of %2").arg(FilesCompleted + 1).arg(FilesTotal));
 
+    string Title = Helpers::QStringToStdString(ui->groupBoxCurrent->title());
     // If we've just moved on to a new file
-    if (Helpers::QStringToStdString(ui->groupBoxCurrent->title()) != p.FilePath)
+    if (Title.substr(Title.find_first_of('/') + 1) != p.FilePath)
     {
         ui->groupBoxCurrent->setTitle(QString::fromWCharArray((p.Device->FriendlyName + L"/").c_str()) + Helpers::QStringFromStdString(p.FilePath));
 
@@ -190,8 +189,7 @@ void ProgressDialog::OnFileProgressChanged(const Progress& p)
             // Makes the image fit within the bounds of the graphics view without scrolling
             ui->graphicsView->fitInView(ui->graphicsView->rect(), Qt::KeepAspectRatio);
         }
-
-        if (*((volatile bool*)&Finished))
-            this->close();
     }
+    if (FilesCompleted == FilesTotal)
+        this->close();
 }
