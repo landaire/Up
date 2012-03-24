@@ -22,7 +22,6 @@ Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
 #endif
         qr.setPatternSyntax(QRegExp::Wildcard);
         qr.setCaseSensitivity(Qt::CaseInsensitive);
-        qr.setPatternSyntax(QRegExp::FixedString);
         if (qr.exactMatch(QString::fromWCharArray(Path)))
         {
             // Find all valid Xbox 360 files
