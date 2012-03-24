@@ -8,7 +8,7 @@ QT       += core gui
 
 TARGET = Up
 TEMPLATE = app
-DEFINES += QT_NO_DEBUG_OUTPUT
+DEFINES += #QT_NO_DEBUG_OUTPUT
 
 SOURCES += main.cpp\
         MainForm.cpp \
@@ -23,10 +23,10 @@ FORMS    += MainForm.ui \
     AboutForm.ui \
     progressdialog.ui
 
-win32{
-QMAKE_CFLAGS_RELEASE += -Zi
-QMAKE_CXXFLAGS_RELEASE += -Zi -g
-QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF}
+#win32{
+#QMAKE_CFLAGS_RELEASE += -Zi
+#QMAKE_CXXFLAGS_RELEASE += -Zi -g
+#QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF}
 
 INCLUDEPATH += $$PWD/../FATX/FATX
 

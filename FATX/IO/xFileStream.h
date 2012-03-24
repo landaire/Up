@@ -1,7 +1,6 @@
 #ifndef __XFS__HG
 #define __XFS__HG
 #include "istream.h"
-#include "../xexception.h"
 #include "../typedefs.h"
 #include <fstream>
 

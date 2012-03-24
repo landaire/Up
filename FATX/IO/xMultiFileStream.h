@@ -2,8 +2,9 @@
 #define __XMFS__HG
 #include "istream.h"
 #include "xFileStream.h"
-#include "../xexception.h"
 #include <vector>
+#include "../Exceptions.h"
+#include <exception>
 namespace Streams
 {
 	class xMultiFileStream :

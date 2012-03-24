@@ -1,7 +1,7 @@
 #ifndef __XDS__HG
 #define __XDS__HG
 #include "IStream.h"
-#include "../xexception.h"
+#include "../Exceptions.h"
 
 #ifdef _WIN32
 #include <windows.h>

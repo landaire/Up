@@ -2,7 +2,7 @@
 #define __XDFS__HG
 #include "istream.h"
 #include <exception>
-#include "../xexception.h"
+#include "../Exceptions.h"
 #include "../FATX/StaticInformation.h"
 #include "../FATX/Drive.h"
 #include "../FATX/Helpers.h"

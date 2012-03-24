@@ -197,6 +197,7 @@ QTreeWidgetItem *MainForm::AddFile(QTreeWidgetItem* Item, File *f, Drive *device
         fItem->setText(4, pack.DisplayName());
     }
     fs->Close();
+    qDebug("Freeing file stream - MainForm::AddFile");
     delete fs;
 
     return fItem;
@@ -429,6 +430,7 @@ void MainForm::OnLoadDevicesClick( void )
         }
         if (Skip)
         {
+            qDebug("Freeing disk: MainForm::OnLoadDevicesClick");
             current->Close();
             delete current;
             continue;

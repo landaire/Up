@@ -2,6 +2,7 @@
 #define __DRIVE__HG
 #include "../StdAfx.h"
 #include <vector>
+#include <exception>
 #include "../IO/xDeviceStream.h"
 #include "../IO/xFileStream.h"
 #include "../IO/xMultiFileStream.h"

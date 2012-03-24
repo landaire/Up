@@ -11,7 +11,7 @@ QT       -= gui
 TARGET = FATX
 TEMPLATE = lib
 CONFIG += staticlib
-DEFINES += UNICODE _UNICODE QT_NO_DEBUG_OUTPUT # _LARGEFILE64_SOURCE
+DEFINES += UNICODE _UNICODE #QT_NO_DEBUG_OUTPUT # _LARGEFILE64_SOURCE
 
 #QMAKE_CXXFLAGS += -D_FILE_OFFSET_BITS=64
 
@@ -22,14 +22,13 @@ DEFINES += UNICODE _UNICODE QT_NO_DEBUG_OUTPUT # _LARGEFILE64_SOURCE
 
 
 CONFIG(release, debug|release) {
- DEFINES += QT_NO_DEBUG_OUTPUT
+ #DEFINES += QT_NO_DEBUG_OUTPUT
 }
 
 HEADERS += \
     stdafx.h \
     typedefs.h \
-    xexception.h
+    Exceptions.h
 
 SOURCES += \
-    stdafx.cpp \
-    xexception.cpp
+    stdafx.cpp
