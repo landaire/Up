@@ -17,13 +17,11 @@ Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
         // USB
 #ifdef _WIN32
         QRegExp qr("*:\\");
-        qr.setPatternSyntax(QRegExp::Wildcard);
-        qr.setCaseSensitivity(Qt::CaseInsensitive);
 #else
         QRegExp qr("/Volumes/*");
+#endif
         qr.setPatternSyntax(QRegExp::Wildcard);
         qr.setCaseSensitivity(Qt::CaseInsensitive);
-#endif
         if (qr.exactMatch(QString::fromWCharArray(Path)))
         {
             // Find all valid Xbox 360 files
@@ -552,6 +550,7 @@ UINT64 Drive::PartitionGetLength( string Partition )
     {
         QRegExp rgx(Partition.c_str());
         rgx.setCaseSensitivity(Qt::CaseInsensitive);
+        rgx.setPatternSyntax(QRegExp::FixedString);
         if (rgx.exactMatch(ValidVolumes.at(i)->Name.c_str()))
         {
             return ValidVolumes.at(i)->Size;

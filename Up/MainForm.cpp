@@ -265,6 +265,8 @@ void MainForm::SetTitleIdName(QTreeWidgetItem *Item)
     for (int items = 0; items < Item->childCount(); items++)
     {
         QTreeWidgetItem *fItem = Item->child(items);
+        if (fItem->text(2) != "Folder")
+            continue;
 
         bool Known = false;
         for (int i = 0; i < sizeof(KnownIds) / sizeof(KnownIds[0]); i++)
@@ -408,16 +410,8 @@ void MainForm::ShowAbout( void )
 void MainForm::OnLoadDevicesClick( void )
 {
     vector<Drive *> Drives;
-    try
-    {
-        Drives = Drive::GetFATXDrives(true);
-    }
-    catch (exception e)
-    {
-        QMessageBox mb;
-        mb.setText("Exception was thrown");
-        mb.show();
-    }
+
+    Drives = Drive::GetFATXDrives(true);
 
     for (int i = 0; i < (int)Drives.size(); i++)
     {
@@ -490,7 +484,6 @@ void MainForm::OnLoadDevicesClick( void )
             partition->setIcon(0, iPartition);
             partition->setData(0, Qt::UserRole, QVariant(false));
 
-            QString text(partition->text(0));
             PopulateTreeItems(partition, false);
         }
         ui.fileSystemTree->insertTopLevelItem(ui.fileSystemTree->topLevelItemCount(), item);
