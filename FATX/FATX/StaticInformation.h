@@ -222,6 +222,7 @@ typedef struct _DEV_PARTITION
 
 struct xVolume
 {
+
     std::string		 Name;
 	unsigned int Magic;					// Partition magic
     unsigned int SerialNumber;			// Partition serial number
@@ -237,6 +238,22 @@ struct xVolume
     unsigned int FatEntryShift;
     Folder       *Root;
     Drive        *Disk;
+    xVolume()
+    {
+        // Set all members to 0
+        Magic = 0;
+        SerialNumber = 0;
+        SectorsPerCluster = 0;
+        RootDirectoryCluster = 0;
+        DataStart = 0;
+        Clusters = 0;
+        EntrySize = 0;
+        Offset = 0;
+        Size = 0;
+        AllocationTableSize = 0;
+        ClusterSize = 0;
+        FatEntryShift = 0;
+    }
 };
 
 enum StfsOffsets
