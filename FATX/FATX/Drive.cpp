@@ -4,6 +4,8 @@
 #include <QMetaType>
 #include "stfspackage.h"
 
+using namespace std;
+
 Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
 {
     IsDevKitDrive = false;
@@ -67,7 +69,7 @@ Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
             if (Paths.size() == 0)
             {
                 qDebug("Exception thrown at Drive: No paths for device");
-                throw exception("No paths found for device!", ExExternalPathsNotFound);
+                throw xException("No paths found for device!");
             }
             DeviceStream = new Streams::xMultiFileStream(Paths);
             Type = DeviceUsb;
@@ -292,7 +294,7 @@ Folder *Drive::FolderFromPath(string Path)
                 if (!Found)
                 {
                     qDebug("Exception thrown at FolderFromPath: Folder not found");
-                    throw exception("Folder not found", ExVolumeFolderNotFound);
+                    throw xException("Folder not found");
                 }
             }
             while (PathSplit.size() > 0);
@@ -300,7 +302,7 @@ Folder *Drive::FolderFromPath(string Path)
         }
     }
     qDebug("Exception thrown at FolderFromPath: Folder not found");
-    throw exception("Folder not found", ExVolumeFolderNotFound);
+    throw xException("Folder not found");
 }
 
 File *Drive::FileFromPath(string Path)
@@ -384,14 +386,14 @@ File *Drive::FileFromPath(string Path)
                 if (!Found)
                 {
                     qDebug("Exception thrown at FileFromPath: File not found");
-                    throw exception("File not found", ExVolumeFileNotFound);
+                    throw xException("File not found");
                 }
             }
             while (PathSplit.size() > 0);
         }
     }
     qDebug("Exception thrown at FileFromPath: File not found");
-    throw exception("Folder not found", ExVolumeFolderNotFound);
+    throw xException("Folder not found");
 }
 
 void Drive::ReadDirectoryEntries(Folder* Directory)
@@ -509,7 +511,7 @@ void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume 
         char buffer[0x46];
         sprintf(buffer, "Free block referenced in FAT cluster chain! Dirent offset: 0x%lX", Entry.Offset);
         qDebug("Exception thrown at ReadClusterChain: Free block");
-        throw exception(buffer);
+        throw xException(buffer);
     }
 }
 
@@ -551,7 +553,7 @@ UINT64 Drive::PartitionGetLength( string Partition )
         }
     }
     qDebug("Exception thrown at PartitionGetLength: Partition not found");
-    throw exception("Partition not found!", 64);
+    throw xException("Partition not found!");
 }
 
 void Drive::SetValidPartitions( void )
@@ -702,7 +704,7 @@ void Drive::InitializePartitions( void )
         else if (Type == DeviceBackup && Magic != FatxMagic)
         {
             qDebug("Exception thrown at InitializePartitions: Not a valid FATX file");
-            throw exception("Not a valid FATX file.", ExInvalidFile);
+            throw xException("Not a valid FATX file.");
         }
     }
     SetValidPartitions();
@@ -725,7 +727,7 @@ vector<Drive *> Drive::GetFATXDrives( bool HardDisks )
                 wcstombs(path, ddi.Path, wcslen(ddi.Path));
                 DS = new Streams::xDeviceStream(ddi.Path);
             }
-            catch (exception& e)
+            catch (xException& e)
             {
                 continue;
             }
@@ -1023,7 +1025,7 @@ void Drive::FatxProcessBootSector( xVolume* ref )
     if (ref->Magic != FatxMagic)
     {
         qDebug("Exception thrown at FatxProcessBotSector: Invalid magic");
-        throw exception("Bad magic", ExVolumeInvalidMagic);
+        throw xException("Bad magic");
     }
 
     DeviceStream->SetPosition(ref->Offset + 0x8);
@@ -1034,7 +1036,7 @@ void Drive::FatxProcessBootSector( xVolume* ref )
             ref->SectorsPerCluster != 0x80)
     {
         qDebug("Exception thrown at FatxProcessBotSector: Invalid sectors per cluster");
-        throw exception("FATX: found invalid sectors per cluster", ExVolumeInvalidSectorsPerCluster);
+        throw xException("FATX: found invalid sectors per cluster");
     }
 
     DeviceStream->SetPosition(ref->Offset + 0xC);
@@ -1071,7 +1073,7 @@ void Drive::FatxProcessBootSector( xVolume* ref )
     if (Clusters < PartitionSize)
     {
         qDebug("Exception thrown at FatxProcessBotSector: Volume too small to hold FAT");
-        throw exception("FATX: Volume too small to hold the FAT", ExVolumeTooSmall);
+        throw xException("FATX: Volume too small to hold the FAT");
     }
 
     Clusters -= PartitionSize;
@@ -1079,7 +1081,7 @@ void Drive::FatxProcessBootSector( xVolume* ref )
     if (Clusters > 0xFFFFFFF)
     {
         qDebug("Exception thrown at FatxProcessBotSector: Too many clusters");
-        throw exception("FATX: too many clusters", ExVolumeTooManyClusters);
+        throw xException("FATX: too many clusters");
     }
 
     ref->Clusters = Clusters;

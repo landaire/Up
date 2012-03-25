@@ -1,8 +1,8 @@
 #ifndef XEXCEPTION_H
 #define XEXCEPTION_H
-#include "stdafx.h"
-#include <exception>
-using namespace std;
+
+#include <stdexcept>
+#include <string>
 
 enum Exceptions
 {
@@ -26,17 +26,14 @@ enum Exceptions
     ExStreamWrite
 };
 
-class xException : public exception
+class xException : public std::runtime_error
 {
 public:
-    xException(const char Message[], int Error = 0);
-    virtual const char *what() const throw()
+    int Exception;
+    xException(const std::string& message, int exception = 0) : std::runtime_error(message)
     {
-        return Message;
+        Exception = exception;
     }
-
-    char Message[0x200];
-    int Error;
 };
 
 #endif // XEXCEPTION_H

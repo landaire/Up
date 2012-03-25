@@ -46,7 +46,7 @@ void xMultiFileStream::SetPosition( INT64 Position )
     // If the position is too large, throw an exception
     if (Position > Length())
     {
-        throw exception("Can not seek beyond end of stream", ExStreamSetPosition );
+        throw xException("Can not seek beyond end of stream", ExStreamSetPosition );
     }
     UserOffset = Position;
 
@@ -82,11 +82,11 @@ BYTE xMultiFileStream::ReadByte( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::ReadByte", ExStreamReadByte);
+        throw xException("Stream is closed. At: xMultiFileStream::ReadByte", ExStreamReadByte);
     }
     else if (Position() > Length() - sizeof(BYTE))
     {
-        throw exception("End of file reached.  At: xMultiFileStream::ReadByte", ExStreamReadByte);
+        throw xException("End of file reached.  At: xMultiFileStream::ReadByte", ExStreamReadByte);
     }
 
     BYTE Return;
@@ -99,11 +99,11 @@ short xMultiFileStream::ReadInt16( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::ReadInt16", ExStreamReadInt16);
+        throw xException("Stream is closed. At: xMultiFileStream::ReadInt16", ExStreamReadInt16);
     }
     else if (Position() > Length() - sizeof(INT16))
     {
-        throw exception("End of file reached.  At: xMultiFileStream::ReadInt16", ExStreamReadInt16);
+        throw xException("End of file reached.  At: xMultiFileStream::ReadInt16", ExStreamReadInt16);
     }
 
     BYTE temp[2];
@@ -118,11 +118,11 @@ int xMultiFileStream::ReadInt32( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::ReadInt32");
+        throw xException("Stream is closed. At: xMultiFileStream::ReadInt32");
     }
     else if (Position() > Length() - sizeof(INT32))
     {
-        throw exception("End of file reached.  At: xMultiFileStream::ReadInt32");
+        throw xException("End of file reached.  At: xMultiFileStream::ReadInt32");
     }
 
     // Get the size of the object
@@ -150,11 +150,11 @@ INT64 xMultiFileStream::ReadInt64( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::ReadInt64");
+        throw xException("Stream is closed. At: xMultiFileStream::ReadInt64");
     }
     else if (Position() > Length() - sizeof(INT64))
     {
-        throw exception("End of file reached.  At: xMultiFileStream::ReadInt64");
+        throw xException("End of file reached.  At: xMultiFileStream::ReadInt64");
     }
 
     int size = sizeof(INT64);
@@ -176,11 +176,11 @@ UINT16 xMultiFileStream::ReadUInt16( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::ReadUInt16");
+        throw xException("Stream is closed. At: xMultiFileStream::ReadUInt16");
     }
     else if (Position() > Length() - sizeof(UINT16))
     {
-        throw exception("End of file reached.  At: xMultiFileStream::ReadUInt16");
+        throw xException("End of file reached.  At: xMultiFileStream::ReadUInt16");
     }
 
     int size = sizeof(UINT16);
@@ -202,11 +202,11 @@ UINT32 xMultiFileStream::ReadUInt32( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::ReadUInt32");
+        throw xException("Stream is closed. At: xMultiFileStream::ReadUInt32");
     }
     else if (Position() > Length() - sizeof(UINT32))
     {
-        throw exception("End of file reached.  At: xMultiFileStream::ReadUInt32");
+        throw xException("End of file reached.  At: xMultiFileStream::ReadUInt32");
     }
 
     int size = sizeof(UINT32);
@@ -229,11 +229,11 @@ UINT64 xMultiFileStream::ReadUInt64( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::ReadUInt64");
+        throw xException("Stream is closed. At: xMultiFileStream::ReadUInt64");
     }
     else if (Position() > Length() - sizeof(UINT64))
     {
-        throw exception("End of file reached.  At: xMultiFileStream::ReadUInt64");
+        throw xException("End of file reached.  At: xMultiFileStream::ReadUInt64");
     }
 
     int size = sizeof(UINT64);
@@ -256,7 +256,7 @@ int xMultiFileStream::Read( BYTE* DestBuff, int Count )
     int Offset = 0;
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::Read");
+        throw xException("Stream is closed. At: xMultiFileStream::Read");
     }
 
     //SetPosition(Position());
@@ -289,11 +289,11 @@ string xMultiFileStream::ReadString( size_t Count )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::ReadString");
+        throw xException("Stream is closed. At: xMultiFileStream::ReadString");
     }
     if (Position() + Count > Length())
     {
-        throw exception("Can not read beyond end of stream.  At: xMultiFileStream::ReadString");
+        throw xException("Can not read beyond end of stream.  At: xMultiFileStream::ReadString");
     }
     BYTE* Buffer = new BYTE[Count + 1];
     memset(Buffer, 0, Count + 1);
@@ -310,7 +310,7 @@ string xMultiFileStream::ReadCString( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::ReadCString");
+        throw xException("Stream is closed. At: xMultiFileStream::ReadCString");
     }
     vector<char> temp;
     bool Null;
@@ -344,11 +344,11 @@ wstring xMultiFileStream::ReadUnicodeString( size_t Count )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::ReadUnicodeString");
+        throw xException("Stream is closed. At: xMultiFileStream::ReadUnicodeString");
     }
     else if (Position() + Count > Length())
     {
-        throw exception("Can not read beyond end of stream.  At: xMultiFileStream::ReadUnicodeString");
+        throw xException("Can not read beyond end of stream.  At: xMultiFileStream::ReadUnicodeString");
     }
 
     BYTE* Buffer = new BYTE[Count + 1];
@@ -366,11 +366,11 @@ void xMultiFileStream::WriteByte( BYTE _Byte )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::WriteByte");
+        throw xException("Stream is closed. At: xMultiFileStream::WriteByte");
     }
     else if (Position() + sizeof(BYTE) > Length())
     {
-        throw exception("End of file reached.  At: xMultiFileStream::WriteByte");
+        throw xException("End of file reached.  At: xMultiFileStream::WriteByte");
     }
     Write(&_Byte, 1);
 }
@@ -379,11 +379,11 @@ void xMultiFileStream::WriteInt16( short _Int16 )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::WriteInt16");
+        throw xException("Stream is closed. At: xMultiFileStream::WriteInt16");
     }
     else if (Position() + sizeof(short) > Length())
     {
-        throw exception("End of file reached.  At: xMultiFileStream::WriteInt16");
+        throw xException("End of file reached.  At: xMultiFileStream::WriteInt16");
     }
     DetermineAndDoEndianSwap((BYTE*)&_Int16, sizeof(short), sizeof(BYTE));
     Write((BYTE*)&_Int16, sizeof(short));
@@ -393,11 +393,11 @@ void xMultiFileStream::WriteInt32( int _Int32 )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::WriteInt32");
+        throw xException("Stream is closed. At: xMultiFileStream::WriteInt32");
     }
     else if (Position() + sizeof(int) > Length())
     {
-        throw exception("End of file reached.  At: xMultiFileStream::WriteInt16");
+        throw xException("End of file reached.  At: xMultiFileStream::WriteInt16");
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_Int32, sizeof(int), sizeof(BYTE));
@@ -408,11 +408,11 @@ void xMultiFileStream::WriteInt64( INT64 _Int64 )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::WriteInt64");
+        throw xException("Stream is closed. At: xMultiFileStream::WriteInt64");
     }
     else if (Position() + sizeof(INT64) > Length())
     {
-        throw exception("End of file reached.  At: xMultiFileStream::WriteInt64");
+        throw xException("End of file reached.  At: xMultiFileStream::WriteInt64");
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_Int64, sizeof(INT64), sizeof(BYTE));
@@ -423,11 +423,11 @@ void xMultiFileStream::WriteUInt16( UINT16 _UInt16 )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::WriteUInt16");
+        throw xException("Stream is closed. At: xMultiFileStream::WriteUInt16");
     }
     else if (Position() + sizeof(UINT16) > Length())
     {
-        throw exception("End of file reached.  At: xMultiFileStream::WriteUInt16");
+        throw xException("End of file reached.  At: xMultiFileStream::WriteUInt16");
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt16, sizeof(UINT16), sizeof(BYTE));
@@ -438,11 +438,11 @@ void xMultiFileStream::WriteUInt32( UINT32 _UInt32 )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::WriteUInt32");
+        throw xException("Stream is closed. At: xMultiFileStream::WriteUInt32");
     }
     else if (Position() + sizeof(UINT32) > Length())
     {
-        throw exception("End of file reached.  At: xMultiFileStream::WriteUInt32");
+        throw xException("End of file reached.  At: xMultiFileStream::WriteUInt32");
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt32, sizeof(UINT32), sizeof(BYTE));
@@ -453,11 +453,11 @@ void xMultiFileStream::WriteUInt64( UINT64 _UInt64 )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::WriteUInt64");
+        throw xException("Stream is closed. At: xMultiFileStream::WriteUInt64");
     }
     else if (Position() + sizeof(UINT64) > Length())
     {
-        throw exception("End of file reached.  At: xMultiFileStream::WriteUInt64");
+        throw xException("End of file reached.  At: xMultiFileStream::WriteUInt64");
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt64, sizeof(UINT64), sizeof(BYTE));
@@ -469,11 +469,11 @@ int xMultiFileStream::Write( BYTE* Buffer, int count )
     int offset;
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xMultiFileStream::WriteBytes");
+        throw xException("Stream is closed. At: xMultiFileStream::WriteBytes");
     }
     if (Position() + count > Length())
     {
-        throw exception("Can not write beyond end of stream");
+        throw xException("Can not write beyond end of stream");
     }
 
     //SetPosition(Position());

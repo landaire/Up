@@ -2,7 +2,7 @@
 #define __DRIVE__HG
 #include "../StdAfx.h"
 #include <vector>
-#include <exception>
+#include "../xexception.h"
 #include "../IO/xDeviceStream.h"
 #include "../IO/xFileStream.h"
 #include "../IO/xMultiFileStream.h"
@@ -13,8 +13,6 @@
 #include <QDebug>
 #include <QObject>
 
-
-using namespace std;
 
 #ifdef _WIN32
 #include <windows.h>
@@ -68,12 +66,12 @@ private:
 
     static vector<DISK_DRIVE_INFORMATION> GetPhysicalDisks( void );
 
-    vector<xVolume*> ValidVolumes;
+    std::vector<xVolume*> ValidVolumes;
     void	SetValidPartitions      ( void );
     void	InitializePartitions    ( void );
     void	FatxProcessBootSector   ( xVolume* ref );
     BYTE	cntlzw                  (unsigned int val);
-    vector<string> _partitions;
+    std::vector<std::string> _partitions;
 
     void    DestroyFolder           (Folder *Directory);
 
@@ -87,22 +85,22 @@ public:
 
     Streams::IStream*       DeviceStream;
     static vector<Drive *>  GetFATXDrives( bool HardDisks );
-    vector<string>          Partitions          ( void );
+    std::vector<std::string>Partitions          ( void );
     QString                 GetDiskName         ( void );
-    UINT64                  PartitionGetLength  ( string Partition );
+    UINT64                  PartitionGetLength  ( std::string Partition );
     void                    Close               ( void );
     DWORD                   GetFileCount( Folder *f );
     DWORD                   GetTotalFileCount   ( Folder *f );
     DWORD                   GetFolderCount      ( Folder *f );
     DWORD                   GetTotalFolderCount ( Folder *f );
     void                    ReadDirectoryEntries(Folder* Directory);
-    Folder                  *FolderFromPath     ( string Path );
-    File                    *FileFromPath       ( string Path );
-    void                    CopyFileToLocalDisk ( File *dest, string Output);
-    void                    CopyFileToLocalDisk ( string Path, string Output);
+    Folder                  *FolderFromPath     ( std::string Path );
+    File                    *FileFromPath       ( std::string Path );
+    void                    CopyFileToLocalDisk ( File *dest, std::string Output);
+    void                    CopyFileToLocalDisk ( std::string Path, std::string Output);
 
-    wstring                 FriendlyName;
-    string                  FriendlySize;
+    std::wstring            FriendlyName;
+    std::string             FriendlySize;
 
     DeviceType              Type;
     bool                    IsDevKitDrive;

@@ -28,7 +28,7 @@ CONFIG(release, debug|release) {
 HEADERS += \
     stdafx.h \
     typedefs.h \
-    Exceptions.h
+    xexception.h
 
 SOURCES += \
     stdafx.cpp

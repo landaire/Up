@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <sstream>
 
+using namespace std;
+
 QDateTime Helpers::IntToQDateTime( FAT_TIME_STAMP Date )
 {
     QDateTime r(QDate(Date.DateTime.Year, Date.DateTime.Month, Date.DateTime.Day),

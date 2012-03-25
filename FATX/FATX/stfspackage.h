@@ -5,8 +5,6 @@
 #include "StaticInformation.h"
 #include <QString>
 #include <../QtGui/QImage>
-using namespace std;
-using namespace Streams;
 
 class STFSPackage
 {

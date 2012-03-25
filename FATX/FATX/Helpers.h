@@ -5,7 +5,7 @@
 #include <QDateTime>
 #include <QDate>
 #include <QTime>
-using namespace std;
+
 class Helpers
 {
 public:
@@ -15,11 +15,11 @@ public:
 	static INT64 UpToNearestSector( INT64 Offset );
     static INT64 UpToNearestX( INT64 Value, int x);
     static INT64 DownToNearestX( INT64 Value, int x);
-	static string ConvertToFriendlySize( INT64 Size );
-    static void split(const string &s, char delim, vector<string> &elems);
+    static std::string ConvertToFriendlySize( INT64 Size );
+    static void split(const std::string &s, char delim, std::vector<std::string> &elems);
 
-    static string QStringToStdString(QString stringData);
-    static QString QStringFromStdString(string stringData);
+    static std::string QStringToStdString(QString stringData);
+    static QString QStringFromStdString(std::string stringData);
 
     static QString QStringFromStdWString(std::wstring stringData);
 };

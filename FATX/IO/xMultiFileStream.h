@@ -3,8 +3,9 @@
 #include "istream.h"
 #include "xFileStream.h"
 #include <vector>
-#include "../Exceptions.h"
+#include "../xException.h"
 #include <exception>
+#include <stdexcept>
 namespace Streams
 {
 	class xMultiFileStream :

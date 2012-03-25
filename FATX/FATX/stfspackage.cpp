@@ -1,4 +1,6 @@
 #include "stfspackage.h"
+using namespace std;
+using namespace Streams;
 
 STFSPackage::STFSPackage( Streams::IStream *Stream )
 {

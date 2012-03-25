@@ -70,11 +70,11 @@ BYTE xDeviceFileStream::ReadByte( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::ReadByte");
+        throw xException("Stream is closed. At: xDeviceFileStream::ReadByte");
     }
     else if (Position() > Length() - sizeof(BYTE))
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::ReadByte");
+        throw xException("End of file reached.  At: xDeviceFileStream::ReadByte");
     }
 
     BYTE Return;
@@ -87,11 +87,11 @@ short xDeviceFileStream::ReadInt16( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::ReadInt16");
+        throw xException("Stream is closed. At: xDeviceFileStream::ReadInt16");
     }
     else if (Position() > Length() - sizeof(INT16))
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::ReadInt16");
+        throw xException("End of file reached.  At: xDeviceFileStream::ReadInt16");
     }
 
     BYTE temp[2];
@@ -106,11 +106,11 @@ int xDeviceFileStream::ReadInt32( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::ReadInt32");
+        throw xException("Stream is closed. At: xDeviceFileStream::ReadInt32");
     }
     else if (Position() > Length() - sizeof(INT32))
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::ReadInt32");
+        throw xException("End of file reached.  At: xDeviceFileStream::ReadInt32");
     }
 
     // Get the size of the object
@@ -138,11 +138,11 @@ INT64 xDeviceFileStream::ReadInt64( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::ReadInt64");
+        throw xException("Stream is closed. At: xDeviceFileStream::ReadInt64");
     }
     else if (Position() > Length() - sizeof(INT64))
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::ReadInt64");
+        throw xException("End of file reached.  At: xDeviceFileStream::ReadInt64");
     }
 
     int size = sizeof(INT64);
@@ -164,11 +164,11 @@ UINT16 xDeviceFileStream::ReadUInt16( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::ReadUInt16");
+        throw xException("Stream is closed. At: xDeviceFileStream::ReadUInt16");
     }
     else if (Position() > Length() - sizeof(UINT16))
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::ReadUInt16");
+        throw xException("End of file reached.  At: xDeviceFileStream::ReadUInt16");
     }
 
     int size = sizeof(UINT16);
@@ -190,11 +190,11 @@ UINT32 xDeviceFileStream::ReadUInt32( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::ReadUInt32");
+        throw xException("Stream is closed. At: xDeviceFileStream::ReadUInt32");
     }
     else if (Position() > Length() - sizeof(UINT32))
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::ReadUInt32");
+        throw xException("End of file reached.  At: xDeviceFileStream::ReadUInt32");
     }
 
     int size = sizeof(UINT32);
@@ -217,11 +217,11 @@ UINT64 xDeviceFileStream::ReadUInt64( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::ReadUInt64");
+        throw xException("Stream is closed. At: xDeviceFileStream::ReadUInt64");
     }
     else if (Position() > Length() - sizeof(UINT64))
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::ReadUInt64");
+        throw xException("End of file reached.  At: xDeviceFileStream::ReadUInt64");
     }
 
     int size = sizeof(UINT64);
@@ -279,11 +279,11 @@ string xDeviceFileStream::ReadString( size_t Count )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::ReadString");
+        throw xException("Stream is closed. At: xDeviceFileStream::ReadString");
     }
     if ((Position() + Count) > Length())
     {
-        throw exception("Can not read beyond end of stream.  At: xDeviceFileStream::ReadString");
+        throw xException("Can not read beyond end of stream.  At: xDeviceFileStream::ReadString");
     }
     BYTE* Buffer = new BYTE[Count + 1];
     memset(Buffer, 0, Count + 1);
@@ -300,7 +300,7 @@ string xDeviceFileStream::ReadCString( void )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::ReadCString");
+        throw xException("Stream is closed. At: xDeviceFileStream::ReadCString");
     }
     vector<char> temp;
     bool Null;
@@ -334,11 +334,11 @@ wstring xDeviceFileStream::ReadUnicodeString( size_t Count )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::ReadUnicodeString");
+        throw xException("Stream is closed. At: xDeviceFileStream::ReadUnicodeString");
     }
     else if ((Position() + Count) > Length())
     {
-        throw exception("Can not read beyond end of stream.  At: xDeviceFileStream::ReadUnicodeString");
+        throw xException("Can not read beyond end of stream.  At: xDeviceFileStream::ReadUnicodeString");
     }
 
     BYTE* Buffer = new BYTE[Count + 1];
@@ -360,11 +360,11 @@ void xDeviceFileStream::WriteByte( BYTE _Byte )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::WriteByte");
+        throw xException("Stream is closed. At: xDeviceFileStream::WriteByte");
     }
     else if (Position() + sizeof(BYTE) > Length())
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::WriteByte");
+        throw xException("End of file reached.  At: xDeviceFileStream::WriteByte");
     }
     Write(&_Byte, 1);
 }
@@ -373,11 +373,11 @@ void xDeviceFileStream::WriteInt16( short _Int16 )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::WriteInt16");
+        throw xException("Stream is closed. At: xDeviceFileStream::WriteInt16");
     }
     else if ((Position() + sizeof(short)) > Length())
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::WriteInt16");
+        throw xException("End of file reached.  At: xDeviceFileStream::WriteInt16");
     }
     DetermineAndDoEndianSwap((BYTE*)&_Int16, sizeof(short), sizeof(BYTE));
     Write((BYTE*)&_Int16, sizeof(short));
@@ -387,11 +387,11 @@ void xDeviceFileStream::WriteInt32( int _Int32 )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::WriteInt32");
+        throw xException("Stream is closed. At: xDeviceFileStream::WriteInt32");
     }
     else if ((Position() + sizeof(int)) > Length())
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::WriteInt16");
+        throw xException("End of file reached.  At: xDeviceFileStream::WriteInt16");
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_Int32, sizeof(int), sizeof(BYTE));
@@ -402,11 +402,11 @@ void xDeviceFileStream::WriteInt64( INT64 _Int64 )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::WriteInt64");
+        throw xException("Stream is closed. At: xDeviceFileStream::WriteInt64");
     }
     else if ((Position() + sizeof(INT64)) > Length())
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::WriteInt64");
+        throw xException("End of file reached.  At: xDeviceFileStream::WriteInt64");
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_Int64, sizeof(INT64), sizeof(BYTE));
@@ -417,11 +417,11 @@ void xDeviceFileStream::WriteUInt16( UINT16 _UInt16 )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::WriteUInt16");
+        throw xException("Stream is closed. At: xDeviceFileStream::WriteUInt16");
     }
     else if ((Position() + sizeof(UINT16)) > Length())
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::WriteUInt16");
+        throw xException("End of file reached.  At: xDeviceFileStream::WriteUInt16");
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt16, sizeof(UINT16), sizeof(BYTE));
@@ -432,11 +432,11 @@ void xDeviceFileStream::WriteUInt32( UINT32 _UInt32 )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::WriteUInt32");
+        throw xException("Stream is closed. At: xDeviceFileStream::WriteUInt32");
     }
     else if ((Position() + sizeof(UINT32)) > Length())
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::WriteUInt32");
+        throw xException("End of file reached.  At: xDeviceFileStream::WriteUInt32");
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt32, sizeof(UINT32), sizeof(BYTE));
@@ -447,11 +447,11 @@ void xDeviceFileStream::WriteUInt64( UINT64 _UInt64 )
 {
     if (IsClosed)
     {
-        throw exception("Stream is closed. At: xDeviceFileStream::WriteUInt64");
+        throw xException("Stream is closed. At: xDeviceFileStream::WriteUInt64");
     }
     else if ((Position() + sizeof(UINT64)) > Length())
     {
-        throw exception("End of file reached.  At: xDeviceFileStream::WriteUInt64");
+        throw xException("End of file reached.  At: xDeviceFileStream::WriteUInt64");
     }
 
     DetermineAndDoEndianSwap((BYTE*)&_UInt64, sizeof(UINT64), sizeof(BYTE));
