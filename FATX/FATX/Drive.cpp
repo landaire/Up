@@ -430,7 +430,7 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
             }
 
             Entry.Attributes = DeviceStream->ReadByte();
-            sprintf(Entry.Name, "%s", DeviceStream->ReadString(Entry.NameSize).c_str());
+            DeviceStream->Read((BYTE*)&Entry.Name, Entry.NameSize);
 
             DeviceStream->SetPosition((DeviceStream->Position() + 0x2A) - Entry.NameSize);
 
@@ -600,8 +600,6 @@ void Drive::SetValidPartitions( void )
             xVolume* SysAux = new xVolume();
             xVolume* Cache  = new xVolume();
             xVolume* Data   = new xVolume();
-            memset(Cache, 0, sizeof(xVolume));
-            memset(Data, 0, sizeof(xVolume));
 
             SysExt->Offset = UsbOffsets::SystemExtended;
             SysAux->Offset = UsbOffsets::SystemAux;
@@ -617,6 +615,11 @@ void Drive::SetValidPartitions( void )
             SysAux->Name = "System Auxiliary";
             Cache->Name = "Cache";
             Data->Name = "Data";
+
+            SysExt->Disk = this;
+            SysAux->Disk = this;
+            Cache->Disk = this;
+            Data->Disk = this;
 
             DeviceStream->SetPosition(SysExt->Offset);
             if (DeviceStream->ReadUInt32() == FatxMagic)
