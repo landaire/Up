@@ -32,7 +32,7 @@ void xMultiFileStream::Close( void )
         if (!FileStreams.size())
             break;
         FileStreams[0]->Close();
-        qDebug("Freeing stream: xMultiFileStream::Close");
+
         delete FileStreams[0];
         FileStreams.erase(FileStreams.begin());
     }
@@ -304,7 +304,7 @@ string xMultiFileStream::ReadString( size_t Count )
     Read(Buffer, Count);
 
     string ret((char*)Buffer);
-    qDebug("Freeing buffer: xMultiFileStream::ReadString");
+
     delete[] Buffer;
     return ret;
 }
@@ -338,7 +338,6 @@ string xMultiFileStream::ReadCString( void )
 
     string Return(tempString);
 
-    qDebug("Freeing buffer: xMultiFileStream::ReadCString");
     delete[] tempString;
     return Return;
 }
@@ -360,7 +359,7 @@ wstring xMultiFileStream::ReadUnicodeString( size_t Count )
     Read(Buffer, Count + 1);
 
     wstring ret((TCHAR*)Buffer);
-    qDebug("Freeing buffer: xMultiFileStream::ReadUnicodeString");
+
     delete[] Buffer;
     return ret;
 }
