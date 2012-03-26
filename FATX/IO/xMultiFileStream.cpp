@@ -25,13 +25,16 @@ xMultiFileStream::~xMultiFileStream(void)
 
 void xMultiFileStream::Close( void )
 {
-    for (int i = 0; i < (int)FileStreams.size(); i++)
+    if (IsClosed)
+        return;
+    while(FileStreams.size())
     {
-        FileStreams.at(i)->Close();
+        if (!FileStreams.size())
+            break;
+        FileStreams[0]->Close();
         qDebug("Freeing stream: xMultiFileStream::Close");
-        delete FileStreams.at(i);
-        FileStreams.erase(FileStreams.begin() + i);
-        --i;
+        delete FileStreams[0];
+        FileStreams.erase(FileStreams.begin());
     }
     IsClosed = true;
 }
