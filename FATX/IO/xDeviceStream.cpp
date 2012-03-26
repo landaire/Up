@@ -59,6 +59,8 @@ xDeviceStream::~xDeviceStream(void)
 
 void xDeviceStream::Close( void )
 {
+    if (IsClosed)
+        return;
 #if defined _WIN32
     if (DeviceHandle != INVALID_HANDLE_VALUE)
     {
