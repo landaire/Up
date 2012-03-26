@@ -64,7 +64,7 @@ private:
 
     static vector<Drive *> GetLogicalPartitions( void );
 
-    static vector<DISK_DRIVE_INFORMATION> GetPhysicalDisks( void );
+    static void GetPhysicalDisks( vector<DISK_DRIVE_INFORMATION> &OutVector);
 
     std::vector<xVolume*> *ValidVolumes;
     void	SetValidPartitions      ( void );
