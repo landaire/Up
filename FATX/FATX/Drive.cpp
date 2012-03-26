@@ -207,7 +207,6 @@ void Drive::DestroyFolder(Folder *Directory)
     {
         File *f = Directory->CachedFiles.at(0);
         Directory->CachedFiles.erase(Directory->CachedFiles.begin());
-        qDebug("Destroying file");
         delete f;
     }
 
@@ -217,7 +216,6 @@ void Drive::DestroyFolder(Folder *Directory)
         Directory->CachedFolders.erase(Directory->CachedFolders.begin());
         DestroyFolder(f);
     }
-    qDebug("Destroying directory");
     delete Directory;
 }
 
@@ -520,9 +518,16 @@ void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume 
 
 void Drive::Close( void )
 {
-    DeviceStream->Close();
+    qDebug("%p", DeviceStream);
+    if (DeviceStream)
+    {
+        DeviceStream->Close();
+        delete DeviceStream;
+    }
     while (ValidVolumes->size())
     {
+        if (!ValidVolumes->size())
+            break;
         xVolume *x = ValidVolumes->at(0);
         DestroyFolder(x->Root);
         ValidVolumes->erase(ValidVolumes->begin());
@@ -530,7 +535,6 @@ void Drive::Close( void )
         delete x;
     }
     delete ValidVolumes;
-    delete DeviceStream;
 }
 
 vector<string> Drive::Partitions( void )
@@ -641,7 +645,6 @@ void Drive::SetValidPartitions( void )
                 DiskVolumes.push_back(Cache);
                 qDebug("%p", Data);
                 DiskVolumes.push_back(Data);
-                qDebug("check");
 
                 delete SysExt;
                 delete SysAux;
@@ -676,6 +679,7 @@ void Drive::SetValidPartitions( void )
             DiskVolumes.push_back(Data);
         }
 
+
         for (int i = 0; i < (int)DiskVolumes.size(); i++)
         {
             try
@@ -698,6 +702,7 @@ void Drive::SetValidPartitions( void )
                 --i;
             }
         }
+
         ValidVolumes = new vector<xVolume *>();
         *ValidVolumes = DiskVolumes;
     }
@@ -726,28 +731,31 @@ void Drive::InitializePartitions( void )
 
 vector<Drive *> Drive::GetFATXDrives( bool HardDisks )
 {
-    vector<Drive *> Return;
+    vector<DISK_DRIVE_INFORMATION> Disks;
+    Drive::GetPhysicalDisks(Disks);
+
+    vector<Drive *> ReturnVector;
     if (HardDisks)
     {
-        vector<DISK_DRIVE_INFORMATION> Disks = GetPhysicalDisks();
+        Streams::xDeviceStream* DS = NULL;
         for (int i = 0; i < (int)Disks.size(); i++)
         {
-            DISK_DRIVE_INFORMATION ddi = Disks.at(i);
+            DISK_DRIVE_INFORMATION ddi = Disks[i];
             // First, try reading the disk way
-            Streams::xDeviceStream* DS = NULL;
             try
             {
                 char path[0x200] = {0};
                 wcstombs(path, ddi.Path, wcslen(ddi.Path));
                 DS = new Streams::xDeviceStream(ddi.Path);
             }
-            catch (xException& e)
+            catch (...)
             {
                 continue;
             }
 
             if (DS == NULL || DS->Length() == 0 || DS->Length() < HddOffsets::Data)
             {
+                DS = NULL;
                 // Disk is not of valid length
                 continue;
             }
@@ -757,23 +765,30 @@ vector<Drive *> Drive::GetFATXDrives( bool HardDisks )
             int Magic = DS->ReadInt32();
             // Close the stream
             DS->Close();
+            delete DS;
+            DS = NULL;
 
             // Compare the magic we read to the *actual* FATX magic
             if (Magic == FatxMagic)
             {
-                Drive *d = new Drive(Disks.at(i).Path, Disks.at(i).FriendlyName, false);
-                Return.push_back(d);
+                Drive *d = new Drive(ddi.Path, ddi.FriendlyName, false);
+                ReturnVector.push_back(d);
             }
+        }
+        if (DS)
+        {
+            DS->Close();
+            delete DS;
         }
     }
 
     vector<Drive *> LogicalDisks = GetLogicalPartitions();
-    for (int i = 0; i < (int)LogicalDisks.size(); i++)
+    for (int i = 0; i < LogicalDisks.size(); i++)
     {
-        Return.push_back(LogicalDisks.at(i));
+        ReturnVector.push_back(LogicalDisks[i]);
     }
 
-    return Return;
+    return ReturnVector;
 }
 
 INT64 Drive::GetLength( void )
@@ -815,8 +830,9 @@ for (int i = 0; i < 26; i+= 4)
     swprintf(temp, 20, L"%s%s", &Letters[i], L"Xbox360\\Data0000");
     try
     {
-        Streams::xFileStream tempFile(temp, Streams::Open);
-        tempFile.Close();
+        Streams::xFileStream *tempFile = new Streams::xFileStream(temp, Streams::Open);
+        tempFile->Close();
+        delete tempFile;
         // Stream opened with no exception, we're good!
         Drive *d = new Drive(&(Letters[i]), VolumeName, true);
         ReturnVector.push_back(d);
@@ -828,8 +844,8 @@ for (int i = 0; i < 26; i+= 4)
 }
 #else
 // First, enumerate the disks
-DIR *dir;
-dirent *ent;
+DIR *dir = NULL;
+dirent *ent = NULL;
 dir = opendir("/Volumes/");
 if (dir != NULL)
 {
@@ -851,9 +867,10 @@ if (dir != NULL)
             TCHAR Path[0x100] = {0};
             wcscpy(Path, curdir.Path);
             wcscpy(&(Path[0]) + wcslen(curdir.Path), L"Xbox360/Data0000");
-            Streams::xFileStream x(Path, Streams::Open);
+            Streams::xFileStream *x = new Streams::xFileStream(Path, Streams::Open);
             // Stream opened good, close it
-            x.Close();
+            x->Close();
+            delete x;
             if (curdir.Path == L"/Volumes/.")
             {
                 swprintf(curdir.FriendlyName, wcslen(L"OS Root"), L"OS Root");
@@ -870,14 +887,17 @@ if (dir != NULL)
             // Couldn't open the device, just continue
         }
     }
-    closedir(dir);
+    if (dir)
+        closedir(dir);
+    if (ent)
+        delete ent;
 }
 #endif
 
 return ReturnVector;
 }
 
-vector<Drive::DISK_DRIVE_INFORMATION> Drive::GetPhysicalDisks( void )
+void Drive::GetPhysicalDisks( vector<Drive::DISK_DRIVE_INFORMATION>& OutVector )
 {
 #ifdef _WIN32
     unsigned i;
@@ -892,11 +912,7 @@ vector<Drive::DISK_DRIVE_INFORMATION> Drive::GetPhysicalDisks( void )
 
     GUID HddClass;
     HddClass = GUID_DEVINTERFACE_DISK;//GUID_DEVCLASS_DISKDRIVE;
-#endif
 
-    vector<Drive::DISK_DRIVE_INFORMATION> ReturnVector;
-
-#ifdef _WIN32
     // List all connected disk drives
     hDevInfo = SetupDiGetClassDevs (&HddClass, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
     if (hDevInfo == INVALID_HANDLE_VALUE)
@@ -947,13 +963,13 @@ vector<Drive::DISK_DRIVE_INFORMATION> Drive::GetPhysicalDisks( void )
                                           &dwSize);
         _tcscpy(AddToVector.FriendlyName, (TCHAR*)szDesc);
 
-        ReturnVector.push_back(AddToVector);
+        OutVector.push_back(AddToVector);
         qDebug("Freeing disk data");
         delete data;
     }
 #else
-DIR *dir;
-dirent *ent;
+DIR *dir = NULL;
+dirent *ent = NULL;
 dir = opendir("/dev/");
 if (dir != NULL)
 {
@@ -966,9 +982,7 @@ if (dir != NULL)
         exp.setCaseSensitivity(Qt::CaseInsensitive);
         if (exp.exactMatch(ent->d_name))
         {
-            DISK_DRIVE_INFORMATION curdir;
-            memset(curdir.FriendlyName, 0, sizeof(curdir.FriendlyName));
-            memset(curdir.Path, 0, sizeof(curdir.Path));
+            DISK_DRIVE_INFORMATION curdir = {0};
 
             char diskPath[0x50] = {0};
             sprintf(diskPath, "/dev/r%s", ent->d_name);
@@ -987,13 +1001,16 @@ if (dir != NULL)
 #elif defined __APPLE__
                 mbstowcs(curdir.FriendlyName, ent->d_name, strlen(ent->d_name));
 #endif
-                ReturnVector.push_back(curdir);
+                OutVector.push_back(curdir);
             }
         }
     }
 }
+if (dir)
+    closedir(dir);
+if (ent)
+    delete ent;
 #endif
-    return ReturnVector;
 }
 
 BYTE Drive::cntlzw(unsigned int val)
