@@ -301,7 +301,7 @@ string xMultiFileStream::ReadString( size_t Count )
     Read(Buffer, Count);
 
     string ret((char*)Buffer);
-    qDebug("Freeing buffer: xMultiFileStream::ReadCString");
+    qDebug("Freeing buffer: xMultiFileStream::ReadString");
     delete[] Buffer;
     return ret;
 }

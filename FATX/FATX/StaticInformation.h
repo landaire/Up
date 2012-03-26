@@ -253,6 +253,8 @@ struct xVolume
         AllocationTableSize = 0;
         ClusterSize = 0;
         FatEntryShift = 0;
+        Root = 0;
+        Disk = 0;
     }
 };
 

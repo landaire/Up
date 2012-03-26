@@ -8,6 +8,7 @@ using namespace std;
 
 Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
 {
+    ValidVolumes = 0;
     IsDevKitDrive = false;
     this->FriendlyName = L"";
     if (!IsUsb)
@@ -249,9 +250,9 @@ Folder *Drive::FolderFromPath(string Path)
     if (cmp == string(Friendly))
         Path = Path.substr(Path.find('/') + 1);
 
-    for (int i = 0; i < (int)ValidVolumes.size(); i++)
+    for (int i = 0; i < (int)ValidVolumes->size(); i++)
     {
-        xVolume* activePartition = ValidVolumes.at(i);
+        xVolume* activePartition = ValidVolumes->at(i);
 
         // Split the path so by the backslash
         vector<string> PathSplit;
@@ -265,6 +266,8 @@ Folder *Drive::FolderFromPath(string Path)
         {
             // We've found the partition, now get the root folder
             Folder *current = activePartition->Root;
+            qDebug("%p", activePartition);
+            qDebug("%p", current);
             current->Dirent.ClusterStart = activePartition->RootDirectoryCluster;
             do
             {
@@ -314,9 +317,9 @@ File *Drive::FileFromPath(string Path)
     if (cmp == string(Friendly))
         Path = Path.substr(Path.find('/') + 1);
     // Loop through each volume
-    for (int i = 0; i < (int)ValidVolumes.size(); i++)
+    for (int i = 0; i < (int)ValidVolumes->size(); i++)
     {
-        xVolume* activePartition = ValidVolumes.at(i);
+        xVolume* activePartition = ValidVolumes->at(i);
         // Split the path so by the backslash
         vector<string> PathSplit;
         Helpers::split(Path, '/', PathSplit);
@@ -518,23 +521,25 @@ void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume 
 void Drive::Close( void )
 {
     DeviceStream->Close();
-    while (ValidVolumes.size())
+    while (ValidVolumes->size())
     {
-        xVolume *x = ValidVolumes.at(0);
+        xVolume *x = ValidVolumes->at(0);
         DestroyFolder(x->Root);
-        ValidVolumes.erase(ValidVolumes.begin());
+        ValidVolumes->erase(ValidVolumes->begin());
         qDebug("Closing disk, destroying volumes");
         delete x;
     }
+    delete ValidVolumes;
+    delete DeviceStream;
 }
 
 vector<string> Drive::Partitions( void )
 {
     if (!_partitions.size())
     {
-        for (int i = 0; i < (int)ValidVolumes.size(); i++)
+        for (int i = 0; i < (int)ValidVolumes->size(); i++)
         {
-            _partitions.push_back(ValidVolumes.at(i)->Name);
+            _partitions.push_back(ValidVolumes->at(i)->Name);
         }
     }
     return _partitions;
@@ -542,14 +547,14 @@ vector<string> Drive::Partitions( void )
 
 UINT64 Drive::PartitionGetLength( string Partition )
 {
-    for (int i = 0; i < (int)ValidVolumes.size(); i++)
+    for (int i = 0; i < (int)ValidVolumes->size(); i++)
     {
         QRegExp rgx(Partition.c_str());
         rgx.setCaseSensitivity(Qt::CaseInsensitive);
         rgx.setPatternSyntax(QRegExp::FixedString);
-        if (rgx.exactMatch(ValidVolumes.at(i)->Name.c_str()))
+        if (rgx.exactMatch(ValidVolumes->at(i)->Name.c_str()))
         {
-            return ValidVolumes.at(i)->Size;
+            return ValidVolumes->at(i)->Size;
         }
     }
     qDebug("Exception thrown at PartitionGetLength: Partition not found");
@@ -558,8 +563,9 @@ UINT64 Drive::PartitionGetLength( string Partition )
 
 void Drive::SetValidPartitions( void )
 {
-    if (!ValidVolumes.size())
+    if (!ValidVolumes)
     {
+		vector<xVolume *> DiskVolumes;
         // Get the partitions
 
         // Dev kit partitions
@@ -589,7 +595,7 @@ void Drive::SetValidPartitions( void )
                 Actual->Offset = (UINT64)temp.Sector * 0x200;
                 Actual->Size = temp.Size * 0x200;
                 Actual->Name = temp.Name;
-                ValidVolumes.push_back(Actual);
+                DiskVolumes.push_back(Actual);
             }
         }
 
@@ -624,16 +630,19 @@ void Drive::SetValidPartitions( void )
             DeviceStream->SetPosition(SysExt->Offset);
             if (DeviceStream->ReadUInt32() == FatxMagic)
             {
-                ValidVolumes.push_back(SysExt);
-                ValidVolumes.push_back(SysAux);
-                ValidVolumes.push_back(Cache);
-                ValidVolumes.push_back(Data);
+                DiskVolumes.push_back(SysExt);
+                DiskVolumes.push_back(SysAux);
+                DiskVolumes.push_back(Cache);
+                DiskVolumes.push_back(Data);
             }
             else
             {
                 Cache->Size = UsbSizes::CacheNoSystem;
-                ValidVolumes.push_back(Cache);
-                ValidVolumes.push_back(Data);
+                DiskVolumes.push_back(Cache);
+                qDebug("%p", Data);
+                DiskVolumes.push_back(Data);
+                qDebug("check");
+
                 delete SysExt;
                 delete SysAux;
             }
@@ -661,18 +670,18 @@ void Drive::SetValidPartitions( void )
             Compatibility->Name = "Compatibility";
             Data->Name = "Data";
 
-            ValidVolumes.push_back(SysExt);
-            ValidVolumes.push_back(SysAux);
-            ValidVolumes.push_back(Compatibility);
-            ValidVolumes.push_back(Data);
+            DiskVolumes.push_back(SysExt);
+            DiskVolumes.push_back(SysAux);
+            DiskVolumes.push_back(Compatibility);
+            DiskVolumes.push_back(Data);
         }
 
-        for (int i = 0; i < (int)ValidVolumes.size(); i++)
+        for (int i = 0; i < (int)DiskVolumes.size(); i++)
         {
             try
             {
-                FatxProcessBootSector(ValidVolumes.at(i));
-                xVolume* p = ValidVolumes.at(i);
+                FatxProcessBootSector(DiskVolumes.at(i));
+                xVolume* p = DiskVolumes.at(i);
                 p->Root = new Folder();
                 p->Root->Volume = p;
                 p->Root->FullPath += p->Name;
@@ -684,11 +693,13 @@ void Drive::SetValidPartitions( void )
             catch (...)
             {
                 qDebug("Freeing bad volume");
-                delete ValidVolumes.at(i);
-                ValidVolumes.erase(ValidVolumes.begin() + i);
+                delete DiskVolumes.at(i);
+                DiskVolumes.erase(DiskVolumes.begin() + i);
                 --i;
             }
         }
+        ValidVolumes = new vector<xVolume *>();
+        *ValidVolumes = DiskVolumes;
     }
 }
 
@@ -785,15 +796,15 @@ if (!GetLogicalDriveStrings(LettersSize, Letters))
     return ReturnVector;
 }
 
-TCHAR Name[MAX_PATH + 1] = {0};
+TCHAR VolumeName[MAX_PATH + 1] = {0};
 
 for (int i = 0; i < 26; i+= 4)
 {
-    memset(&Name, 0, sizeof(Name));
+    memset(&VolumeName, 0, sizeof(VolumeName));
     GetVolumeInformation(
                 &Letters[i],	// Path name
-                Name,			// xVolume name
-                MAX_PATH + 1,	// xVolume name length
+                VolumeName,		// Volume name
+                MAX_PATH + 1,	// Volume name length
                 NULL,
                 NULL,
                 NULL,
@@ -807,7 +818,7 @@ for (int i = 0; i < 26; i+= 4)
         Streams::xFileStream tempFile(temp, Streams::Open);
         tempFile.Close();
         // Stream opened with no exception, we're good!
-        Drive *d = new Drive(&(Letters[i]), Name, true);
+        Drive *d = new Drive(&(Letters[i]), VolumeName, true);
         ReturnVector.push_back(d);
     }
     catch(...)

@@ -89,7 +89,7 @@ void xFileStream::Initialize(void *FilePath, int Mode, bool wchar)
         // Specifies that the file should be opened if it exsts; otherwise a new file is created
     case OpenOrCreate:
     {
-        iosMode |= ios::in | ios::out;
+        iosMode |= (ios::in | ios::out);
     }
         break;
     }
@@ -127,6 +127,8 @@ void xFileStream::SetPosition( INT64 Position )
     {
         throw xException("Stream is closed. At: xFileStream::SetPosition");
     }
+    if (Position > Length())
+        return;
     _FileStream.seekg((DWORD)Position);
     _FileStream.seekp((DWORD)Position);
 }

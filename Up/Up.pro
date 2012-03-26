@@ -23,10 +23,10 @@ FORMS    += MainForm.ui \
     AboutForm.ui \
     progressdialog.ui
 
-#win32{
-#QMAKE_CFLAGS_RELEASE += -Zi
-#QMAKE_CXXFLAGS_RELEASE += -Zi -g
-#QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF}
+win32{
+QMAKE_CFLAGS_RELEASE += -Zi
+QMAKE_CXXFLAGS_RELEASE += -Zi -g
+QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF}
 
 INCLUDEPATH += $$PWD/../FATX/FATX
 
@@ -50,8 +50,17 @@ DEPENDPATH += $$PWD/../FATX-OSX/release
 macx: PRE_TARGETDEPS += $$PWD/../FATX-OSX/release/libFATX.a
 }
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../FATX-Win/release/ -lFATX
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../FATX-Win/debug/ -lFATX
-
-INCLUDEPATH += $$PWD/../FATX-Win/debug
-DEPENDPATH += $$PWD/../FATX-Win/debug
+win32{
+    CONFIG(release, debug|release){
+        LIBS += -L$$PWD/../FATX-Win/release/ -lFATX
+        #message("release")
+        INCLUDEPATH += $$PWD/../FATX-Win/release
+        DEPENDPATH += $$PWD/../FATX-Win/release
+    }
+    CONFIG(debug, debug|release){
+        LIBS += -L$$PWD/../FATX-Win/debug/ -lFATX
+        #message("debug")
+        INCLUDEPATH += $$PWD/../FATX-Win/debug
+        DEPENDPATH += $$PWD/../FATX-Win/debug
+    }
+}

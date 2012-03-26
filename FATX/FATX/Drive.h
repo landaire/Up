@@ -66,7 +66,7 @@ private:
 
     static vector<DISK_DRIVE_INFORMATION> GetPhysicalDisks( void );
 
-    std::vector<xVolume*> ValidVolumes;
+    std::vector<xVolume*> *ValidVolumes;
     void	SetValidPartitions      ( void );
     void	InitializePartitions    ( void );
     void	FatxProcessBootSector   ( xVolume* ref );

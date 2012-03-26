@@ -128,15 +128,15 @@ Drive *MainForm::GetCurrentItemDrive(QTreeWidgetItem* Item)
 
 std::string MainForm::GetItemPath(QTreeWidgetItem *Item)
 {
-    string Path;
+    string Path = "";
     QTreeWidgetItem* Parent = Item;
     do
     {
         if (Path.length() != 0)
         {
-            string pathtemp = Path;
+            string ptemp = Path;
             Path = "/";
-            Path += pathtemp;
+            Path += ptemp;
         }
         string pathtemp = Path;
 
@@ -208,12 +208,13 @@ void MainForm::PopulateTreeItems(QTreeWidgetItem *Item, bool expand)
     string Path = GetItemPath(Item);
     qDebug("Item path: %s", Path.c_str());
     Drive* currentDrive = GetCurrentItemDrive(Item);
-    Folder *f = currentDrive->FolderFromPath(Path);
-    int Folders = f->CachedFolders.size();
+    Folder *rootf = currentDrive->FolderFromPath(Path);
+    int Folders = rootf->CachedFolders.size();
     for (int i = 0; i < Folders; i++)
     {
-        Folder *sub = f->CachedFolders.at(i);
+        Folder *sub = rootf->CachedFolders.at(i);
         string path = sub->FullPath;
+
         sub = currentDrive->FolderFromPath(path);
 
         QTreeWidgetItem *subItem = 0;
@@ -239,9 +240,9 @@ void MainForm::PopulateTreeItems(QTreeWidgetItem *Item, bool expand)
     }
     if (!expand)
     {
-        for (int i = 0; i < (int)f->CachedFiles.size(); i++)
+        for (int i = 0; i < (int)rootf->CachedFiles.size(); i++)
         {
-            File *file = f->CachedFiles.at(i);
+            File *file = rootf->CachedFiles.at(i);
             AddFile(Item, file, currentDrive);
         }
     }
