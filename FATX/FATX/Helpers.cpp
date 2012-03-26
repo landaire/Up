@@ -46,8 +46,8 @@ string Helpers::ConvertToFriendlySize( INT64 Size )
 {
 		double size = Size;
         string returnVal;
-		char* Output = new char[5]; // 5 for 1024 + null
-        memset(Output, 0, 5);
+        char Output[10];
+        memset(Output, 0, 10);
         // There's 0x400 bytes in a kilobyte, 0x400 KB in a MB, 0x400 MB in a GB
         // if the size is below 1KB
         if ((size / 0x400) < 1)
