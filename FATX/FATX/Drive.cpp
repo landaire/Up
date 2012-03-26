@@ -206,15 +206,15 @@ void Drive::DestroyFolder(Folder *Directory)
     while(Directory->CachedFiles.size())
     {
         File *f = Directory->CachedFiles.at(0);
-        Directory->CachedFiles.erase(Directory->CachedFiles.begin());
         delete f;
+        Directory->CachedFiles.erase(Directory->CachedFiles.begin());
     }
 
     while(Directory->CachedFolders.size())
     {
         Folder *f = Directory->CachedFolders.at(0);
-        Directory->CachedFolders.erase(Directory->CachedFolders.begin());
         DestroyFolder(f);
+        Directory->CachedFolders.erase(Directory->CachedFolders.begin());
     }
     delete Directory;
 }
@@ -264,8 +264,6 @@ Folder *Drive::FolderFromPath(string Path)
         {
             // We've found the partition, now get the root folder
             Folder *current = activePartition->Root;
-            qDebug("%p", activePartition);
-            qDebug("%p", current);
             current->Dirent.ClusterStart = activePartition->RootDirectoryCluster;
             do
             {
@@ -518,7 +516,6 @@ void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume 
 
 void Drive::Close( void )
 {
-    qDebug("%p", DeviceStream);
     if (DeviceStream)
     {
         DeviceStream->Close();
@@ -643,7 +640,6 @@ void Drive::SetValidPartitions( void )
             {
                 Cache->Size = UsbSizes::CacheNoSystem;
                 DiskVolumes.push_back(Cache);
-                qDebug("%p", Data);
                 DiskVolumes.push_back(Data);
 
                 delete SysExt;
@@ -732,7 +728,8 @@ void Drive::InitializePartitions( void )
 vector<Drive *> Drive::GetFATXDrives( bool HardDisks )
 {
     vector<DISK_DRIVE_INFORMATION> Disks;
-    Drive::GetPhysicalDisks(Disks);
+    if (HardDisks)
+        Drive::GetPhysicalDisks(Disks);
 
     vector<Drive *> ReturnVector;
     if (HardDisks)
@@ -916,7 +913,7 @@ void Drive::GetPhysicalDisks( vector<Drive::DISK_DRIVE_INFORMATION>& OutVector )
     // List all connected disk drives
     hDevInfo = SetupDiGetClassDevs (&HddClass, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
     if (hDevInfo == INVALID_HANDLE_VALUE)
-        return ReturnVector;
+        return;
 
     // Find the ones that are driverless
     for (i = 0; ; i++)
@@ -964,7 +961,6 @@ void Drive::GetPhysicalDisks( vector<Drive::DISK_DRIVE_INFORMATION>& OutVector )
         _tcscpy(AddToVector.FriendlyName, (TCHAR*)szDesc);
 
         OutVector.push_back(AddToVector);
-        qDebug("Freeing disk data");
         delete data;
     }
 #else
