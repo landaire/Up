@@ -39,12 +39,6 @@ MainForm::~MainForm()
         delete ui.fileSystemTree->topLevelItem(0);
     }
     delete cache;
-
-    while (Icons.size())
-    {
-        delete Icons[0];
-        Icons.erase(Icons.begin());
-    }
 }
 
 string MainForm::GetCurrentItemPath(QTreeWidgetItem *Item)
@@ -54,13 +48,11 @@ string MainForm::GetCurrentItemPath(QTreeWidgetItem *Item)
     while (temp != 0)
     {
         ItemNames.push_back(Helpers::QStringToStdString(temp->text(0)));
-        qDebug("Item: %s", Helpers::QStringToStdString(temp->text(0)).c_str());
         temp = temp->parent();
     }
     string built;
     for (int i = ItemNames.size() - 1; i >= 0; i--)
     {
-        qDebug("Item: %s", ItemNames.at(i).c_str());
         built += ItemNames.at(i);
         if (i != 0)
             built += "/";
@@ -217,7 +209,6 @@ QTreeWidgetItem *MainForm::AddFile(QTreeWidgetItem* Item, File *f, Drive *device
         fItem->setText(4, pack.DisplayName());
     }
     fs->Close();
-    qDebug("Freeing file stream - MainForm::AddFile");
     delete fs;
 
     return fItem;
@@ -386,7 +377,7 @@ void MainForm::OnTreeItemExpand( QTreeWidgetItem* Item)
         for (int i = 0; i < ActiveDrives.size(); i++)
         {
             QString DeviceName = Helpers::QStringFromStdString(path.substr(0, path.find_first_of('/')));
-            QString FriendlyName = QString::fromStdWString(((Drive*)ActiveDrives.at(i))->FriendlyName);
+            QString FriendlyName = QString::fromWCharArray(((Drive*)ActiveDrives.at(i))->FriendlyName.c_str());
             if (DeviceName == FriendlyName)
             {
                 index = i;
@@ -409,7 +400,7 @@ void MainForm::OnTreeItemDoubleClick(QTreeWidgetItem *Item, int)
         for (int i = 0; i < ActiveDrives.size(); i++)
         {
             QString DeviceName = Helpers::QStringFromStdString(path.substr(0, path.find_first_of('/')));
-            QString FriendlyName = QString::fromStdWString(((Drive*)ActiveDrives.at(i))->FriendlyName);
+            QString FriendlyName = QString::fromWCharArray(((Drive*)ActiveDrives.at(i))->FriendlyName.c_str());
             if (DeviceName == FriendlyName)
             {
                 index = i;
@@ -451,7 +442,6 @@ void MainForm::OnLoadDevicesClick( void )
         }
         if (Skip)
         {
-            qDebug("Freeing disk: MainForm::OnLoadDevicesClick");
             current->Close();
             delete current;
             continue;

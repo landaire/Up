@@ -152,7 +152,7 @@ string xFileStream::ReadString( size_t Count )
     memset(buff, 0, Count + 1);
     Read((BYTE*)buff, Count);
     string Return(buff);
-    qDebug("Freeing buffer: xFileStream::ReadString");
+
     delete[] buff;
     return Return;
 }
@@ -165,7 +165,6 @@ wstring xFileStream::ReadUnicodeString( size_t Count)
     DetermineAndDoArraySwap((BYTE*)buff, Count, false);
     wstring Return((TCHAR*)buff);
 
-    qDebug("Freeing buffer: xFileStream::ReadUnicodeString");
     delete[] buff;
     return Return;
 }
@@ -195,7 +194,6 @@ string xFileStream::ReadCString( void )
 
     string Return(tempString);
 
-    qDebug("Freeing buffer: xFileStream::ReadCString");
     delete[] tempString;
 
     return Return;
@@ -414,7 +412,7 @@ int xFileStream::Write( BYTE* Buffer, int count )
     else
     {
         _FileStream.write((char*)temp, count);
-        qDebug("Freeing buffer: xFileStream::Write");
+
         delete[] temp;
         return count;
     }
@@ -437,7 +435,7 @@ size_t xFileStream::Write( void* Buffer, size_t ElementSize, int count)
     else
     {
         _FileStream.write((char*)temp, count * ElementSize);
-        qDebug("Freeing buffer: xFileStream::Write");
+
         delete[] temp;
         return count;
     }

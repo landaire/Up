@@ -290,7 +290,6 @@ string xDeviceFileStream::ReadString( size_t Count )
 
     Read(Buffer, Count);
     string ret((char*)Buffer);
-    qDebug("Freeing buffer: xDeviceFileStream::ReadString");
     delete[] Buffer;
 
     return ret;
@@ -325,7 +324,6 @@ string xDeviceFileStream::ReadCString( void )
 
     string Return(tempString);
 
-    qDebug("Freeing tempString: xDeviceFileStream::ReadCString");
     delete[] tempString;
     return Return;
 }
@@ -350,7 +348,6 @@ wstring xDeviceFileStream::ReadUnicodeString( size_t Count )
         DetermineAndDoEndianSwap(Buffer + i, sizeof(wchar_t), sizeof(char));
     }
     wstring ret((TCHAR*)Buffer);
-    qDebug("Freeing buffer: xDeviceFileStream::ReadUnicodeString");
     delete[] Buffer;
 
     return ret;

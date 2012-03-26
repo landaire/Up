@@ -411,7 +411,6 @@ int xDeviceStream::Read( BYTE* DestBuff, int Count )
         // Cache
         memcpy(&LastReadData, AllData + AllDataLength - ((0x200 * 2)), 0x200);
         LastReadOffset = RealPosition();
-        qDebug("Freeing AllData: xDeviceStream::Read");
         delete[] AllData;
     }
 
@@ -435,7 +434,6 @@ string xDeviceStream::ReadString( size_t Count )
 
     Read(Buffer, Count);
     string ret((char*)Buffer);
-    qDebug("Freeing Buffer: xDeviceStream::ReadString");
     delete[] Buffer;
 
     return ret;
@@ -470,7 +468,6 @@ string xDeviceStream::ReadCString( void )
 
     string Return(tempString);
 
-    qDebug("Freeing tempString: xDeviceStream::ReadCString");
     delete[] tempString;
     return Return;
 }
@@ -491,7 +488,6 @@ wstring xDeviceStream::ReadUnicodeString( size_t Count )
 
     Read(Buffer, Count + 1);
     wstring ret((TCHAR*)Buffer);
-    qDebug("Freeing Buffer: xDeviceStream::ReadUnicodeString");
     delete[] Buffer;
 
     return ret;
@@ -681,7 +677,6 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
         write(Device, AllData, BytesWeNeedToRead);
 #endif
 
-        qDebug("Freeing AllData: xDeviceStream::Write");
         delete[] AllData;
     }
     else
