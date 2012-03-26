@@ -24,7 +24,27 @@ MainForm::MainForm(QWidget *parent, Qt::WFlags flags)
 
 MainForm::~MainForm()
 {
+    // Destroy the current drives, cleanup
+    while(ActiveDrives.size())
+    {
+        if (!ActiveDrives.size())
+            break;
+        ActiveDrives[0]->Close();
+        delete ActiveDrives[0];
+        ActiveDrives.erase(ActiveDrives.begin());
+    }
+    // Clear the treeview
+    while (ui.fileSystemTree->topLevelItemCount())
+    {
+        delete ui.fileSystemTree->topLevelItem(0);
+    }
+    delete cache;
 
+    while (Icons.size())
+    {
+        delete Icons[0];
+        Icons.erase(Icons.begin());
+    }
 }
 
 string MainForm::GetCurrentItemPath(QTreeWidgetItem *Item)
