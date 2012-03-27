@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <qDebug>
 
 enum Exceptions
 {
@@ -33,6 +34,7 @@ public:
     xException(const std::string& message, int exception = 0) : std::runtime_error(message)
     {
         Exception = exception;
+        qDebug("%s", message.c_str());
     }
 };
 
