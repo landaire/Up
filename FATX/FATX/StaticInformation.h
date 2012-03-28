@@ -149,6 +149,7 @@ struct Progress
     QImage PackageImage;
     bool IsStfsPackage;
     QString PackageName;
+    bool Done;
 };
 
 Q_DECLARE_METATYPE(Progress)
