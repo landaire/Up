@@ -68,7 +68,7 @@ void MainForm::OnCopyToLocalDiskClick( void )
         return;
     else if (size == 1 && ui.fileSystemTree->selectedItems().at(0)->text(2) != QString::fromAscii("Folder"))
     {
-        s = QFileDialog::getSaveFileName(this, QString::fromAscii("Select Where to Save File"), ui.fileSystemTree->selectedItems().at(0)->text(0));
+        s = QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("Select Where to Save File"), ui.fileSystemTree->selectedItems().at(0)->text(0));
     }
     else
     {
@@ -85,8 +85,9 @@ void MainForm::OnCopyToLocalDiskClick( void )
     // Get the paths of all selected items
     vector<std::string> Paths;
     for (int i = 0; i < ui.fileSystemTree->selectedItems().size(); i++)
+    {
         Paths.push_back(GetCurrentItemPath(ui.fileSystemTree->selectedItems().at(i)));
-
+    }
     ProgressDialog *pd = new ProgressDialog(this, OperationCopyToDisk, Paths, Helpers::QStringToStdString(s), ActiveDrives);
 
     pd->setModal(true);
@@ -121,8 +122,6 @@ void MainForm::DoEvents( void )
 
 Drive *MainForm::GetCurrentItemDrive(QTreeWidgetItem* Item)
 {
-    QString text = Item->text(0);
-    qDebug(Helpers::QStringToStdString(text).c_str());
     QTreeWidgetItem *Parent = Item;
     while (Parent->parent() != 0)
         Parent = Parent->parent();
