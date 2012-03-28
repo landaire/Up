@@ -63,14 +63,14 @@ void xFileStream::Initialize(void *FilePath, int Mode, bool wchar)
             temp.close();
             throw xException("Cannot create new file over existing", CreateNew);
         }
-        iosMode |= ios::in | ios::out;
+        iosMode |= ios::in | ios::out | ios::trunc;
     }
         break;
         // Specifies that a new file should be created.  If it exists, it is overwritten
     case Open:
     {
         ifstream temp(CharPath);
-        if (!temp.is_open() || !temp.good() || temp.fail())
+        if (!temp.good() || temp.fail())
         {
             throw xException("Can not open file for reading.  File does not exist", Open);
         }
@@ -94,9 +94,16 @@ void xFileStream::Initialize(void *FilePath, int Mode, bool wchar)
         break;
     }
     _FileStream.open(CharPath, (std::ios::openmode)iosMode);
-    if (!_FileStream.is_open())
+    try
     {
-        throw xException("Can not open file.");
+        if (!_FileStream.good())
+        {
+            throw xException("Can not open file.");
+        }
+    }
+    catch(...)
+    {
+        throw xException("Error trying to check filestream - xFileStream::Initialize");
     }
 }
 
