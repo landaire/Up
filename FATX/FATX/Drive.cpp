@@ -110,6 +110,8 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     BYTE Buffer[0x4000] = {0};
 
     Progress p;
+    // Set up our progress
+    p.Done = false;
     p.Maximum = Helpers::UpToNearestX(dest->Dirent.FileSize, dest->Volume->ClusterSize) / 0x4000;
     if (p.Maximum == 0)
         p.Maximum++;
@@ -117,6 +119,8 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     p.FilePath = dest->FullPath;
     p.Device = this;
     p.FileName = std::string(dest->Dirent.Name);
+
+    // Get the package's STFS information
     STFSPackage pack(xf);
     p.IsStfsPackage = pack.IsStfsPackage();
     if (p.IsStfsPackage)
@@ -125,6 +129,8 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
         p.PackageName = pack.DisplayName();
     }
     emit FileProgressChanged(p);
+
+    // Start the reading
     while (size > 0x4000)
     {
         xf->SetPosition(xf->Length() - size);
@@ -139,6 +145,7 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     xf->Read(Buffer, size);
     output->Write(Buffer, size);
     p.Current++;
+    p.Done = true;
     emit FileProgressChanged(p);
 
     xf->Close();
@@ -737,8 +744,6 @@ vector<Drive *> Drive::GetFATXDrives( bool HardDisks )
     vector<DISK_DRIVE_INFORMATION> Disks;
     if (HardDisks)
         Drive::GetPhysicalDisks(Disks);
-
-    qDebug("HardDisks: %d", HardDisks);
 
     vector<Drive *> ReturnVector;
     if (HardDisks)
