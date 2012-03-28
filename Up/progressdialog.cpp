@@ -49,7 +49,7 @@ void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::st
             // Set d, break when we've found the proper drive.
             // POSSIBLE BUG: we'll go ahead and trust that everything is handled properly in MainForm though
             d = Drives.at(j);
-            if (QString::fromStdWString(d->FriendlyName) == Helpers::QStringFromStdString(Split.at(0)))
+            if (QString::fromWCharArray(d->FriendlyName.c_str()) == Helpers::QStringFromStdString(Split.at(0)))
                 break;
         }
 
