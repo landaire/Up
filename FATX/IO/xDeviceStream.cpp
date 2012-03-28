@@ -408,7 +408,7 @@ int xDeviceStream::Read( BYTE* DestBuff, int Count )
         memcpy(DestBuff + BytesThatAreInLastDataRead, AllData, Count - BytesThatAreInLastDataRead);
         // Cache
         memcpy(&LastReadData, AllData + AllDataLength - ((0x200 * 2)), 0x200);
-        LastReadOffset = RealPosition();
+        //LastReadOffset = RealPosition();
         delete[] AllData;
     }
 
