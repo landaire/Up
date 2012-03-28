@@ -19,14 +19,14 @@ int Helpers::QDateTimeToInt( QDateTime Date )
 
 INT64 Helpers::DownToNearestSector( INT64 Offset )
 {
-	return Offset -= (Offset % 0x200);
+    return Offset -= (Offset % 0x200);
 }
 
 INT64 Helpers::UpToNearestSector( INT64 Offset )
 {
-	int Add = 0x200 - (Offset % 0x200);
-	// If add doesn't equal 0x200, return offset + add
-	return (Add != 0x200) ? Offset + Add : Offset;
+    int Add = 0x200 - (Offset % 0x200);
+    // If add doesn't equal 0x200, return offset + add
+    return (Add != 0x200) ? Offset + Add : Offset;
 }
 
 INT64 Helpers::UpToNearestX(INT64 Value, int x)
@@ -44,57 +44,57 @@ INT64 Helpers::DownToNearestX( INT64 Value, int x)
 
 string Helpers::ConvertToFriendlySize( INT64 Size )
 {
-		double size = Size;
-        string returnVal;
-        char Output[10];
-        memset(Output, 0, 10);
-        // There's 0x400 bytes in a kilobyte, 0x400 KB in a MB, 0x400 MB in a GB
-        // if the size is below 1KB
-        if ((size / 0x400) < 1)
+    double size = Size;
+    string returnVal;
+    char Output[50];
+    memset(Output, 0, 50);
+    // There's 0x400 bytes in a kilobyte, 0x400 KB in a MB, 0x400 MB in a GB
+    // if the size is below 1KB
+    if ((size / 0x400) < 1)
+    {
+        sprintf(Output, "%.2lf", size);
+        returnVal.clear();
+        returnVal += Output;
+        if (size != 1)
         {
-			sprintf(Output, "%.2lf", size);
-			returnVal.clear();
-            returnVal += Output;
-            if (size != 1)
-            {
-				returnVal += " bytes";
-            }
-            else
-            {
-				returnVal += " byte";
-            }
+            returnVal += " bytes";
         }
-        // If the size is above 1KB
-        if (size / 0x400 > 1)
+        else
         {
-            size = size / 0x400;
-			sprintf(Output, "%.2lf", size);
-			returnVal.clear();
-			returnVal += Output;
-            returnVal += " KB";
+            returnVal += " byte";
         }
+    }
+    // If the size is above 1KB
+    if (size / 0x400 > 1)
+    {
+        size = size / 0x400;
+        sprintf(Output, "%.2lf", size);
+        returnVal.clear();
+        returnVal += Output;
+        returnVal += " KB";
+    }
 
-        // If the size is above 1MB
-        if (size / 0x400 > 1)
-        {
-            size = size / 0x400;
-			sprintf(Output, "%.2lf", size);
-			returnVal.clear();
-			returnVal += Output;
-            returnVal += " MB";
-        }
+    // If the size is above 1MB
+    if (size / 0x400 > 1)
+    {
+        size = size / 0x400;
+        sprintf(Output, "%.2lf", size);
+        returnVal.clear();
+        returnVal += Output;
+        returnVal += " MB";
+    }
 
-        // If the size is bigger than 1GB
-        if (size / 0x400 > 1)
-        {
-            size = size / 0x400;
-			sprintf(Output, "%.2lf", size);
-			returnVal.clear();
-			returnVal += Output;;
-            returnVal += " GB";
-        }
+    // If the size is bigger than 1GB
+    if (size / 0x400 > 1)
+    {
+        size = size / 0x400;
+        sprintf(Output, "%.2lf", size);
+        returnVal.clear();
+        returnVal += Output;;
+        returnVal += " GB";
+    }
 
-        return returnVal;
+    return returnVal;
 }
 void Helpers::split(const string &s, char delim, vector<string> &elems) {
     stringstream ss(s);
