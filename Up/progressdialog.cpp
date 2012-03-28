@@ -93,7 +93,6 @@ void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::st
                 // Add folder handling here
             }
         }
-        FilesCompleted++;
     }
 }
 
@@ -110,10 +109,17 @@ void ProgressDialog::OnFileProgressChanged(const Progress& p)
     // If we're dealing with one file and the path count is one
     if (FilesTotal == 1 && PathCount == 1)
     {
-        // Set the total progress bar's valuesto that of the current progress bar
-        ui->progressTotal->setValue(p.Current);
+        // Set the total progress bar's values to that of the current progress bar
         if (ui->progressTotal->maximum() != p.Maximum)
             ui->progressTotal->setMaximum(p.Maximum);
+        ui->progressTotal->setValue(p.Current);
+    }
+    // If we're dealing with multiple files
+    else
+    {
+        // Set the value of the total progressbar to the number of files we're doing
+        ui->progressTotal->setMaximum(FilesTotal);
+        ui->progressTotal->setValue(FilesCompleted + 1);
     }
 
     // Set the title of the total groupbox to reflect the current file out of x
@@ -190,6 +196,8 @@ void ProgressDialog::OnFileProgressChanged(const Progress& p)
             ui->graphicsView->fitInView(ui->graphicsView->rect(), Qt::KeepAspectRatio);
         }
     }
+    if (p.Done)
+        FilesCompleted++;
     if (FilesCompleted == FilesTotal)
         this->close();
 }
