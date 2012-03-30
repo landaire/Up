@@ -106,12 +106,20 @@ void Helpers::split(const string &s, char delim, vector<string> &elems) {
 
 string Helpers::QStringToStdString(QString stringData)
 {
-    return string(stringData.toLocal8Bit().data());
+#ifdef _WIN32
+    return string(stringData.toLocal8Bit().constData());
+#else
+    return string(stringData.toUtf8().constData());
+#endif
 }
 
 QString Helpers::QStringFromStdString(string stringData)
 {
+#ifdef _WIN32
     return QString::fromLocal8Bit(stringData.c_str());
+#else
+    return QString::fromUtf8(stringData.c_str());
+#endif
 }
 
 QString Helpers::QStringFromStdWString(wstring stringData)
