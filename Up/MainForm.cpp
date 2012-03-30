@@ -66,7 +66,7 @@ void MainForm::OnCopyToLocalDiskClick( void )
     int size = ui.fileSystemTree->selectedItems().size();
     if (size == 0)
         return;
-    else if (size == 1 && ui.fileSystemTree->selectedItems().at(0)->text(2) != QString::fromAscii("Folder"))
+    else if (size == 1 && ui.fileSystemTree->selectedItems().at(0)->text(2).left(6) != QString::fromAscii("Folder"))
     {
         s = QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("Select Where to Save File"), ui.fileSystemTree->selectedItems().at(0)->text(0));
     }
@@ -277,7 +277,7 @@ void MainForm::SetTitleIdName(QTreeWidgetItem *Item)
     for (int items = 0; items < Item->childCount(); items++)
     {
         QTreeWidgetItem *fItem = Item->child(items);
-        if (fItem->text(2) != "Folder")
+        if (fItem->text(2).left(6) != "Folder")
             continue;
 
         bool Known = false;
@@ -285,7 +285,13 @@ void MainForm::SetTitleIdName(QTreeWidgetItem *Item)
         {
             if (fItem->text(0) == KnownIds[i])
             {
-                fItem->setText(4, QString::fromLocal8Bit(KnownEquivalent[i]));
+                QRegExp xp("FFFE07D1");
+                xp.setCaseSensitivity(Qt::CaseInsensitive);
+                xp.setPatternSyntax(QRegExp::FixedString);
+                if (xp.exactMatch(fItem->text(0)))
+                    fItem->setText(4, QString::fromLocal8Bit(KnownEquivalent[i]));
+                else
+                    fItem->setText(2, QString::fromLocal8Bit("Folder / ") + QString::fromLocal8Bit(KnownFolders[i]));
                 Known = true;
                 break;
             }
@@ -409,7 +415,7 @@ void MainForm::OnTreeItemDoubleClick(QTreeWidgetItem *Item, int)
         ui.activeDevicesComboBox->setCurrentIndex(index);
     }
 
-    if (Item->text(2) == "Folder")
+    if (Item->text(2).left(6) == "Folder")
         SetTitleIdName(Item);
 }
 
