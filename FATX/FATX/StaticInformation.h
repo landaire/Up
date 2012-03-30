@@ -95,6 +95,17 @@ static char KnownEquivalent[][0x20] =
     "Xbox 360 Dashboard","Games on Demand",     "Storage Pack"
 };
 
+static char KnownFolders[][0x20] =
+{
+    "Arcade Titles", "Avatar Items",            "Cache Files",      "Community Games",          "Game Demos",
+    "Gamer Pictures","Game Titles",             "Game Trailers",    "Game Videos",              "Installed Games",
+    "Installers",    "IPTV Pause Buffers",      "License Store",    "Marketplace Content",      "Movies",
+    "Music Videos",  "Podcast Videos",          "Profiles",         "Publisher",                "Saved Games",
+    "Storage Downloads","Themes",               "TV Content",       "Videos",                   "Viral Videos",
+    "Xbox Downloads","Xbox Original Games",     "Xbox Saved Games", "Installed Xbox 360 Titles","Xbox Titles",
+    "XNA Content",   "Xbox 360 Dashboard Content","Games on Demand","Storage Pack"
+};
+
 enum DeviceType
 {
 	DeviceDisk,
