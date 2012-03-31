@@ -2,6 +2,7 @@
 #define __DRIVE__HG
 #include "../StdAfx.h"
 #include <vector>
+#include "../xexception.h"
 #include "../IO/xDeviceStream.h"
 #include "../IO/xFileStream.h"
 #include "../IO/xMultiFileStream.h"
@@ -13,15 +14,13 @@
 #include <QObject>
 
 
-using namespace std;
-
 #ifdef _WIN32
 #include <windows.h>
 #include <devguid.h>    // for GUID_DEVCLASS_CDROM etc
 #include <setupapi.h>
 #include <cfgmgr32.h>   // for MAX_DEVICE_ID_LEN, CM_Get_Parent and CM_Get_Device_ID
 #define INITGUID
-#include <DEVPKEY.H>
+#include <DEVPKEY.h>
 
 #define ARRAY_SIZE(arr)     (sizeof(arr)/sizeof(arr[0]))
 
@@ -65,15 +64,14 @@ private:
 
     static vector<Drive *> GetLogicalPartitions( void );
 
-    static vector<DISK_DRIVE_INFORMATION> GetPhysicalDisks( void );
+    static void GetPhysicalDisks( vector<DISK_DRIVE_INFORMATION> &OutVector);
 
-    vector<xVolume*> ValidVolumes;
+    std::vector<xVolume*> *ValidVolumes;
     void	SetValidPartitions      ( void );
     void	InitializePartitions    ( void );
     void	FatxProcessBootSector   ( xVolume* ref );
     BYTE	cntlzw                  (unsigned int val);
-    vector<string> _partitions;
-    void    ReadDirectoryEntries    (Folder* Directory);
+    std::vector<std::string> _partitions;
 
     void    DestroyFolder           (Folder *Directory);
 
@@ -86,17 +84,23 @@ public:
     void    ReadClusterChain        (std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition);
 
     Streams::IStream*       DeviceStream;
-    static vector<Drive *> GetFATXDrives( bool HardDisks );
-    vector<string>          Partitions          ( void );
-    UINT64                  PartitionGetLength  ( string Partition );
+    static vector<Drive *>  GetFATXDrives( bool HardDisks );
+    std::vector<std::string>Partitions          ( void );
+    QString                 GetDiskName         ( void );
+    UINT64                  PartitionGetLength  ( std::string Partition );
     void                    Close               ( void );
-    Folder                  *FolderFromPath     ( string Path );
-    File                    *FileFromPath       ( string Path );
-    void                    CopyFileToLocalDisk ( File *dest, string Output);
-    void                    CopyFileToLocalDisk ( string Path, string Output);
+    DWORD                   GetFileCount( Folder *f );
+    DWORD                   GetTotalFileCount   ( Folder *f );
+    DWORD                   GetFolderCount      ( Folder *f );
+    DWORD                   GetTotalFolderCount ( Folder *f );
+    void                    ReadDirectoryEntries(Folder* Directory);
+    Folder                  *FolderFromPath     ( std::string Path );
+    File                    *FileFromPath       ( std::string Path );
+    void                    CopyFileToLocalDisk ( File *dest, std::string Output);
+    void                    CopyFileToLocalDisk ( std::string Path, std::string Output);
 
-    wstring                 FriendlyName;
-    string                  FriendlySize;
+    std::wstring            FriendlyName;
+    std::string             FriendlySize;
 
     DeviceType              Type;
     bool                    IsDevKitDrive;

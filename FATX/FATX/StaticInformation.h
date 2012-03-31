@@ -72,6 +72,29 @@ class xDeviceFileStream;
 #define STFS_CONTENT_TYPE_XBOX_360_TITLE    0x1000
 #define STFS_CONTENT_TYPE_XNA               0xE0000
 
+
+static char KnownIds[][9] =
+{
+    "000D0000","00009000","00040000","02000000","00080000",
+    "00020000","000A0000","000C0000","00400000","00004000",
+    "000B0000","00002000","000F0000","00000002","00100000",
+    "00300000","00500000","00010000","00000003","00000001",
+    "00050000","00030000","00200000","00090000","00600000",
+    "00070000","00005000","00060000","00001000","00005000",
+    "000E0000","FFFE07D1","00007000","00008000"
+};
+
+static char KnownEquivalent[][0x20] =
+{
+    "Arcade Title", "Avatar Item",              "Cache File",       "Community Game",           "Game Demo",
+    "Gamer Picture","Game Title",               "Game Trailer",     "Game Video",               "Installed Game",
+    "Installer",    "IPTV Pause Buffer",        "License Store",    "Marketplace Content",      "Movie",
+    "Music Video",  "Podcast Video","Profile",  "Publisher",        "Saved Game",               "Storage Download",
+    "Theme",        "TV",                       "Video",            "Viral Video",              "Xbox Download",
+    "Xbox Original Game","Xbox Saved Game",     "Installed Xbox 360 Title","Xbox Title",        "XNA",
+    "Xbox 360 Dashboard","Games on Demand",     "Storage Pack"
+};
+
 enum DeviceType
 {
 	DeviceDisk,
@@ -146,6 +169,36 @@ struct Folder
     QDateTime               DateCreated;
     QDateTime               DateModified;
     QDateTime               DateAccessed;
+
+    bool IsTitleIDFolder( void )
+    {
+        std::string Name(Dirent.Name);
+        // Title ID's are 8 digits long; this shit isn't a Title ID folder if it's
+        // longer or shorter
+        if (Name.length() != 8)
+        {
+            return false;
+        }
+        // It was 8 digits long, let's check if the characters are valid hex digits
+        char AcceptableChars[17] = "0123456789ABCDEF";
+        for (int i = 0; i < Dirent.NameSize; i++)
+        {
+            bool Acceptable = false;
+            for (int j = 0; j < 16; j++)
+            {
+                if (Dirent.Name[i] == AcceptableChars[j])
+                {
+                    Acceptable = true;
+                    break;
+                }
+            }
+            if (!Acceptable)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 };
 
 struct File
@@ -169,6 +222,7 @@ typedef struct _DEV_PARTITION
 
 struct xVolume
 {
+
     std::string		 Name;
 	unsigned int Magic;					// Partition magic
     unsigned int SerialNumber;			// Partition serial number
@@ -183,6 +237,25 @@ struct xVolume
 	UINT64		 ClusterSize;
     unsigned int FatEntryShift;
     Folder       *Root;
+    Drive        *Disk;
+    xVolume()
+    {
+        // Set all members to 0
+        Magic = 0;
+        SerialNumber = 0;
+        SectorsPerCluster = 0;
+        RootDirectoryCluster = 0;
+        DataStart = 0;
+        Clusters = 0;
+        EntrySize = 0;
+        Offset = 0;
+        Size = 0;
+        AllocationTableSize = 0;
+        ClusterSize = 0;
+        FatEntryShift = 0;
+        Root = 0;
+        Disk = 0;
+    }
 };
 
 enum StfsOffsets

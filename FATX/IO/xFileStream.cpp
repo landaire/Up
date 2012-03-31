@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 #include "xFileStream.h"
+#include <QDebug>
+#include "../xexception.h"
 
 namespace Streams
 {
@@ -59,16 +61,16 @@ void xFileStream::Initialize(void *FilePath, int Mode, bool wchar)
         if (temp.is_open())
         {
             temp.close();
-            throw xException("Can not create new file over existing", CreateNew);
+            throw xException("Cannot create new file over existing", CreateNew);
         }
-        iosMode |= ios::in | ios::out;
+        iosMode |= ios::in | ios::out | ios::trunc;
     }
         break;
         // Specifies that a new file should be created.  If it exists, it is overwritten
     case Open:
     {
         ifstream temp(CharPath);
-        if (!temp.is_open() || !temp.good() || temp.fail())
+        if (!temp.good() || temp.fail())
         {
             throw xException("Can not open file for reading.  File does not exist", Open);
         }
@@ -87,14 +89,21 @@ void xFileStream::Initialize(void *FilePath, int Mode, bool wchar)
         // Specifies that the file should be opened if it exsts; otherwise a new file is created
     case OpenOrCreate:
     {
-        iosMode |= ios::in | ios::out;
+        iosMode |= (ios::in | ios::out);
     }
         break;
     }
     _FileStream.open(CharPath, (std::ios::openmode)iosMode);
-    if (!_FileStream.is_open())
+    try
     {
-        throw new xException("Can not open file.");
+        if (!_FileStream.good())
+        {
+            throw xException("Can not open file.");
+        }
+    }
+    catch(...)
+    {
+        throw xException("Error trying to check filestream - xFileStream::Initialize");
     }
 }
 
@@ -125,6 +134,8 @@ void xFileStream::SetPosition( INT64 Position )
     {
         throw xException("Stream is closed. At: xFileStream::SetPosition");
     }
+    if (Position > Length())
+        return;
     _FileStream.seekg((DWORD)Position);
     _FileStream.seekp((DWORD)Position);
 }
@@ -148,6 +159,7 @@ string xFileStream::ReadString( size_t Count )
     memset(buff, 0, Count + 1);
     Read((BYTE*)buff, Count);
     string Return(buff);
+
     delete[] buff;
     return Return;
 }
@@ -407,6 +419,7 @@ int xFileStream::Write( BYTE* Buffer, int count )
     else
     {
         _FileStream.write((char*)temp, count);
+
         delete[] temp;
         return count;
     }
@@ -429,6 +442,7 @@ size_t xFileStream::Write( void* Buffer, size_t ElementSize, int count)
     else
     {
         _FileStream.write((char*)temp, count * ElementSize);
+
         delete[] temp;
         return count;
     }

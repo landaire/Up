@@ -1,4 +1,6 @@
 #include "stfspackage.h"
+using namespace std;
+using namespace Streams;
 
 STFSPackage::STFSPackage( Streams::IStream *Stream )
 {
@@ -68,7 +70,17 @@ QString STFSPackage::DisplayName( int Locale )
 
 QString STFSPackage::Description( int Locale )
 {
-    Stream->SetPosition(0xD11 + (80 * Locale));
+    Stream->SetPosition(0xD11 + (0x80 * Locale));
+    BYTE dd[0x80] = {0};
+    Stream->Read((BYTE*)&dd, 0x80);
+    for (int i = 0; i < 0x80; i+=2)
+        Stream->DetermineAndDoEndianSwap((BYTE*)&dd + i, sizeof(short), sizeof(char));
+    return QString::fromUtf16((const ushort*)&dd);
+}
+
+QString STFSPackage::TitleName( int Locale )
+{
+    Stream->SetPosition(0x1691 + (0x80 * Locale));
     BYTE dd[0x80] = {0};
     Stream->Read((BYTE*)&dd, 0x80);
     for (int i = 0; i < 0x80; i+=2)

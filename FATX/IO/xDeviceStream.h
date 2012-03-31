@@ -1,7 +1,7 @@
 #ifndef __XDS__HG
 #define __XDS__HG
 #include "IStream.h"
-#include "../xexception.h"
+#include "../xException.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -10,6 +10,8 @@
 #define _FILE_OFFSET_BITS 64
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
+#include <sys/disk.h>
 #include <unistd.h>
 #endif
 

@@ -24,6 +24,8 @@ void xDeviceFileStream::Initialize(File *xf, Drive *device)
     _Endian = Big;
     this->xf = xf;
     this->device = device;
+    UserPosition = 0;
+    IsClosed = false;
     if (!xf->ClusterChain.size())
     {
         device->ReadClusterChain(xf->ClusterChain, xf->Dirent, *xf->Volume);
@@ -55,12 +57,10 @@ void xDeviceFileStream::SetPosition( INT64 Position )
 INT64 xDeviceFileStream::GetPhysicalPosition(int FilePosition)
 {
     int ClusterIndex = Helpers::DownToNearestX(FilePosition, xf->Volume->ClusterSize) / xf->Volume->ClusterSize;
-    int Index = 0;
     FilePosition -= (xf->Volume->ClusterSize * ClusterIndex);
     if (ClusterIndex >= xf->ClusterChain.size())
     {
         // Return the last cluster offset + one cluster more
-        qDebug("File offset invalid!");
         return ((xf->ClusterChain.at(xf->ClusterChain.size() - 1) - 1) * xf->Volume->ClusterSize) + xf->Volume->DataStart + xf->Volume->ClusterSize;
     }
     return ((xf->ClusterChain.at(ClusterIndex) - 1) * xf->Volume->ClusterSize) + xf->Volume->DataStart + FilePosition;

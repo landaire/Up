@@ -4,11 +4,16 @@
 #include <QMetaType>
 #include "stfspackage.h"
 
+using namespace std;
+
 Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
 {
+    ValidVolumes = 0;
     IsDevKitDrive = false;
+    this->FriendlyName = L"";
     if (!IsUsb)
     {
+        qDebug("This is a disk.  It is nice.");
         DeviceStream = new Streams::xDeviceStream(Path);
         Type = DeviceDisk;
     }
@@ -17,13 +22,11 @@ Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
         // USB
 #ifdef _WIN32
         QRegExp qr("*:\\");
-        qr.setPatternSyntax(QRegExp::Wildcard);
-        qr.setCaseSensitivity(Qt::CaseInsensitive);
 #else
         QRegExp qr("/Volumes/*");
+#endif
         qr.setPatternSyntax(QRegExp::Wildcard);
         qr.setCaseSensitivity(Qt::CaseInsensitive);
-#endif
         if (qr.exactMatch(QString::fromWCharArray(Path)))
         {
             // Find all valid Xbox 360 files
@@ -67,7 +70,8 @@ Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
             }
             if (Paths.size() == 0)
             {
-                throw xException("No paths found for device!", ExExternalPathsNotFound);
+                qDebug("Exception thrown at Drive: No paths for device");
+                throw xException("No paths found for device!");
             }
             DeviceStream = new Streams::xMultiFileStream(Paths);
             Type = DeviceUsb;
@@ -94,8 +98,14 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
 {
     // Get the stream to the file
     Streams::xDeviceFileStream *xf = new Streams::xDeviceFileStream(dest, this);
+#ifdef _WIN32
+    TCHAR path[MAX_PATH + 1] = {0};
+    mbstowcs(path, Output.c_str(), Output.size());
+#else
+    const char* path = Output.c_str();
+#endif
     // Get a stream to the output file
-    Streams::xFileStream *output = new Streams::xFileStream(Output.c_str(), Streams::Create);
+    Streams::xFileStream *output = new Streams::xFileStream(path, Streams::Create);
     UINT64 size = xf->Length();
     BYTE Buffer[0x4000] = {0};
 
@@ -133,6 +143,8 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
 
     xf->Close();
     output->Close();
+    delete xf;
+    delete output;
 }
 
 void Drive::CopyFileToLocalDisk(string Path, string Output)
@@ -140,22 +152,99 @@ void Drive::CopyFileToLocalDisk(string Path, string Output)
     CopyFileToLocalDisk(FileFromPath(Path), Output);
 }
 
+DWORD Drive::GetFileCount(Folder *f)
+{
+    // If we haven't yet read the dirents for this folder...
+    if (!f->FatxEntriesRead)
+        // Read the dirents
+        ReadDirectoryEntries(f);
+
+    // Return file vector size
+    return f->CachedFiles.size();
+}
+
+DWORD Drive::GetTotalFileCount(Folder *f)
+{
+    // If we haven't yet read the dirents for this folder...
+    if (!f->FatxEntriesRead)
+        // Read them!
+        ReadDirectoryEntries(f);
+
+    DWORD TotalCount = f->CachedFiles.size();
+
+    // For each one of the folders within this folder, add that to our total count
+    for (int i = 0; i < f->CachedFolders.size(); i++)
+        TotalCount += GetTotalFileCount(f->CachedFolders.at(i));
+
+    // Return the total count
+    return TotalCount;
+}
+
+DWORD Drive::GetFolderCount(Folder *f)
+{
+    // If we haven't yet read the dirents for this folder...
+    if (!f->FatxEntriesRead)
+        // Read the dirents
+        ReadDirectoryEntries(f);
+
+    // Return file vector size
+    return f->CachedFolders.size();
+}
+
+DWORD Drive::GetTotalFolderCount(Folder *f)
+{
+    // If we haven't yet read the dirents for this folder...
+    if (!f->FatxEntriesRead)
+        // Read them!
+        ReadDirectoryEntries(f);
+
+    DWORD TotalCount = f->CachedFolders.size();
+
+    // For each one of the folders within this folder, add that to our total count
+    for (int i = 0; i < f->CachedFolders.size(); i++)
+        TotalCount += GetTotalFolderCount(f->CachedFolders.at(i));
+
+    // Return the total count
+    return TotalCount;
+}
+
 void Drive::DestroyFolder(Folder *Directory)
 {
     while(Directory->CachedFiles.size())
     {
         File *f = Directory->CachedFiles.at(0);
-        Directory->CachedFiles.erase(Directory->CachedFiles.begin());
         delete f;
+        Directory->CachedFiles.erase(Directory->CachedFiles.begin());
     }
 
     while(Directory->CachedFolders.size())
     {
         Folder *f = Directory->CachedFolders.at(0);
-        Directory->CachedFolders.erase(Directory->CachedFolders.begin());
         DestroyFolder(f);
+        Directory->CachedFolders.erase(Directory->CachedFolders.begin());
     }
     delete Directory;
+}
+
+QString Drive::GetDiskName( void )
+{
+    // Get the Data/name.txt file
+    File *name = FileFromPath(string("Data/name.txt"));
+    // Open a stream to that file
+    Streams::xDeviceFileStream *fs = new Streams::xDeviceFileStream(name, this);
+
+    // Skip the first two bytes -- I have no idea what they're there for
+    fs->SetPosition(2);
+
+    // Create a new buffer to hold the name
+    BYTE charArray[0x50] = {0};
+    // Read the name
+    fs->Read((BYTE*)&charArray, fs->Length() - 2);
+    for (int i = 0; i < fs->Length() - 2; i+=2)
+        fs->DetermineAndDoEndianSwap((BYTE*)&charArray + i, sizeof(short), sizeof(char));
+    fs->Close();
+    delete fs;
+    return QString::fromUtf16((const ushort*)&charArray);
 }
 
 Folder *Drive::FolderFromPath(string Path)
@@ -166,9 +255,9 @@ Folder *Drive::FolderFromPath(string Path)
     if (cmp == string(Friendly))
         Path = Path.substr(Path.find('/') + 1);
 
-    for (int i = 0; i < (int)ValidVolumes.size(); i++)
+    for (int i = 0; i < (int)ValidVolumes->size(); i++)
     {
-        xVolume* activePartition = ValidVolumes.at(i);
+        xVolume* activePartition = ValidVolumes->at(i);
 
         // Split the path so by the backslash
         vector<string> PathSplit;
@@ -177,9 +266,9 @@ Folder *Drive::FolderFromPath(string Path)
         // Match the partition name to that of the one we were given
         QRegExp reg(PathSplit.at(0).c_str());
         reg.setCaseSensitivity(Qt::CaseInsensitive);
+        reg.setPatternSyntax(QRegExp::FixedString);
         if (reg.exactMatch(activePartition->Name.c_str()))
         {
-            qDebug("Active volume found: %s", activePartition->Name.c_str());
             // We've found the partition, now get the root folder
             Folder *current = activePartition->Root;
             current->Dirent.ClusterStart = activePartition->RootDirectoryCluster;
@@ -188,25 +277,21 @@ Folder *Drive::FolderFromPath(string Path)
                 PathSplit.erase(PathSplit.begin());
                 if (!current->FatxEntriesRead)
                 {
-                    qDebug("Reading dirents for %s", current->Dirent.Name);
                     ReadDirectoryEntries(current);
-                    qDebug("Finished reading dirents!");
                 }
                 if (!PathSplit.size() )
                 {
-                    qDebug("Beaking loop.");
                     break;
                 }
                 bool Found = false;
                 for (int j = 0; j < (int)current->CachedFolders.size(); j++)
                 {
                     Folder *f = current->CachedFolders.at(j);
-                    qDebug("f = %s", f->Dirent.Name);
                     QRegExp fReg(PathSplit.at(0).c_str());
                     fReg.setCaseSensitivity(Qt::CaseInsensitive);
+                    fReg.setPatternSyntax(QRegExp::FixedString);
                     if (fReg.exactMatch(f->Dirent.Name))
                     {
-                        qDebug("Match!");
                         Found = true;
                         current = f;
                         break;
@@ -214,16 +299,16 @@ Folder *Drive::FolderFromPath(string Path)
                 }
                 if (!Found)
                 {
-                    string Name = PathSplit.at(i);
-                    qDebug("Folder %s not found", Name.c_str());
-                    throw xException("Folder not found", ExVolumeFolderNotFound);
+                    qDebug("Exception thrown at FolderFromPath: Folder not found");
+                    throw xException("Folder not found");
                 }
             }
             while (PathSplit.size() > 0);
             return current;
         }
     }
-    throw xException("Folder not found", ExVolumeFolderNotFound);
+    qDebug("Exception thrown at FolderFromPath: Folder not found");
+    throw xException("Folder not found");
 }
 
 File *Drive::FileFromPath(string Path)
@@ -235,15 +320,16 @@ File *Drive::FileFromPath(string Path)
     if (cmp == string(Friendly))
         Path = Path.substr(Path.find('/') + 1);
     // Loop through each volume
-    for (int i = 0; i < (int)ValidVolumes.size(); i++)
+    for (int i = 0; i < (int)ValidVolumes->size(); i++)
     {
-        xVolume* activePartition = ValidVolumes.at(i);
+        xVolume* activePartition = ValidVolumes->at(i);
         // Split the path so by the backslash
         vector<string> PathSplit;
         Helpers::split(Path, '/', PathSplit);
         // Match the partition name to that of the one we were given
         QRegExp reg(PathSplit.at(0).c_str());
         reg.setCaseSensitivity(Qt::CaseInsensitive);
+        reg.setPatternSyntax(QRegExp::FixedString);
         if (reg.exactMatch(activePartition->Name.c_str()))
         {
             // We've found the partition, now get the root folder
@@ -277,6 +363,7 @@ File *Drive::FileFromPath(string Path)
                         // Try to match the name to whatever we're looking for
                         QRegExp fReg(PathSplit.at(0).c_str());
                         fReg.setCaseSensitivity(Qt::CaseInsensitive);
+                        fReg.setPatternSyntax(QRegExp::FixedString);
                         if (fReg.exactMatch(f->Dirent.Name))
                         {
                             Found = true;
@@ -295,6 +382,7 @@ File *Drive::FileFromPath(string Path)
                         // Try to make a match!
                         QRegExp fReg(PathSplit.at(0).c_str());
                         fReg.setCaseSensitivity(Qt::CaseInsensitive);
+                        fReg.setPatternSyntax(QRegExp::FixedString);
                         if (fReg.exactMatch(f->Dirent.Name))
                         {
                             return f;
@@ -303,13 +391,15 @@ File *Drive::FileFromPath(string Path)
                 }
                 if (!Found)
                 {
-                    throw xException("File not found", ExVolumeFileNotFound);
+                    qDebug("Exception thrown at FileFromPath: File not found");
+                    throw xException("File not found");
                 }
             }
             while (PathSplit.size() > 0);
         }
     }
-    throw xException("Folder not found", ExVolumeFolderNotFound);
+    qDebug("Exception thrown at FileFromPath: File not found");
+    throw xException("Folder not found");
 }
 
 void Drive::ReadDirectoryEntries(Folder* Directory)
@@ -317,9 +407,7 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
     // If the cluster chain size is 0, we haven't read the cluster chain yet.  We better do that
     if (!Directory->ClusterChain.size())
     {
-        qDebug("Reading cluster chain for %s", Directory->Dirent.Name);
         ReadClusterChain(Directory->ClusterChain, Directory->Dirent, *(Directory->Volume));
-        qDebug("Cluster chain read!");
     }
     // Loop for each cluster
     for (int i = 0; i < (int)Directory->ClusterChain.size(); i++)
@@ -328,7 +416,7 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
         DeviceStream->SetPosition(Directory->Volume->DataStart +
                         ((UINT64)(Directory->ClusterChain.at(i) - 1)   * Directory->Volume->ClusterSize));
         // Loop for the maximum amount of entries per cluster
-        for (int j = 0; j < 0x40 * Directory->Volume->ClusterSize; j++)
+        for (int j = 0; j < Directory->Volume->ClusterSize / 0x40; j++)
         {
             xDirent Entry;
             memset(&Entry, 0, sizeof(Entry));
@@ -348,7 +436,7 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
             }
 
             Entry.Attributes = DeviceStream->ReadByte();
-            sprintf(Entry.Name, "%s", DeviceStream->ReadString(Entry.NameSize).c_str());
+            DeviceStream->Read((BYTE*)&Entry.Name, Entry.NameSize);
 
             DeviceStream->SetPosition((DeviceStream->Position() + 0x2A) - Entry.NameSize);
 
@@ -394,18 +482,14 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
 
 void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition)
 {
-    qDebug("Clearing chain");
     // Clear the chain
     Chain.clear();
-    qDebug("Setting end of chain identifier");
     // The int that signifies end of cluster chain
     UINT32 End = (RelativePartition.EntrySize == 2) ? FAT_CLUSTER16_LAST : FAT_CLUSTER_LAST;
-    qDebug("Setting previous cluster");
     // The previous cluster
     UINT32 Previous = Entry.ClusterStart;
     // Add the base cluster to the chain
     Chain.push_back(Previous);
-    qDebug("Cluster chain first cluster 0x%X", Previous);
     // Loop
     do
     {
@@ -414,15 +498,11 @@ void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume 
         // Read the int there
         if (RelativePartition.EntrySize == 2)
         {
-            qDebug("Reading short");
             Previous = (UINT32)DeviceStream->ReadUInt16();
-            qDebug("Short read, value: %X", Previous);
         }
         else
         {
-            qDebug("Reading integer (32)");
             Previous = (UINT32)DeviceStream->ReadUInt32();
-            qDebug("Integer (32) read, value: %X", Previous);
         }
         // If we haven't reached the end of the chain, add the previous cluster to our chain
         if (Previous != End)
@@ -434,31 +514,40 @@ void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume 
 
     if (Previous == FAT_CLUSTER_AVAILABLE)
     {
-        char buffer[0x46];
-        sprintf(buffer, "Free block referenced in FAT cluster chain! Dirent offset: 0x%lX", Entry.Offset);
+        char buffer[0x75];
+        sprintf(buffer, "Free block referenced in FAT cluster chain! Dirent offset: 0x%lX, Table offset: 0x%lX", Entry.Offset, DeviceStream->Position() - RelativePartition.EntrySize);
+        qDebug("Exception thrown at ReadClusterChain: Free block");
         throw xException(buffer);
     }
 }
 
 void Drive::Close( void )
 {
-    DeviceStream->Close();
-    while (ValidVolumes.size())
+    if (DeviceStream)
     {
-        xVolume *x = ValidVolumes.at(0);
+        DeviceStream->Close();
+        delete DeviceStream;
+    }
+    while (ValidVolumes->size())
+    {
+        if (!ValidVolumes->size())
+            break;
+        xVolume *x = ValidVolumes->at(0);
         DestroyFolder(x->Root);
-        ValidVolumes.erase(ValidVolumes.begin());
+        ValidVolumes->erase(ValidVolumes->begin());
+        qDebug("Closing disk, destroying volumes");
         delete x;
     }
+    delete ValidVolumes;
 }
 
 vector<string> Drive::Partitions( void )
 {
     if (!_partitions.size())
     {
-        for (int i = 0; i < (int)ValidVolumes.size(); i++)
+        for (int i = 0; i < (int)ValidVolumes->size(); i++)
         {
-            _partitions.push_back(ValidVolumes.at(i)->Name);
+            _partitions.push_back(ValidVolumes->at(i)->Name);
         }
     }
     return _partitions;
@@ -466,22 +555,25 @@ vector<string> Drive::Partitions( void )
 
 UINT64 Drive::PartitionGetLength( string Partition )
 {
-    for (int i = 0; i < (int)ValidVolumes.size(); i++)
+    for (int i = 0; i < (int)ValidVolumes->size(); i++)
     {
         QRegExp rgx(Partition.c_str());
         rgx.setCaseSensitivity(Qt::CaseInsensitive);
-        if (rgx.exactMatch(ValidVolumes.at(i)->Name.c_str()))
+        rgx.setPatternSyntax(QRegExp::FixedString);
+        if (rgx.exactMatch(ValidVolumes->at(i)->Name.c_str()))
         {
-            return ValidVolumes.at(i)->Size;
+            return ValidVolumes->at(i)->Size;
         }
     }
-    throw xException("Partition not found!", 64);
+    qDebug("Exception thrown at PartitionGetLength: Partition not found");
+    throw xException("Partition not found!");
 }
 
 void Drive::SetValidPartitions( void )
 {
-    if (!ValidVolumes.size())
+    if (!ValidVolumes)
     {
+		vector<xVolume *> DiskVolumes;
         // Get the partitions
 
         // Dev kit partitions
@@ -508,10 +600,12 @@ void Drive::SetValidPartitions( void )
             {
                 DevPartition temp = DevPartitions.at(i);
                 xVolume *Actual = new xVolume();
-                Actual->Offset = (UINT64)temp.Sector * 0x200;
-                Actual->Size = temp.Size * 0x200;
+                qDebug("0x%lX", (UINT64)temp.Sector << 9);
+                Actual->Offset = (UINT64)temp.Sector << 9;
+                qDebug("0x%lX", Actual->Offset);
+                Actual->Size = (UINT64)temp.Size << 9;
                 Actual->Name = temp.Name;
-                ValidVolumes.push_back(Actual);
+                DiskVolumes.push_back(Actual);
             }
         }
 
@@ -531,26 +625,34 @@ void Drive::SetValidPartitions( void )
             SysExt->Size = UsbSizes::SystemExtended;
             SysAux->Size = UsbSizes::SystemAux;
             Cache->Size = UsbSizes::Cache;
-            Data->Size = DeviceStream->Length() - Data->Offset;
+            Data->Size = (DeviceStream->Length() - Data->Offset);
 
             SysExt->Name = "System Extended";
             SysAux->Name = "System Auxiliary";
             Cache->Name = "Cache";
             Data->Name = "Data";
 
+            SysExt->Disk = this;
+            SysAux->Disk = this;
+            Cache->Disk = this;
+            Data->Disk = this;
+
             DeviceStream->SetPosition(SysExt->Offset);
             if (DeviceStream->ReadUInt32() == FatxMagic)
             {
-                ValidVolumes.push_back(SysExt);
-                ValidVolumes.push_back(SysAux);
-                ValidVolumes.push_back(Cache);
-                ValidVolumes.push_back(Data);
+                DiskVolumes.push_back(SysExt);
+                DiskVolumes.push_back(SysAux);
+                DiskVolumes.push_back(Cache);
+                DiskVolumes.push_back(Data);
             }
             else
             {
                 Cache->Size = UsbSizes::CacheNoSystem;
-                ValidVolumes.push_back(Cache);
-                ValidVolumes.push_back(Data);
+                DiskVolumes.push_back(Cache);
+                DiskVolumes.push_back(Data);
+
+                delete SysExt;
+                delete SysAux;
             }
         }
         // Retail disk/disk backup partitions
@@ -576,33 +678,50 @@ void Drive::SetValidPartitions( void )
             Compatibility->Name = "Compatibility";
             Data->Name = "Data";
 
-            ValidVolumes.push_back(SysExt);
-            ValidVolumes.push_back(SysAux);
-            ValidVolumes.push_back(Compatibility);
-            ValidVolumes.push_back(Data);
+            DiskVolumes.push_back(SysExt);
+            DiskVolumes.push_back(SysAux);
+            DiskVolumes.push_back(Compatibility);
+            DiskVolumes.push_back(Data);
         }
 
-        for (int i = 0; i < (int)ValidVolumes.size(); i++)
+
+        for (int i = 0; i < (int)DiskVolumes.size(); i++)
         {
             try
             {
-                FatxProcessBootSector(ValidVolumes.at(i));
-                xVolume* p = ValidVolumes.at(i);
+                FatxProcessBootSector(DiskVolumes.at(i));
+                xVolume* p = DiskVolumes.at(i);
                 p->Root = new Folder();
                 p->Root->Volume = p;
                 p->Root->FullPath += p->Name;
                 p->Root->FatxEntriesRead = false;
                 p->Root->Parent = 0;
+                p->Root->Dirent.ClusterStart = p->RootDirectoryCluster;
+                p->Root->Dirent.Offset = p->DataStart;
+
                 memset(p->Root->Dirent.Name, 0, 0x2B);
                 sprintf(p->Root->Dirent.Name, "VolumeRoot");
+
+                try
+                {
+                    ReadClusterChain(p->Root->ClusterChain, p->Root->Dirent, *p);
+                }
+                catch(...)
+                {
+                    throw xException("Bad partition FAT chain");
+                }
             }
             catch (...)
             {
-                delete ValidVolumes.at(i);
-                ValidVolumes.erase(ValidVolumes.begin() + i);
+                qDebug("Freeing bad volume");
+                delete DiskVolumes.at(i);
+                DiskVolumes.erase(DiskVolumes.begin() + i);
                 --i;
             }
         }
+
+        ValidVolumes = new vector<xVolume *>();
+        *ValidVolumes = DiskVolumes;
     }
 }
 
@@ -620,7 +739,8 @@ void Drive::InitializePartitions( void )
         }
         else if (Type == DeviceBackup && Magic != FatxMagic)
         {
-            throw xException("Not a valid FATX file.", ExInvalidFile);
+            qDebug("Exception thrown at InitializePartitions: Not a valid FATX file");
+            throw xException("Not a valid FATX file.");
         }
     }
     SetValidPartitions();
@@ -628,57 +748,73 @@ void Drive::InitializePartitions( void )
 
 vector<Drive *> Drive::GetFATXDrives( bool HardDisks )
 {
-    vector<Drive *> Return;
+    vector<DISK_DRIVE_INFORMATION> Disks;
+    if (HardDisks)
+        Drive::GetPhysicalDisks(Disks);
+
+    qDebug("HardDisks: %d", HardDisks);
+
+    vector<Drive *> ReturnVector;
     if (HardDisks)
     {
-        vector<DISK_DRIVE_INFORMATION> Disks = GetPhysicalDisks();
+        Streams::xDeviceStream* DS = NULL;
         for (int i = 0; i < (int)Disks.size(); i++)
         {
-            DISK_DRIVE_INFORMATION ddi = Disks.at(i);
+            DISK_DRIVE_INFORMATION ddi = Disks[i];
             // First, try reading the disk way
-            Streams::xDeviceStream* DS = NULL;
             try
             {
                 char path[0x200] = {0};
                 wcstombs(path, ddi.Path, wcslen(ddi.Path));
-                qDebug("Attempting to open disk at %s", path);
                 DS = new Streams::xDeviceStream(ddi.Path);
             }
-            catch (xException& e)
+            catch (...)
             {
-                qDebug("Failed to open disk");
+                qDebug("Disk %s is bad", Helpers::QStringToStdString(QString::fromWCharArray(ddi.FriendlyName)).c_str());
+                DS = NULL;
                 continue;
             }
 
             if (DS == NULL || DS->Length() == 0 || DS->Length() < HddOffsets::Data)
             {
-                qDebug("Disk is not of valid length. Length: %lX", DS->Length());
+                qDebug("Disk %s is bad", Helpers::QStringToStdString(QString::fromWCharArray(ddi.FriendlyName)).c_str());
+                DS = NULL;
+                // Disk is not of valid length
                 continue;
             }
-            qDebug("Disk opened successfully.  Length: %lX", DS->Length());
             DS->SetPosition(HddOffsets::Data);
 
             // Read the FATX partition magic
             int Magic = DS->ReadInt32();
             // Close the stream
             DS->Close();
+            delete DS;
+            DS = NULL;
 
             // Compare the magic we read to the *actual* FATX magic
             if (Magic == FatxMagic)
             {
-                Drive *d = new Drive(Disks.at(i).Path, Disks.at(i).FriendlyName, false);
-                Return.push_back(d);
+                qDebug("Disk %s is good!", Helpers::QStringToStdString(QString::fromWCharArray(ddi.FriendlyName)).c_str());
+                Drive *d = new Drive(ddi.Path, ddi.FriendlyName, false);
+                ReturnVector.push_back(d);
             }
+            else
+                qDebug("Disk %s had bad magic (0x%X)", Helpers::QStringToStdString(QString::fromWCharArray(ddi.FriendlyName)).c_str(), Magic);
+        }
+        if (DS)
+        {
+            DS->Close();
+            delete DS;
         }
     }
 
     vector<Drive *> LogicalDisks = GetLogicalPartitions();
-    for (int i = 0; i < (int)LogicalDisks.size(); i++)
+    for (int i = 0; i < LogicalDisks.size(); i++)
     {
-        Return.push_back(LogicalDisks.at(i));
+        ReturnVector.push_back(LogicalDisks[i]);
     }
 
-    return Return;
+    return ReturnVector;
 }
 
 INT64 Drive::GetLength( void )
@@ -701,15 +837,15 @@ if (!GetLogicalDriveStrings(LettersSize, Letters))
     return ReturnVector;
 }
 
-TCHAR Name[MAX_PATH + 1] = {0};
+TCHAR VolumeName[MAX_PATH + 1] = {0};
 
 for (int i = 0; i < 26; i+= 4)
 {
-    memset(&Name, 0, sizeof(Name));
+    memset(&VolumeName, 0, sizeof(VolumeName));
     GetVolumeInformation(
                 &Letters[i],	// Path name
-                Name,			// xVolume name
-                MAX_PATH + 1,	// xVolume name length
+                VolumeName,		// Volume name
+                MAX_PATH + 1,	// Volume name length
                 NULL,
                 NULL,
                 NULL,
@@ -720,10 +856,11 @@ for (int i = 0; i < 26; i+= 4)
     swprintf(temp, 20, L"%s%s", &Letters[i], L"Xbox360\\Data0000");
     try
     {
-        Streams::xFileStream tempFile(temp, Streams::Open);
-        tempFile.Close();
+        Streams::xFileStream *tempFile = new Streams::xFileStream(temp, Streams::Open);
+        tempFile->Close();
+        delete tempFile;
         // Stream opened with no exception, we're good!
-        Drive *d = new Drive(&(Letters[i]), Name, true);
+        Drive *d = new Drive(&(Letters[i]), VolumeName, true);
         ReturnVector.push_back(d);
     }
     catch(...)
@@ -733,8 +870,8 @@ for (int i = 0; i < 26; i+= 4)
 }
 #else
 // First, enumerate the disks
-DIR *dir;
-dirent *ent;
+DIR *dir = NULL;
+dirent *ent = NULL;
 dir = opendir("/Volumes/");
 if (dir != NULL)
 {
@@ -756,9 +893,10 @@ if (dir != NULL)
             TCHAR Path[0x100] = {0};
             wcscpy(Path, curdir.Path);
             wcscpy(&(Path[0]) + wcslen(curdir.Path), L"Xbox360/Data0000");
-            Streams::xFileStream x(Path, Streams::Open);
+            Streams::xFileStream *x = new Streams::xFileStream(Path, Streams::Open);
             // Stream opened good, close it
-            x.Close();
+            x->Close();
+            delete x;
             if (curdir.Path == L"/Volumes/.")
             {
                 swprintf(curdir.FriendlyName, wcslen(L"OS Root"), L"OS Root");
@@ -775,14 +913,17 @@ if (dir != NULL)
             // Couldn't open the device, just continue
         }
     }
-    closedir(dir);
+    if (dir)
+        closedir(dir);
+    if (ent)
+        delete ent;
 }
 #endif
 
 return ReturnVector;
 }
 
-vector<Drive::DISK_DRIVE_INFORMATION> Drive::GetPhysicalDisks( void )
+void Drive::GetPhysicalDisks( vector<Drive::DISK_DRIVE_INFORMATION>& OutVector )
 {
 #ifdef _WIN32
     unsigned i;
@@ -797,15 +938,11 @@ vector<Drive::DISK_DRIVE_INFORMATION> Drive::GetPhysicalDisks( void )
 
     GUID HddClass;
     HddClass = GUID_DEVINTERFACE_DISK;//GUID_DEVCLASS_DISKDRIVE;
-#endif
 
-    vector<Drive::DISK_DRIVE_INFORMATION> ReturnVector;
-
-#ifdef _WIN32
     // List all connected disk drives
     hDevInfo = SetupDiGetClassDevs (&HddClass, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
     if (hDevInfo == INVALID_HANDLE_VALUE)
-        return ReturnVector;
+        return;
 
     // Find the ones that are driverless
     for (i = 0; ; i++)
@@ -844,6 +981,7 @@ vector<Drive::DISK_DRIVE_INFORMATION> Drive::GetPhysicalDisks( void )
         }
 
         _tcscpy(AddToVector.Path, data->DevicePath);
+        qDebug("Disk path: %s", Helpers::QStringToStdString(QString::fromWCharArray(AddToVector.Path)).c_str());
 
         // Friendly name (e.g. SanDisk Cruzer USB...)
         SetupDiGetDeviceRegistryProperty (hDevInfo, &DeviceInfoData, SPDRP_FRIENDLYNAME,
@@ -851,13 +989,14 @@ vector<Drive::DISK_DRIVE_INFORMATION> Drive::GetPhysicalDisks( void )
                                           sizeof(szDesc),   // The size, in bytes
                                           &dwSize);
         _tcscpy(AddToVector.FriendlyName, (TCHAR*)szDesc);
+        qDebug("Friendly name: %s", Helpers::QStringToStdString(QString::fromWCharArray(AddToVector.FriendlyName)).c_str());
 
-        ReturnVector.push_back(AddToVector);
+        OutVector.push_back(AddToVector);
         delete data;
     }
 #else
-DIR *dir;
-dirent *ent;
+DIR *dir = NULL;
+dirent *ent = NULL;
 dir = opendir("/dev/");
 if (dir != NULL)
 {
@@ -870,9 +1009,7 @@ if (dir != NULL)
         exp.setCaseSensitivity(Qt::CaseInsensitive);
         if (exp.exactMatch(ent->d_name))
         {
-            DISK_DRIVE_INFORMATION curdir;
-            memset(curdir.FriendlyName, 0, sizeof(curdir.FriendlyName));
-            memset(curdir.Path, 0, sizeof(curdir.Path));
+            DISK_DRIVE_INFORMATION curdir = {0};
 
             char diskPath[0x50] = {0};
             sprintf(diskPath, "/dev/r%s", ent->d_name);
@@ -889,15 +1026,18 @@ if (dir != NULL)
                     swprintf(curdir.FriendlyName, strlen(hd) * 2, L"%hs", hd.model);
                 }
 #elif defined __APPLE__
-                swprintf(curdir.FriendlyName, strlen("diskx"), L"diskx");
+                mbstowcs(curdir.FriendlyName, ent->d_name, strlen(ent->d_name));
 #endif
-                ReturnVector.push_back(curdir);
+                OutVector.push_back(curdir);
             }
         }
     }
 }
+if (dir)
+    closedir(dir);
+if (ent)
+    delete ent;
 #endif
-    return ReturnVector;
 }
 
 BYTE Drive::cntlzw(unsigned int val)
@@ -942,7 +1082,8 @@ void Drive::FatxProcessBootSector( xVolume* ref )
     ref->Magic = DeviceStream->ReadUInt32();
     if (ref->Magic != FatxMagic)
     {
-        throw xException("Bad magic", ExVolumeInvalidMagic);
+        qDebug("Exception thrown at FatxProcessBotSector: Invalid magic");
+        throw xException("Bad magic");
     }
 
     DeviceStream->SetPosition(ref->Offset + 0x8);
@@ -952,7 +1093,8 @@ void Drive::FatxProcessBootSector( xVolume* ref )
             ref->SectorsPerCluster != 0x10 && ref->SectorsPerCluster != 0x20 && ref->SectorsPerCluster != 0x40 &&
             ref->SectorsPerCluster != 0x80)
     {
-        throw xException("FATX: found invalid sectors per cluster", ExVolumeInvalidSectorsPerCluster);
+        qDebug("Exception thrown at FatxProcessBotSector: Invalid sectors per cluster");
+        throw xException("FATX: found invalid sectors per cluster");
     }
 
     DeviceStream->SetPosition(ref->Offset + 0xC);
@@ -988,18 +1130,22 @@ void Drive::FatxProcessBootSector( xVolume* ref )
 
     if (Clusters < PartitionSize)
     {
-        throw xException("FATX: xVolume too small to hold the FAT", ExVolumeTooSmall);
+        qDebug("Exception thrown at FatxProcessBotSector: Volume too small to hold FAT");
+        throw xException("FATX: Volume too small to hold the FAT");
     }
 
     Clusters -= PartitionSize;
     Clusters >>= (ShiftFactor & 0xFFFFFFFFFFFFFF);
     if (Clusters > 0xFFFFFFF)
     {
-        throw xException("FATX: too many clusters", ExVolumeTooManyClusters);
+        qDebug("Exception thrown at FatxProcessBotSector: Too many clusters");
+        throw xException("FATX: too many clusters");
     }
 
     ref->Clusters = Clusters;
     ref->AllocationTableSize = PartitionSize;
     ref->EntrySize = (Clusters < FAT_CLUSTER16_RESERVED) ? 2 : 4;
     ref->DataStart = ref->Offset + 0x1000 + PartitionSize;
+
+    ref->Disk = this;
 }

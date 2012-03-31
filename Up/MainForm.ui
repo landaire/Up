@@ -66,8 +66,11 @@
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>23</height>
+          <height>27</height>
          </size>
+        </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
         </property>
        </widget>
       </item>

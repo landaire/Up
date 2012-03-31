@@ -34,6 +34,7 @@ private:
     int PathCount;
     int FilesTotal;
     int FilesCompleted;
+    QFuture<void> WorkerThread;
 public slots:
     void OnFileProgressChanged(const Progress& p);
 };

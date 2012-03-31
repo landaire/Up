@@ -23,11 +23,29 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QGroupBox" name="groupBoxCurrent">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>503</width>
+       <height>113</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>503</width>
+       <height>113</height>
+      </size>
+     </property>
      <property name="title">
       <string>Current</string>
      </property>
@@ -64,6 +82,12 @@
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QLabel" name="labelFileName">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string/>
           </property>

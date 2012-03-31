@@ -5,8 +5,6 @@
 #include "StaticInformation.h"
 #include <QString>
 #include <../QtGui/QImage>
-using namespace std;
-using namespace Streams;
 
 class STFSPackage
 {
@@ -23,6 +21,7 @@ public:
     UINT64 ProfileId( void );
     QString DisplayName( int Locale = 0 );
     QString Description( int Locale = 0 );
+    QString TitleName( int Locale = 0 );
     QImage ThumbnailImage( void );
     QImage TitleImage( void );
 

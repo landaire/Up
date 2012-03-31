@@ -1,34 +1,38 @@
 #ifndef MAINFORM_H
 #define MAINFORM_H
 
+// Qt referencces
 #include <QtGui/QMainWindow>
 #include <qmessagebox.h>
 #include <qfiledialog.h>
 #include <qcommandlinkbutton.h>
 #include <qdesktopwidget.h>
 #include <qdatetime>
+#include <QPainter>
+#include <QSettings>
+
+// Form references
 #include "ui_MainForm.h"
 #include "AboutForm.h"
+#include "progressdialog.h"
+
+// FATX references
 #include "../FATX/typedefs.h"
 #include "../FATX/FATX/Helpers.h"
 #include "../FATX/FATX/Drive.h"
 #include "../FATX/IO/xDeviceFileStream.h"
 #include "../FATX/FATX/StaticInformation.h"
 #include "../FATX/FATX/stfspackage.h"
+
+// std lib references
 #include <map>
-#include <QPainter>
-#include "progressdialog.h"
+#include <algorithm>
 #include <string>
 
 #ifndef _WIN32
 #include <sys/types.h>
 #include <unistd.h>
 
-#ifdef __APPLE__
-#include <security/Authorization.h>
-#include <security/AuthorizationTags.h>
-#include <security/AuthorizationDB.h>
-#endif
 #endif
 
 using namespace Streams;
@@ -43,8 +47,9 @@ public:
 public slots:
         void OnLoadDevicesClick( void );
         void ShowAbout( void );
-        void OnTreeExpand(QTreeWidgetItem* Item);
+        void OnTreeItemExpand(QTreeWidgetItem* Item);
         void OnCopyToLocalDiskClick( void );
+        void OnTreeItemDoubleClick(QTreeWidgetItem* Item, int);
 private:
         QIcon iFolder;
         QIcon iDisk;
@@ -64,6 +69,8 @@ private:
         Drive                   *GetCurrentItemDrive(QTreeWidgetItem* Item);
         void                    SetContextMenus ( void );
         std::string             GetCurrentItemPath( QTreeWidgetItem *Item );
+        void                    SetTitleIdName  (QTreeWidgetItem* Item);
+        QSettings               *cache;
 };
 
 #endif // MAINFORM_H

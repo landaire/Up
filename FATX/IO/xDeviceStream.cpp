@@ -9,12 +9,15 @@ xDeviceStream::xDeviceStream( TCHAR* DevicePath )
     _Length = 0;
     _Endian = Big;
     IsClosed = false;
+    UserOffset = 0;
+    LastReadOffset = -1;
+    IsClosed = false;
 #ifdef _WIN32
     memset(&Offset, 0, sizeof(OVERLAPPED));
-#endif
+#else
     memset(&LastReadData, 0, 0x200);
-    LastReadOffset = -1;
-    UserOffset = 0;
+    Offset = 0;
+#endif
 
 #ifdef _WIN32
     // Attempt to get a handle to the device
@@ -35,7 +38,10 @@ xDeviceStream::xDeviceStream( TCHAR* DevicePath )
 #if (defined __APPLE__ || defined __linux)
     // UNIX/LINUX/APPLE
     char Path[0x200] = {0};
+
+    // Convert wchar_t string to standard ASCII string
     wcstombs(Path, DevicePath, wcslen(DevicePath));
+    // Open the device
     Device = open(Path, O_RDWR);
     if (Device == -1)
     {
@@ -83,7 +89,7 @@ void xDeviceStream::SetPosition( INT64 Position )
 {
     if (IsClosed)
     {
-        throw xException("Stream is closed. At: xDeviceStream::SetPosition", ExStreamSetPosition);
+        throw xException("Stream is closed. At: xDeviceStream::SetPosition");
     }
     UserOffset = Position;
     Position = Helpers::DownToNearestSector(Position); // Round the position down to the nearest sector offset
@@ -122,8 +128,14 @@ INT64 xDeviceStream::Length( void )
                 (INT64)Geometry.SectorsPerTrack		*
                 (INT64)Geometry.BytesPerSector;
 #else
-        _Length = static_cast<INT64>(lseek(Device, 0L, SEEK_SET));//20003880960L, SEEK_SET));
-        lseek(Device, 0, SEEK_SET);
+        unsigned int NumberOfSectors = 0;
+        // Queue number of sectors
+        ioctl(Device, DKIOCGETBLOCKCOUNT, &NumberOfSectors);
+
+        unsigned int SectorSize = 0;
+        ioctl(Device, DKIOCGETBLOCKSIZE, &SectorSize);
+
+        _Length = (UINT64)NumberOfSectors * (UINT64)SectorSize;
 #endif
 
     }
@@ -396,7 +408,7 @@ int xDeviceStream::Read( BYTE* DestBuff, int Count )
         memcpy(DestBuff + BytesThatAreInLastDataRead, AllData, Count - BytesThatAreInLastDataRead);
         // Cache
         memcpy(&LastReadData, AllData + AllDataLength - ((0x200 * 2)), 0x200);
-        LastReadOffset = RealPosition();
+        //LastReadOffset = RealPosition();
         delete[] AllData;
     }
 
