@@ -701,8 +701,20 @@ void Drive::SetValidPartitions( void )
                 p->Root->FullPath += p->Name;
                 p->Root->FatxEntriesRead = false;
                 p->Root->Parent = 0;
+                p->Root->Dirent.ClusterStart = p->RootDirectoryCluster;
+                p->Root->Dirent.Offset = p->DataStart;
+
                 memset(p->Root->Dirent.Name, 0, 0x2B);
                 sprintf(p->Root->Dirent.Name, "VolumeRoot");
+
+                try
+                {
+                    ReadClusterChain(p->Root->ClusterChain, p->Root->Dirent, *p);
+                }
+                catch(...)
+                {
+                    throw xException("Bad partition FAT chain");
+                }
             }
             catch (...)
             {
