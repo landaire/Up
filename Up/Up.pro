@@ -34,7 +34,7 @@ INCLUDEPATH += $$PWD/../FATX/FATX
 RESOURCES += \
     MainForm.qrc
 
-
+ICON = up.icns
 CONFIG(debug, debug|release) {
 macx: LIBS += -L$$PWD/../FATX-OSX/debug/ -lFATX
 

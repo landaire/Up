@@ -78,9 +78,9 @@ namespace Streams
          int				Read	( BYTE* DestBuff,
 										int Count );			// Function for reading a byte array
 
-		 string			ReadString		( size_t Count );		// Function for reading a string
-		 wstring		ReadUnicodeString(size_t Count );		// Function for reading a unicode string
-		 string			ReadCString		( void );				// Function for reading a C-Style string
+         std::string			ReadString		( size_t Count );		// Function for reading a string
+         std::wstring		ReadUnicodeString(size_t Count );		// Function for reading a unicode string
+         std::string			ReadCString		( void );				// Function for reading a C-Style string
 		/* End Reading Functions */
 
 		 void			Close			( void );

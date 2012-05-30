@@ -3,7 +3,7 @@
 #include <QDebug>
 namespace Streams
 {
-xMultiFileStream::xMultiFileStream( vector<wstring> InPaths )
+xMultiFileStream::xMultiFileStream( std::vector<std::wstring> InPaths )
 {
     _Length = 0;
     _Endian = Big;
@@ -270,12 +270,12 @@ int xMultiFileStream::Read( BYTE* DestBuff, int Count )
         // Balls, we can't. For each stream, loop for how much data we can read until we've read all of it
         while (Count > 0)
         {
-            DWORD Read = FileStreams.at(CurrentStream)->Read(DestBuff, Count);
+            DWORD Read = FileStreams.at(CurrentStream)->Read(DestBuff + Offset, Count);
             Offset += Read;
             Count -= Read;
             SetPosition(Position() + Read);
-            DetermineAndDoArraySwap(DestBuff, Count, true);
         }
+        DetermineAndDoArraySwap(DestBuff, Count, true);
         return Count;
     }
     else
@@ -288,7 +288,7 @@ int xMultiFileStream::Read( BYTE* DestBuff, int Count )
     }
 }
 
-string xMultiFileStream::ReadString( size_t Count )
+std::string xMultiFileStream::ReadString( size_t Count )
 {
     if (IsClosed)
     {
@@ -303,19 +303,19 @@ string xMultiFileStream::ReadString( size_t Count )
 
     Read(Buffer, Count);
 
-    string ret((char*)Buffer);
+    std::string ret((char*)Buffer);
 
     delete[] Buffer;
     return ret;
 }
 
-string xMultiFileStream::ReadCString( void )
+std::string xMultiFileStream::ReadCString( void )
 {
     if (IsClosed)
     {
         throw xException("Stream is closed. At: xMultiFileStream::ReadCString");
     }
-    vector<char> temp;
+    std::vector<char> temp;
     bool Null;
     do
     {
@@ -336,13 +336,13 @@ string xMultiFileStream::ReadCString( void )
 
     DetermineAndDoEndianSwap(tempString, temp.size() - 1, sizeof(char));
 
-    string Return(tempString);
+    std::string Return(tempString);
 
     delete[] tempString;
     return Return;
 }
 
-wstring xMultiFileStream::ReadUnicodeString( size_t Count )
+std::wstring xMultiFileStream::ReadUnicodeString( size_t Count )
 {
     if (IsClosed)
     {
@@ -358,7 +358,7 @@ wstring xMultiFileStream::ReadUnicodeString( size_t Count )
 
     Read(Buffer, Count + 1);
 
-    wstring ret((TCHAR*)Buffer);
+    std::wstring ret((TCHAR*)Buffer);
 
     delete[] Buffer;
     return ret;

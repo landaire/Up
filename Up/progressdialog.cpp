@@ -4,6 +4,8 @@
 #include <QtConcurrentRun.h>
 #include <algorithm>
 
+using namespace std;
+
 ProgressDialog::ProgressDialog(QWidget *parent, Operations Operation, std::vector<std::string> Paths, std::string OutPath, std::vector<Drive*>& Drives) :
     QDialog(parent),
     ui(new Ui::ProgressDialog)
@@ -54,7 +56,7 @@ void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::st
         }
 
         // Find the drive in our ConnectedDrives vector
-        vector<Drive*>::iterator it = std::find(ConnectedDrives.begin(), ConnectedDrives.end(), d);
+        std::vector<Drive*>::iterator it = std::find(ConnectedDrives.begin(), ConnectedDrives.end(), d);
         if (it == ConnectedDrives.end())
         {
             // If the drive was not connected, connect it
@@ -75,7 +77,11 @@ void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::st
             // Exception was thrown, we're dealing with a folder path
             catch(...)
             {
-                // Add folder handling
+                // Get the folder
+                Folder *folder = d->FolderFromPath(Paths.at(i));
+                // Get the total number of files in this folder (recursively)
+                FilesTotal += d->GetTotalFileCount(folder) -1; // subtract 1 because this folder will already have added 1 to the total files thing
+                d->CopyFolderToLocalDisk(folder, OutPath);
             }
         }
         else
@@ -90,7 +96,11 @@ void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::st
             }
             catch (...)
             {
-                // Add folder handling here
+                // Get the folder
+                Folder *folder = d->FolderFromPath(Paths.at(i));
+                // Get the total number of files in this folder (recursively)
+                FilesTotal += d->GetTotalFileCount(folder) -1; // subtract 1 because this folder will already have added 1 to the total files thing
+                d->CopyFolderToLocalDisk(folder, OutPath);
             }
         }
     }

@@ -20,7 +20,7 @@ namespace Streams
         void Initialize( File *xf, Drive *device );
         INT64 GetPhysicalPosition(int FilePosition);
 	public:
-        xDeviceFileStream(string Path, Drive *device);
+        xDeviceFileStream(std::string Path, Drive *device);
         xDeviceFileStream(File* dest, Drive *device );
 		~xDeviceFileStream(void);
 
@@ -61,9 +61,9 @@ namespace Streams
          int				Read	( BYTE* DestBuff,
 										int Count );			// Function for reading a byte array
 
-		 string			ReadString		( size_t Count );		// Function for reading a string
-		 wstring		ReadUnicodeString(size_t Count );		// Function for reading a unicode string
-		 string			ReadCString		( void );				// Function for reading a C-Style string
+         std::string			ReadString		( size_t Count );		// Function for reading a string
+         std::wstring		ReadUnicodeString(size_t Count );		// Function for reading a unicode string
+         std::string			ReadCString		( void );				// Function for reading a C-Style string
 		/* End Reading Functions */
 
 		 virtual void	Close			( void );						// Closes the stream

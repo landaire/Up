@@ -4,8 +4,6 @@
 #include "../typedefs.h"
 #include <vector>
 
-using namespace std;
-
 namespace Streams
 {
 	enum FileMode
@@ -87,9 +85,9 @@ namespace Streams
         virtual int					Read		( BYTE* DestBuff,
 														int Count ) =0;	// Function for reading a byte array
 
-		virtual string	ReadString		( size_t Count ) =0;				// Function for reading a string
-		virtual wstring	ReadUnicodeString(size_t Count ) =0;				// Function for reading a unicode string
-		virtual string	ReadCString		( void ) =0;						// Function for reading a C-Style string
+        virtual std::string     ReadString		( size_t Count ) =0;				// Function for reading a string
+        virtual std::wstring	ReadUnicodeString(size_t Count ) =0;				// Function for reading a unicode string
+        virtual std::string     ReadCString		( void ) =0;						// Function for reading a C-Style string
 		/* End Reading Functions */
 
 		virtual void	Close			( void ) =0;						// Closes the stream

@@ -16,22 +16,23 @@ xFileStream::xFileStream(wchar_t *FilePath, int Mode)
 }
 
 
-xFileStream::xFileStream(string FilePath, int Mode )
+xFileStream::xFileStream(std::string FilePath, int Mode )
 {
     Initialize((void*)FilePath.c_str(), Mode, false);
 }
 
-xFileStream::xFileStream(wstring FilePath, int Mode)
+xFileStream::xFileStream(std::wstring FilePath, int Mode)
 {
     Initialize((void*)FilePath.c_str(), Mode, true);
 }
 
 void xFileStream::Initialize(void *FilePath, int Mode, bool wchar)
 {
+    using namespace std;
     _Length = 0;
     _Endian = Big;
     IsClosed = false;
-    int iosMode = ios::binary;
+    int iosMode = std::ios::binary;
 #ifndef _WIN32
     char CharPath[0x200] = {0};
     if (wchar)
@@ -51,7 +52,7 @@ void xFileStream::Initialize(void *FilePath, int Mode, bool wchar)
     // Specifies that a new file should be created.  If it exists, it is overwritten
     case Create:
     {
-        iosMode |= ios::trunc | ios::in | ios::out;
+        iosMode |= std::ios::trunc | std::ios::in | std::ios::out;
     }
         break;
         // Specifies that a new file should be created.  If it already exists, an exception is thrown
@@ -63,13 +64,13 @@ void xFileStream::Initialize(void *FilePath, int Mode, bool wchar)
             temp.close();
             throw xException("Cannot create new file over existing", CreateNew);
         }
-        iosMode |= ios::in | ios::out | ios::trunc;
+        iosMode |= std::ios::in | std::ios::out | std::ios::trunc;
     }
         break;
         // Specifies that a new file should be created.  If it exists, it is overwritten
     case Open:
     {
-        ifstream temp(CharPath);
+        std::ifstream temp(CharPath);
         if (!temp.good() || temp.fail())
         {
             throw xException("Can not open file for reading.  File does not exist", Open);
@@ -147,38 +148,38 @@ INT64 xFileStream::Length( void )
         throw xException("Stream is closed. At: xFileStream::GetLength");
     }
     INT64 Position = _FileStream.tellg();
-    _FileStream.seekg(0, ios::end);
+    _FileStream.seekg(0, std::ios::end);
     _Length = _FileStream.tellg();
-    _FileStream.seekg((DWORD)Position, ios::beg);
+    _FileStream.seekg((DWORD)Position, std::ios::beg);
     return _Length;
 }
 
-string xFileStream::ReadString( size_t Count )
+std::string xFileStream::ReadString( size_t Count )
 {
     char* buff = new char[Count + 1];
     memset(buff, 0, Count + 1);
     Read((BYTE*)buff, Count);
-    string Return(buff);
+    std::string Return(buff);
 
     delete[] buff;
     return Return;
 }
 
-wstring xFileStream::ReadUnicodeString( size_t Count)
+std::wstring xFileStream::ReadUnicodeString( size_t Count)
 {
     char* buff = new char[Count + 1];
     memset(buff, 0, Count + 1);
     Read((BYTE*)buff, Count);
     DetermineAndDoArraySwap((BYTE*)buff, Count, false);
-    wstring Return((TCHAR*)buff);
+    std::wstring Return((TCHAR*)buff);
 
     delete[] buff;
     return Return;
 }
 
-string xFileStream::ReadCString( void )
+std::string xFileStream::ReadCString( void )
 {
-    vector<char> temp;
+    std::vector<char> temp;
     bool Null;
     do
     {
@@ -199,7 +200,7 @@ string xFileStream::ReadCString( void )
 
     DetermineAndDoEndianSwap(tempString, temp.size() - 1, sizeof(char));
 
-    string Return(tempString);
+    std::string Return(tempString);
 
     delete[] tempString;
 

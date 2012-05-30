@@ -30,6 +30,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #ifdef __APPLE__
 #include <sys/disk.h>
@@ -62,9 +63,9 @@ private:
 
 
 
-    static vector<Drive *> GetLogicalPartitions( void );
+    static std::vector<Drive *> GetLogicalPartitions( void );
 
-    static void GetPhysicalDisks( vector<DISK_DRIVE_INFORMATION> &OutVector);
+    static void GetPhysicalDisks( std::vector<DISK_DRIVE_INFORMATION> &OutVector);
 
     std::vector<xVolume*> *ValidVolumes;
     void	SetValidPartitions      ( void );
@@ -84,7 +85,7 @@ public:
     void    ReadClusterChain        (std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition);
 
     Streams::IStream*       DeviceStream;
-    static vector<Drive *>  GetFATXDrives( bool HardDisks );
+    static std::vector<Drive *>  GetFATXDrives( bool HardDisks );
     std::vector<std::string>Partitions          ( void );
     QString                 GetDiskName         ( void );
     UINT64                  PartitionGetLength  ( std::string Partition );
@@ -98,6 +99,10 @@ public:
     File                    *FileFromPath       ( std::string Path );
     void                    CopyFileToLocalDisk ( File *dest, std::string Output);
     void                    CopyFileToLocalDisk ( std::string Path, std::string Output);
+    // do not know why this declaration is here.  leaving it here for whatever reason
+    // void                    CopyFileToLocalDisk ( Folder *dest, std::string Output );
+    void                    CopyFolderToLocalDisk( Folder *f, std::string Output );
+    void                    CopyFolderToLocalDisk( std::string Path, std::string Output);
 
     std::wstring            FriendlyName;
     std::string             FriendlySize;

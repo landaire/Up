@@ -50,8 +50,6 @@ INT64 xDeviceFileStream::Length( void )
 
 void xDeviceFileStream::SetPosition( INT64 Position )
 {
-    if (this->Position() == Position)
-        return;
     device->DeviceStream->SetPosition(GetPhysicalPosition(Position));
     UserPosition = Position;
 }
@@ -243,7 +241,7 @@ UINT64 xDeviceFileStream::ReadUInt64( void )
 
 int xDeviceFileStream::Read( BYTE* DestBuff, int Count )
 {
-    //SetPosition(Position());
+    SetPosition(Position());
     // How many clusters the data we're reading is spread across
     int ClustersSpanned = Helpers::UpToNearestX(Count + (UserPosition - Helpers::DownToNearestX(UserPosition, xf->Volume->ClusterSize)), xf->Volume->ClusterSize) / xf->Volume->ClusterSize;
     // Read the first amount of data...
@@ -256,12 +254,35 @@ int xDeviceFileStream::Read( BYTE* DestBuff, int Count )
         offset += tcount;
         SetPosition(Position() + tcount);
         Count -= tcount;
+
+        int CurrentCluster = 0;
+        // The number of clusters that are consecutively aligned on the disk
+        int ConsecutiveClusters = 1;
+        // This will hold the value of the last cluster
+        int LastCluster = 0;
+
         for (int i = 1; i < ClustersSpanned - 1; i++)
         {
-            tcount = device->DeviceStream->Read(DestBuff + offset, xf->Volume->ClusterSize);
+            CurrentCluster = (UserPosition - (UserPosition % xf->Volume->ClusterSize)) / xf->Volume->ClusterSize;
+            ConsecutiveClusters = 1;
+            LastCluster = xf->ClusterChain[CurrentCluster - 1];
+            // Starting at the next cluster, and looping up until the last cluster, minus one...
+            for (int j = CurrentCluster + 1; j < CurrentCluster + ClustersSpanned - 1; j++)
+            {
+                // If this cluster index is equal to the last cluster index, + 1...
+                if (xf->ClusterChain[j] == LastCluster + 1 && ConsecutiveClusters < 5)
+                    // Shit, it's consecutive.  We better continue.
+                    ConsecutiveClusters++;
+                else
+                    // SHIT, IT'S NOT CONSECUTIVE.  WE BETTER NOT DO STUFF TO THINGS
+                    break;
+            }
+            tcount = device->DeviceStream->Read(DestBuff + offset, xf->Volume->ClusterSize * ConsecutiveClusters);
             offset += tcount;
             Count -= tcount;
             SetPosition(Position() + tcount);
+            // So that we don't re-read these clusters...
+            i += ConsecutiveClusters - 1;
         }
         // Read the last bit of data
         tcount = device->DeviceStream->Read(DestBuff + offset, Count);

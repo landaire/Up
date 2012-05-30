@@ -56,13 +56,13 @@ private:
         QIcon iFile;
         QIcon iPartition;
         QIcon iUsb;        
-        map<DWORD, QIcon*> Icons;
+        std::map<DWORD, QIcon*> Icons;
 
         Ui::MainFormClass ui;
         void                    Center          ( void );
         void                    DoEvents        ( void );
         std::string             GetItemPath     (QTreeWidgetItem* Item);
-        vector<Drive*>           ActiveDrives;
+        std::vector<Drive*>           ActiveDrives;
         QTreeWidgetItem         *AddFolder      (QTreeWidgetItem *Item, Folder *f);
         QTreeWidgetItem         *AddFile        (QTreeWidgetItem *Item, File *f, Drive *device);
         void                    PopulateTreeItems(QTreeWidgetItem *Item, bool expand);

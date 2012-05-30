@@ -1,6 +1,7 @@
 #include "MainForm.h"
 #include <algorithm>
 
+using namespace std;
 MainForm::MainForm(QWidget *parent, Qt::WFlags flags)
     : QMainWindow(parent, flags)
 {

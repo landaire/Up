@@ -10,13 +10,13 @@ namespace Streams
 		public IStream
 	{
 	private:
-		fstream _FileStream;
+        std::fstream _FileStream;
 
     public:
         xFileStream( char *FilePath, int Mode );
-        xFileStream( string FilePath, int Mode );
+        xFileStream( std::string FilePath, int Mode );
         xFileStream( wchar_t *FilePath, int Mode );
-        xFileStream( wstring FilePath, int Mode );
+        xFileStream( std::wstring FilePath, int Mode );
 
 		~xFileStream(void);
 
@@ -62,9 +62,9 @@ namespace Streams
          int				Read	( BYTE* DestBuff,
 										int Count );			// Function for reading a byte array
 
-		 string			ReadString		( size_t Count );		// Function for reading a string
-		 wstring		ReadUnicodeString(size_t Count );		// Function for reading a unicode string
-		 string			ReadCString		( void );				// Function for reading a C-Style string
+         std::string		ReadString		( size_t Count );		// Function for reading a string
+         std::wstring		ReadUnicodeString(size_t Count );		// Function for reading a unicode string
+         std::string		ReadCString		( void );				// Function for reading a C-Style string
 		/* End Reading Functions */
 
 		 void			Close			( void );

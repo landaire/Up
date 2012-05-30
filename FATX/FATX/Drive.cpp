@@ -3,6 +3,8 @@
 #include "../IO/xDeviceFileStream.h"
 #include <QMetaType>
 #include "stfspackage.h"
+#include <sys/stat.h>
+#include <QTime>
 
 using namespace std;
 
@@ -107,7 +109,7 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     // Get a stream to the output file
     Streams::xFileStream *output = new Streams::xFileStream(path, Streams::Create);
     UINT64 size = xf->Length();
-    BYTE Buffer[0x4000] = {0};
+    BYTE Buffer[0x4000 * 4] = {0};
 
     Progress p;
     // Set up our progress
@@ -130,20 +132,36 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     }
     emit FileProgressChanged(p);
 
+    // Diagnostics and shit
+    QTime qt;
+    qt.setHMS(0, 0, 0, 0);
+    qt.start();
     // Start the reading
-    while (size > 0x4000)
+    while (size > dest->Volume->SectorsPerCluster * 0x200)
     {
-        xf->SetPosition(xf->Length() - size);
-        size -= 0x4000;
-        xf->Read(Buffer, 0x4000);
-        output->Write(Buffer, 0x4000);
-        p.Current++;
+        INT64 read = 0;
+        if (xf->Length() - xf->Position() >= 0x4000 * 4)
+            read += xf->Read(Buffer, 0x4000 * 4);
+        else
+            read += xf->Read(Buffer, dest->Volume->SectorsPerCluster * 0x200);
+
+        output->Write(Buffer, read);
+        size -= read;
+        p.Current += (read / (dest->Volume->SectorsPerCluster * 0x200));
         emit FileProgressChanged(p);
     }
     xf->SetPosition(xf->Length() - size);
     // Read the last section of data
     xf->Read(Buffer, size);
     output->Write(Buffer, size);
+
+    int Milliseconds = qt.elapsed();
+
+    int Hours = Milliseconds / (1000*60*60);
+    int Minutes = (Milliseconds % (1000*60*60)) / (1000*60);
+    int Seconds = ((Milliseconds % (1000*60*60)) % (1000*60)) / 1000;
+
+    qDebug("%d:%d:%d", Hours, Minutes, Seconds);
     p.Current++;
     p.Done = true;
     emit FileProgressChanged(p);
@@ -157,6 +175,41 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
 void Drive::CopyFileToLocalDisk(string Path, string Output)
 {
     CopyFileToLocalDisk(FileFromPath(Path), Output);
+}
+
+void Drive::CopyFolderToLocalDisk(Folder *f, string Output)
+{
+    // Make the directory...
+#ifndef _WIN32
+    qDebug((((Output + "/") + f->Dirent.Name).c_str()));
+    mkdir(((Output + "/") + f->Dirent.Name).c_str(), 0777);
+#endif
+    std::string Path = ((Output + "/") + f->Dirent.Name);
+    // Make sure that this folder's dirents are read...
+    if (!f->FatxEntriesRead)
+        // Read the dirents
+        ReadDirectoryEntries(f);
+    // Extract all the files from this dir
+    // FUCK MAN ARE YOU KIDDING ME?  I CAN'T LIKE... USE C++11 RANGE-BASED LOOPS?!  FUCK MAN
+    for (int i = 0; i < f->CachedFiles.size(); i++)
+    {
+        File *file = f->CachedFiles[i];
+        CopyFileToLocalDisk(file, (Path + "/") + file->Dirent.Name);
+    }
+
+    // For each folder, do an extract thingy
+    for (int i = 0; i < f->CachedFolders.size(); i++)
+    {
+        Folder *folder = f->CachedFolders[i];
+        CopyFolderToLocalDisk(folder, Path);
+    }
+}
+
+void Drive::CopyFolderToLocalDisk(string Path, string Output)
+{
+    // Get the folder
+    Folder *f = FolderFromPath(Path);
+    CopyFolderToLocalDisk(f, Output);
 }
 
 DWORD Drive::GetFileCount(Folder *f)

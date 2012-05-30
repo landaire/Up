@@ -419,7 +419,7 @@ int xDeviceStream::Read( BYTE* DestBuff, int Count )
     return Count;
 }
 
-string xDeviceStream::ReadString( size_t Count )
+std::string xDeviceStream::ReadString( size_t Count )
 {
     if (IsClosed)
     {
@@ -433,19 +433,19 @@ string xDeviceStream::ReadString( size_t Count )
     memset(Buffer, 0, Count + 1);
 
     Read(Buffer, Count);
-    string ret((char*)Buffer);
+    std::string ret((char*)Buffer);
     delete[] Buffer;
 
     return ret;
 }
 
-string xDeviceStream::ReadCString( void )
+std::string xDeviceStream::ReadCString( void )
 {
     if (IsClosed)
     {
         throw xException("Stream is closed. At: xDeviceStream::ReadCString");
     }
-    vector<char> temp;
+    std::vector<char> temp;
     bool Null;
     do
     {
@@ -466,13 +466,13 @@ string xDeviceStream::ReadCString( void )
 
     DetermineAndDoEndianSwap(tempString, temp.size() - 1, sizeof(char));
 
-    string Return(tempString);
+    std::string Return(tempString);
 
     delete[] tempString;
     return Return;
 }
 
-wstring xDeviceStream::ReadUnicodeString( size_t Count )
+std::wstring xDeviceStream::ReadUnicodeString( size_t Count )
 {
     if (IsClosed)
     {
@@ -487,7 +487,7 @@ wstring xDeviceStream::ReadUnicodeString( size_t Count )
     memset(Buffer, 0, Count + 1);
 
     Read(Buffer, Count + 1);
-    wstring ret((TCHAR*)Buffer);
+    std::wstring ret((TCHAR*)Buffer);
     delete[] Buffer;
 
     return ret;
