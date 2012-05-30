@@ -3,7 +3,7 @@
 
 namespace Streams
 {
-xDeviceFileStream::xDeviceFileStream(string Path, Drive *device)
+xDeviceFileStream::xDeviceFileStream(std::string Path, Drive *device)
 {
     File *dest = device->FileFromPath(Path);
     Initialize(dest, device);
@@ -50,6 +50,8 @@ INT64 xDeviceFileStream::Length( void )
 
 void xDeviceFileStream::SetPosition( INT64 Position )
 {
+    if (this->Position() == Position)
+        return;
     device->DeviceStream->SetPosition(GetPhysicalPosition(Position));
     UserPosition = Position;
 }
@@ -256,7 +258,7 @@ int xDeviceFileStream::Read( BYTE* DestBuff, int Count )
         Count -= tcount;
         for (int i = 1; i < ClustersSpanned - 1; i++)
         {
-            tcount = device->DeviceStream->Read(DestBuff + offset, Count);
+            tcount = device->DeviceStream->Read(DestBuff + offset, xf->Volume->ClusterSize);
             offset += tcount;
             Count -= tcount;
             SetPosition(Position() + tcount);
@@ -275,7 +277,7 @@ int xDeviceFileStream::Read( BYTE* DestBuff, int Count )
     }
 }
 
-string xDeviceFileStream::ReadString( size_t Count )
+std::string xDeviceFileStream::ReadString( size_t Count )
 {
     if (IsClosed)
     {
@@ -289,19 +291,19 @@ string xDeviceFileStream::ReadString( size_t Count )
     memset(Buffer, 0, Count + 1);
 
     Read(Buffer, Count);
-    string ret((char*)Buffer);
+    std::string ret((char*)Buffer);
     delete[] Buffer;
 
     return ret;
 }
 
-string xDeviceFileStream::ReadCString( void )
+std::string xDeviceFileStream::ReadCString( void )
 {
     if (IsClosed)
     {
         throw xException("Stream is closed. At: xDeviceFileStream::ReadCString");
     }
-    vector<char> temp;
+    std::vector<char> temp;
     bool Null;
     do
     {
@@ -322,13 +324,13 @@ string xDeviceFileStream::ReadCString( void )
 
     DetermineAndDoEndianSwap(tempString, temp.size() - 1, sizeof(char));
 
-    string Return(tempString);
+    std::string Return(tempString);
 
     delete[] tempString;
     return Return;
 }
 
-wstring xDeviceFileStream::ReadUnicodeString( size_t Count )
+std::wstring xDeviceFileStream::ReadUnicodeString( size_t Count )
 {
     if (IsClosed)
     {
@@ -347,7 +349,7 @@ wstring xDeviceFileStream::ReadUnicodeString( size_t Count )
     {
         DetermineAndDoEndianSwap(Buffer + i, sizeof(wchar_t), sizeof(char));
     }
-    wstring ret((TCHAR*)Buffer);
+    std::wstring ret((TCHAR*)Buffer);
     delete[] Buffer;
 
     return ret;
