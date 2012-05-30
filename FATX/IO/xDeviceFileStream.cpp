@@ -265,14 +265,19 @@ int xDeviceFileStream::Read( BYTE* DestBuff, int Count )
         {
             CurrentCluster = (UserPosition - (UserPosition % xf->Volume->ClusterSize)) / xf->Volume->ClusterSize;
             ConsecutiveClusters = 1;
-            LastCluster = xf->ClusterChain[CurrentCluster - 1];
+            LastCluster = xf->ClusterChain[CurrentCluster];
             // Starting at the next cluster, and looping up until the last cluster, minus one...
-            for (int j = CurrentCluster + 1; j < CurrentCluster + ClustersSpanned - 1; j++)
+            // Current Cluster + ClustersSpanned
+            for (int j = CurrentCluster + 1; j < (CurrentCluster + ClustersSpanned - i) - 1; j++)
             {
+                //qDebug("%X/%X", xf->ClusterChain[j], LastCluster + 1);
                 // If this cluster index is equal to the last cluster index, + 1...
-                if (xf->ClusterChain[j] == LastCluster + 1 && ConsecutiveClusters < 5)
+                if (xf->ClusterChain[j] == LastCluster + 1 && ConsecutiveClusters < 10 && j < (ClustersSpanned - CurrentCluster - i) - 1)
+                {
                     // Shit, it's consecutive.  We better continue.
                     ConsecutiveClusters++;
+                    LastCluster = xf->ClusterChain[j];
+                }
                 else
                     // SHIT, IT'S NOT CONSECUTIVE.  WE BETTER NOT DO STUFF TO THINGS
                     break;

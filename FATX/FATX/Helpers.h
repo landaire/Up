@@ -5,6 +5,7 @@
 #include <QDateTime>
 #include <QDate>
 #include <QTime>
+#include "nowide/convert.h"
 
 class Helpers
 {

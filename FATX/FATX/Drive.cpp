@@ -136,16 +136,42 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     QTime qt;
     qt.setHMS(0, 0, 0, 0);
     qt.start();
+    xf->SetPosition(0);
+    INT64 FileSize = xf->Length();
+    int Cycle = 0;
     // Start the reading
     while (size > dest->Volume->SectorsPerCluster * 0x200)
     {
+        Cycle++;
+        QTime qt2;
+        qt2.setHMS(0, 0, 0, 0);
+        qt2.start();
         INT64 read = 0;
-        if (xf->Length() - xf->Position() >= 0x4000 * 4)
+        int ReadSpeed = 0;
+        if (size >= 0x4000 * 4)
+        {
             read += xf->Read(Buffer, 0x4000 * 4);
+            ReadSpeed = qt2.elapsed();
+            qDebug("%d", ReadSpeed);
+        }
         else
             read += xf->Read(Buffer, dest->Volume->SectorsPerCluster * 0x200);
 
+        qt2.setHMS(0, 0, 0, 0);
+        qt2.start();
+        int WriteSpeed = 0;
         output->Write(Buffer, read);
+        WriteSpeed = qt2.elapsed();
+        qDebug("%d", WriteSpeed);
+        qDebug("%s took longer", ((ReadSpeed > WriteSpeed) ? "Read" : "Write"));
+            int Milliseconds = qt2.elapsed();
+        int Hours = Milliseconds / (1000*60*60);
+        int Minutes = (Milliseconds % (1000*60*60)) / (1000*60);
+        int Seconds = ((Milliseconds % (1000*60*60)) % (1000*60)) / 1000;
+        if (Seconds > 1)
+            qDebug("LONG");
+
+        qDebug("%d - %d:%d:%d", Cycle, Hours, Minutes, Seconds);
         size -= read;
         p.Current += (read / (dest->Volume->SectorsPerCluster * 0x200));
         emit FileProgressChanged(p);
@@ -183,6 +209,8 @@ void Drive::CopyFolderToLocalDisk(Folder *f, string Output)
 #ifndef _WIN32
     qDebug((((Output + "/") + f->Dirent.Name).c_str()));
     mkdir(((Output + "/") + f->Dirent.Name).c_str(), 0777);
+#else
+    CreateDirectory(nowide::convert((Output + "/") + f->Dirent.Name).c_str(), NULL);
 #endif
     std::string Path = ((Output + "/") + f->Dirent.Name);
     // Make sure that this folder's dirents are read...
