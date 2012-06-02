@@ -17,11 +17,11 @@ namespace Streams
         Drive *device;
         INT64 DiskPosition;
         INT64 UserPosition;
-        void Initialize( File *xf, Drive *device );
+        void Initialize( File *xf, Drive *device, bool ReadFullChain=true );
         INT64 GetPhysicalPosition(int FilePosition);
 	public:
-        xDeviceFileStream(std::string Path, Drive *device);
-        xDeviceFileStream(File* dest, Drive *device );
+        xDeviceFileStream(std::string Path, Drive *device, bool ReadFullChain=true);
+        xDeviceFileStream(File* dest, Drive *device, bool ReadFullChain=true );
 		~xDeviceFileStream(void);
 
         INT64 Position	( void );

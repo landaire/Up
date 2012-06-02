@@ -538,6 +538,7 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
                 f->DateAccessed = Helpers::IntToQDateTime(Entry.DateLastWritten);
                 f->DateCreated  = Helpers::IntToQDateTime(Entry.DateCreated);
                 f->DateModified = Helpers::IntToQDateTime(Entry.DateAccessed);
+                f->FullClusterChainRead = false;
                 Directory->CachedFiles.push_back(f);
             }
         }
@@ -545,7 +546,7 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
     Directory->FatxEntriesRead = true;
 }
 
-void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition)
+void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition, int Count)
 {
     // Clear the chain
     Chain.clear();
@@ -575,7 +576,7 @@ void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume 
             Chain.push_back(Previous);
         }
     }
-    while(Previous != FAT_CLUSTER_AVAILABLE && Previous != End);
+    while(Previous != FAT_CLUSTER_AVAILABLE && Previous != End && Chain.size() != Count);
 
     if (Previous == FAT_CLUSTER_AVAILABLE)
     {

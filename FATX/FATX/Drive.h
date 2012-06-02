@@ -82,7 +82,7 @@ public:
 
     INT64 GetLength( void );
 
-    void    ReadClusterChain        (std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition);
+    void    ReadClusterChain        (std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition, int Count=-1);
 
     Streams::IStream*       DeviceStream;
     static std::vector<Drive *>  GetFATXDrives( bool HardDisks );

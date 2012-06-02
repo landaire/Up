@@ -3,22 +3,22 @@
 
 namespace Streams
 {
-xDeviceFileStream::xDeviceFileStream(std::string Path, Drive *device)
+xDeviceFileStream::xDeviceFileStream(std::string Path, Drive *device, bool ReadFullChain)
 {
     File *dest = device->FileFromPath(Path);
-    Initialize(dest, device);
+    Initialize(dest, device, ReadFullChain);
 }
 
-xDeviceFileStream::xDeviceFileStream(File *dest, Drive *device)
+xDeviceFileStream::xDeviceFileStream(File *dest, Drive *device, bool ReadFullChain)
 {
-    Initialize(dest, device);
+    Initialize(dest, device, ReadFullChain);
 }
 
 xDeviceFileStream::~xDeviceFileStream(void)
 {
 }
 
-void xDeviceFileStream::Initialize(File *xf, Drive *device)
+void xDeviceFileStream::Initialize(File *xf, Drive *device, bool ReadFullChain)
 {
     IsClosed = false;
     _Endian = Big;
@@ -26,7 +26,7 @@ void xDeviceFileStream::Initialize(File *xf, Drive *device)
     this->device = device;
     UserPosition = 0;
     IsClosed = false;
-    if (!xf->ClusterChain.size())
+    if (!xf->ClusterChain.size() || (!xf->FullClusterChainRead & ReadFullChain))
     {
         device->ReadClusterChain(xf->ClusterChain, xf->Dirent, *xf->Volume);
     }

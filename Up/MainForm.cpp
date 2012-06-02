@@ -184,8 +184,17 @@ QTreeWidgetItem *MainForm::AddFile(QTreeWidgetItem* Item, File *f, Drive *device
     fItem->setText(2, QString::fromAscii("File"));
     fItem->setText(3, QString::fromLocal8Bit(Helpers::ConvertToFriendlySize(f->Dirent.FileSize).c_str()));
 
+    // If the file's clusters haven't been read yet...
+    if (!f->FullClusterChainRead && !f->ClusterChain.size())
+    {
+        // Load only the first couple of clusters for the file so that we get a faster load time
+        int Clusters = 0xA000 / f->Volume->ClusterSize;
+        if (!Clusters)
+            Clusters++;
+        device->ReadClusterChain(f->ClusterChain, f->Dirent, *f->Volume, Clusters);
+    }
     // Determine if the file is a valid STFS package
-    Streams::xDeviceFileStream *fs = new Streams::xDeviceFileStream(f->FullPath, device);
+    Streams::xDeviceFileStream *fs = new Streams::xDeviceFileStream(f->FullPath, device, false);
     STFSPackage pack(fs);
     if (pack.IsStfsPackage())
     {

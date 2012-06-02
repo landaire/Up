@@ -223,6 +223,7 @@ struct File
     QDateTime           DateCreated;
     QDateTime           DateModified;
     QDateTime           DateAccessed;
+    bool                FullClusterChainRead;
 };
 
 typedef struct _DEV_PARTITION
