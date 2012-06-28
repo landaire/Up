@@ -38,12 +38,9 @@ Thumbs.db
 *.pro
 *.pro.user
 *.autosave
-Up-OSXDebug/
+Up-OSX
+FATX-OSX
 
-FATX-OSXDebug/
+Up.icns
 
-FATX-OSXRelease/
-
-Up-OSXDebug/
-
-Up-OSXRelease/
+Up/Up.pro.user.2.5pre1

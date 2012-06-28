@@ -35,8 +35,9 @@ private:
     int FilesTotal;
     int FilesCompleted;
     QFuture<void> WorkerThread;
+
 public slots:
-    void OnFileProgressChanged(const Progress& p);
+    void OnFileProgressChanged(const Progress &p);
 };
 
 #endif // PROGRESSDIALOG_H

@@ -133,7 +133,7 @@ void ProgressDialog::OnFileProgressChanged(const Progress& p)
     }
 
     // Set the title of the total groupbox to reflect the current file out of x
-    ui->groupBoxTotal->setTitle(QString("Completed %1 file(s) out of %2").arg(FilesCompleted + 1).arg(FilesTotal));
+    ui->groupBoxTotal->setTitle(QString("Completed %1 file(s) out of %2").arg(FilesCompleted).arg(FilesTotal));
 
     string Title = Helpers::QStringToStdString(ui->groupBoxCurrent->title());
     // If we've just moved on to a new file

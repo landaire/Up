@@ -6,13 +6,13 @@
 #include <QString>
 #include <../QtGui/QImage>
 
-class STFSPackage
+class StfsPackage
 {
 private:
     Streams::IStream *Stream;
 public:
-    STFSPackage( Streams::IStream *Stream );
-    ~STFSPackage( void );
+    StfsPackage( Streams::IStream *Stream );
+    ~StfsPackage( void );
     bool IsStfsPackage( void );
     DWORD Magic( void );
     DWORD ContentType( void );

@@ -195,7 +195,7 @@ QTreeWidgetItem *MainForm::AddFile(QTreeWidgetItem* Item, File *f, Drive *device
     }
     // Determine if the file is a valid STFS package
     Streams::xDeviceFileStream *fs = new Streams::xDeviceFileStream(f->FullPath, device, false);
-    STFSPackage pack(fs);
+    StfsPackage pack(fs);
     if (pack.IsStfsPackage())
     {
         fItem->setText(2, pack.ContentType_s());
@@ -345,7 +345,7 @@ void MainForm::SetTitleIdName(QTreeWidgetItem *Item)
                         {
                             File *f = id->CachedFiles.at(j);
                             Streams::xDeviceFileStream *fs = new Streams::xDeviceFileStream(f, f->Volume->Disk);
-                            STFSPackage pack(fs);
+                            StfsPackage pack(fs);
                             if (pack.IsStfsPackage())
                             {
                                 QString game = pack.TitleName();

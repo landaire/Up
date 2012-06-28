@@ -161,6 +161,7 @@ struct Progress
     bool IsStfsPackage;
     QString PackageName;
     bool Done;
+    volatile bool Cancel;
 };
 
 Q_DECLARE_METATYPE(Progress)
