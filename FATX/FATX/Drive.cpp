@@ -109,7 +109,7 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     // Get a stream to the output file
     Streams::xFileStream *output = new Streams::xFileStream(path, Streams::Create);
     UINT64 size = xf->Length();
-    BYTE Buffer[0x4000 * 4] = {0};
+    BYTE Buffer[0x1400000] = {0};
 
     Progress p;
     // Set up our progress
@@ -123,7 +123,7 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     p.FileName = std::string(dest->Dirent.Name);
 
     // Get the package's STFS information
-    STFSPackage pack(xf);
+    StfsPackage pack(xf);
     p.IsStfsPackage = pack.IsStfsPackage();
     if (p.IsStfsPackage)
     {
@@ -142,8 +142,8 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     while (size > dest->Volume->SectorsPerCluster * 0x200)
     {
         INT64 read = 0;
-        if (size >= 0x4000 * 4)
-            read += xf->Read(Buffer, 0x4000 * 4);
+        if (size >= 0x1400000)
+            read += xf->Read(Buffer, 0x1400000);
         else
             read += xf->Read(Buffer, dest->Volume->SectorsPerCluster * 0x200);
 

@@ -1,18 +1,18 @@
-#include "stfspackage.h"
+#include "StfsPackage.h"
 using namespace std;
 using namespace Streams;
 
-STFSPackage::STFSPackage( Streams::IStream *Stream )
+StfsPackage::StfsPackage( Streams::IStream *Stream )
 {
     this->Stream = Stream;
 }
 
-STFSPackage::~STFSPackage( void )
+StfsPackage::~StfsPackage( void )
 {
 
 }
 
-bool STFSPackage::IsStfsPackage( void )
+bool StfsPackage::IsStfsPackage( void )
 {
     if (Stream->Length() < 0xA000)
         return false;
@@ -28,37 +28,37 @@ bool STFSPackage::IsStfsPackage( void )
     }
 }
 
-DWORD STFSPackage::Magic( void )
+DWORD StfsPackage::Magic( void )
 {
     Stream->SetPosition(0x0);
     return Stream->ReadUInt32();
 }
 
-DWORD STFSPackage::ContentType( void )
+DWORD StfsPackage::ContentType( void )
 {
     Stream->SetPosition(0x344);
     return Stream->ReadUInt32();
 }
 
-DWORD STFSPackage::TitleId( void )
+DWORD StfsPackage::TitleId( void )
 {
     Stream->SetPosition(0x360);
     return Stream->ReadUInt32();
 }
 
-UINT64 STFSPackage::ConsoleId( void )
+UINT64 StfsPackage::ConsoleId( void )
 {
     Stream->SetPosition(0x369);
     return Stream->ReadUInt64() & 0xFFFFFF0000000000;
 }
 
-UINT64 STFSPackage::ProfileId( void )
+UINT64 StfsPackage::ProfileId( void )
 {
     Stream->SetPosition(0x371);
     return Stream->ReadUInt64();
 }
 
-QString STFSPackage::DisplayName( int Locale )
+QString StfsPackage::DisplayName( int Locale )
 {
     Stream->SetPosition(0x411 + (0x80 * Locale));
     BYTE dn[0x80] = {0};
@@ -68,7 +68,7 @@ QString STFSPackage::DisplayName( int Locale )
     return QString::fromUtf16((const ushort*)&dn);
 }
 
-QString STFSPackage::Description( int Locale )
+QString StfsPackage::Description( int Locale )
 {
     Stream->SetPosition(0xD11 + (0x80 * Locale));
     BYTE dd[0x80] = {0};
@@ -78,7 +78,7 @@ QString STFSPackage::Description( int Locale )
     return QString::fromUtf16((const ushort*)&dd);
 }
 
-QString STFSPackage::TitleName( int Locale )
+QString StfsPackage::TitleName( int Locale )
 {
     Stream->SetPosition(0x1691 + (0x80 * Locale));
     BYTE dd[0x80] = {0};
@@ -88,7 +88,7 @@ QString STFSPackage::TitleName( int Locale )
     return QString::fromUtf16((const ushort*)&dd);
 }
 
-QImage STFSPackage::ThumbnailImage( void )
+QImage StfsPackage::ThumbnailImage( void )
 {
     Stream->SetPosition(0x1712);
     DWORD Size = Stream->ReadUInt32();
@@ -98,7 +98,7 @@ QImage STFSPackage::ThumbnailImage( void )
     return QImage::fromData(QByteArray::fromRawData((const char*)&Image, Size));
 }
 
-QImage STFSPackage::TitleImage( void )
+QImage StfsPackage::TitleImage( void )
 {
     Stream->SetPosition(0x1716);
     DWORD Size = Stream->ReadUInt32();
@@ -108,7 +108,7 @@ QImage STFSPackage::TitleImage( void )
     return QImage::fromData(QByteArray::fromRawData((const char*)&Image, Size));
 }
 
-QString STFSPackage::ContentType_s( void )
+QString StfsPackage::ContentType_s( void )
 {
     DWORD ContentType = this->ContentType();
     switch (ContentType)
