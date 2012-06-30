@@ -89,12 +89,10 @@ void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::st
             // See if this is a file...
             try
             {
-                std::string path(Paths.at(i));
-                File *f = d->FileFromPath(path);
                 // Succeeded, write the file to the destined folder
-                d->CopyFileToLocalDisk(f, OutPath);
+                d->CopyFileToLocalDisk(Paths[i], OutPath);
             }
-            catch (...)
+            catch (xException &e)
             {
                 // Get the folder
                 Folder *folder = d->FolderFromPath(Paths.at(i));
