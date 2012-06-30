@@ -20,7 +20,7 @@ namespace Streams
         void Initialize( File *xf, Drive *device, bool ReadFullChain=true );
         INT64 GetPhysicalPosition(int FilePosition);
 	public:
-        xDeviceFileStream(std::string Path, Drive *device, bool ReadFullChain=true);
+        xDeviceFileStream(const std::string &Path, Drive *device, bool ReadFullChain=true);
         xDeviceFileStream(File* dest, Drive *device, bool ReadFullChain=true );
 		~xDeviceFileStream(void);
 

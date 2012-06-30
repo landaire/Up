@@ -95,14 +95,13 @@ public:
     DWORD                   GetFolderCount      ( Folder *f );
     DWORD                   GetTotalFolderCount ( Folder *f );
     void                    ReadDirectoryEntries(Folder* Directory);
-    Folder                  *FolderFromPath     ( std::string Path );
-    File                    *FileFromPath       ( std::string Path );
-    void                    CopyFileToLocalDisk ( File *dest, std::string Output);
-    void                    CopyFileToLocalDisk ( std::string Path, std::string Output);
-    // do not know why this declaration is here.  leaving it here for whatever reason
-    // void                    CopyFileToLocalDisk ( Folder *dest, std::string Output );
-    void                    CopyFolderToLocalDisk( Folder *f, std::string Output );
-    void                    CopyFolderToLocalDisk( std::string Path, std::string Output);
+    Folder*                 FolderFromPath     ( std::string Path );
+    File*                   FileFromPath       ( std::string Path );
+    void                    CopyFileToLocalDisk ( File *dest, const std::string &Output);
+    void                    CopyFileToLocalDisk ( const std::string &Path, const std::string &Output);
+    void                    CopyFolderToLocalDisk( Folder *f, const std::string &Output );
+    void                    CopyFolderToLocalDisk( const std::string &Path, const std::string &Output);
+    void                    CreateDirent        ( const xDirent& d );
 
     std::wstring            FriendlyName;
     std::string             FriendlySize;

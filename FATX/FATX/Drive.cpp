@@ -96,12 +96,38 @@ Drive::~Drive(void)
 
 }
 
-void Drive::CopyFileToLocalDisk(File *dest, string Output)
+void Drive::CreateDirent(const xDirent &d)
+{
+    // Get the stream to the disk
+    Streams::IStream *ds = this->DeviceStream;
+    // Go to the offset given by the dirent
+    ds->SetPosition(d.Offset);
+    // Write out the attributes
+    ds->WriteByte(d.Attributes);
+    // Write out the filename size
+    ds->WriteByte(d.NameSize);
+    // Write out the filename
+    ds->Write((BYTE*)(&d.Name), d.NameSize);
+    // Write out 0xFF if the size isn't 0x2A.  This helps when people want
+    // to undelete files, because we just go until either 0x2A or 0xFF
+    if (d.NameSize != 0x2A)
+        ds->WriteByte(0xFF);
+    // Go to where strings usually end (0x2C)
+    ds->SetPosition(0x2C);
+    // Write out the cluster start
+    ds->WriteInt32(d.ClusterStart);
+    // Write out the dates
+    ds->WriteInt32(d.DateCreated.AsDWORD);
+    ds->WriteInt32(d.DateLastWritten.AsDWORD);
+    ds->WriteInt32(d.DateAccessed.AsDWORD);
+}
+
+void Drive::CopyFileToLocalDisk(File *dest, const string &Output)
 {
     // Get the stream to the file
     Streams::xDeviceFileStream *xf = new Streams::xDeviceFileStream(dest, this);
 #ifdef _WIN32
-    TCHAR path[MAX_PATH + 1] = {0};
+    TCHAR path[MAX_PATH + 1];
     mbstowcs(path, Output.c_str(), Output.size());
 #else
     const char* path = Output.c_str();
@@ -109,7 +135,8 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     // Get a stream to the output file
     Streams::xFileStream *output = new Streams::xFileStream(path, Streams::Create);
     UINT64 size = xf->Length();
-    BYTE Buffer[0x1400000] = {0};
+    BYTE *Buffer = new BYTE[0x10000];
+    memset(Buffer, 0, 0x10000);
 
     Progress p;
     // Set up our progress
@@ -142,8 +169,8 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     while (size > dest->Volume->SectorsPerCluster * 0x200)
     {
         INT64 read = 0;
-        if (size >= 0x1400000)
-            read += xf->Read(Buffer, 0x1400000);
+        if (size >= 0x10000)
+            read += xf->Read(Buffer, 0x10000);
         else
             read += xf->Read(Buffer, dest->Volume->SectorsPerCluster * 0x200);
 
@@ -173,14 +200,15 @@ void Drive::CopyFileToLocalDisk(File *dest, string Output)
     output->Close();
     delete xf;
     delete output;
+    delete Buffer;
 }
 
-void Drive::CopyFileToLocalDisk(string Path, string Output)
+void Drive::CopyFileToLocalDisk(const string &Path, const string &Output)
 {
     CopyFileToLocalDisk(FileFromPath(Path), Output);
 }
 
-void Drive::CopyFolderToLocalDisk(Folder *f, string Output)
+void Drive::CopyFolderToLocalDisk(Folder *f, const std::string &Output)
 {
     // Make the directory...
 #ifndef _WIN32
@@ -190,17 +218,27 @@ void Drive::CopyFolderToLocalDisk(Folder *f, string Output)
     CreateDirectory(nowide::convert((Output + "/") + f->Dirent.Name).c_str(), NULL);
 #endif
     std::string Path = ((Output + "/") + f->Dirent.Name);
+    // Cleanup the path string
+    {
+        size_t pos = 0;
+#ifdef _WIN32
+        while((pos = Path.find("\\/", pos)) != std::string::npos)
+#else
+        while((pos = Path.find("//", pos)) != std::string::npos)
+#endif
+        {
+#ifdef _WIN32
+            Path.replace(pos, 2, "\\");
+#else
+            Path.replace(pos, 2, "/");
+#endif
+            pos += 1;
+        }
+    }
     // Make sure that this folder's dirents are read...
     if (!f->FatxEntriesRead)
         // Read the dirents
         ReadDirectoryEntries(f);
-    // Extract all the files from this dir
-    // FUCK MAN ARE YOU KIDDING ME?  I CAN'T LIKE... USE C++11 RANGE-BASED LOOPS?!  FUCK MAN
-    for (int i = 0; i < f->CachedFiles.size(); i++)
-    {
-        File *file = f->CachedFiles[i];
-        CopyFileToLocalDisk(file, (Path + "/") + file->Dirent.Name);
-    }
 
     // For each folder, do an extract thingy
     for (int i = 0; i < f->CachedFolders.size(); i++)
@@ -208,9 +246,17 @@ void Drive::CopyFolderToLocalDisk(Folder *f, string Output)
         Folder *folder = f->CachedFolders[i];
         CopyFolderToLocalDisk(folder, Path);
     }
+
+    // Extract all the files from this dir
+    // FUCK MAN ARE YOU KIDDING ME?  I CAN'T LIKE... USE C++11 RANGE-BASED LOOPS?!  FUCK MAN
+    for (int i = 0; i < f->CachedFiles.size(); i++)
+    {
+        File *file = f->CachedFiles[i];
+        CopyFileToLocalDisk(file, (Path + "/") + file->Dirent.Name);
+    }
 }
 
-void Drive::CopyFolderToLocalDisk(string Path, string Output)
+void Drive::CopyFolderToLocalDisk(const std::string &Path, const std::string &Output)
 {
     // Get the folder
     Folder *f = FolderFromPath(Path);
@@ -312,7 +358,7 @@ QString Drive::GetDiskName( void )
     return QString::fromUtf16((const ushort*)&charArray);
 }
 
-Folder *Drive::FolderFromPath(string Path)
+Folder *Drive::FolderFromPath(std::string Path)
 {
     char Friendly[0x50] = {0};
     wcstombs(Friendly, FriendlyName.c_str(), FriendlyName.size());
@@ -376,7 +422,7 @@ Folder *Drive::FolderFromPath(string Path)
     throw xException("Folder not found");
 }
 
-File *Drive::FileFromPath(string Path)
+File *Drive::FileFromPath(std::string Path)
 {
     char Friendly[0x50] = {0};
     wcstombs(Friendly, FriendlyName.c_str(), FriendlyName.size());

@@ -3,7 +3,7 @@
 
 namespace Streams
 {
-xDeviceFileStream::xDeviceFileStream(std::string Path, Drive *device, bool ReadFullChain)
+xDeviceFileStream::xDeviceFileStream(const std::string& Path, Drive *device, bool ReadFullChain)
 {
     File *dest = device->FileFromPath(Path);
     Initialize(dest, device, ReadFullChain);
