@@ -770,27 +770,27 @@ void Drive::SetValidPartitions( void )
         {
             xVolume* SysExt        = new xVolume();
             xVolume* SysAux        = new xVolume();
-            xVolume* Compatibility = new xVolume();
+            xVolume* SystemPartition = new xVolume();
             xVolume* Data          = new xVolume();
 
             SysExt->Offset = HddOffsets::SystemExtended;
             SysAux->Offset = HddOffsets::SystemAux;
-            Compatibility->Offset = HddOffsets::Compatibility;
+            Compatibility->Offset = HddOffsets::SystemPartition;
             Data->Offset = HddOffsets::Data;
 
             SysExt->Size = HddSizes::SystemExtended;
             SysAux->Size = HddSizes::SystemAux;
-            Compatibility->Size = HddSizes::Compatibility;
+            Compatibility->Size = HddSizes::SystemPartition;
             Data->Size = DeviceStream->Length() - Data->Offset;
 
             SysExt->Name = "System Extended";
             SysAux->Name = "System Auxiliary";
-            Compatibility->Name = "Compatibility";
+            Compatibility->Name = "System Partition";
             Data->Name = "Data";
 
             DiskVolumes.push_back(SysExt);
             DiskVolumes.push_back(SysAux);
-            DiskVolumes.push_back(Compatibility);
+            DiskVolumes.push_back(SystemPartition);
             DiskVolumes.push_back(Data);
         }
 
