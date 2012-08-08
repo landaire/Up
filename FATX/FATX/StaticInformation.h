@@ -16,6 +16,8 @@ namespace Streams
 {
 class xDeviceFileStream;
 }
+#define FAT32 4
+#define FAT16 2
 
 #define FAT_CLUSTER_AVAILABLE           (UINT32)0x00000000
 #define FAT_CLUSTER_RESERVED            (UINT32)0xfffffff0
@@ -230,7 +232,7 @@ struct File
 typedef struct _DEV_PARTITION
 {
     std::string Name;
-	unsigned int Sector;
+    DWORD Sector;
 	INT64 Size;
 } DevPartition;
 
@@ -238,18 +240,19 @@ struct xVolume
 {
 
     std::string		 Name;
-	unsigned int Magic;					// Partition magic
-    unsigned int SerialNumber;			// Partition serial number
-	unsigned int SectorsPerCluster;		// Number of sectors per cluster
-	unsigned int RootDirectoryCluster;	// The cluster in which the root directory is located
+    DWORD Magic;					// Partition magic
+    DWORD SerialNumber;			// Partition serial number
+    DWORD SectorsPerCluster;		// Number of sectors per cluster
+    DWORD RootDirectoryCluster;	// The cluster in which the root directory is located
 	UINT64		 DataStart;
-	unsigned int Clusters;				// Total number of clusters in the partition
+    DWORD Clusters;				// Total number of clusters in the partition
 	BYTE EntrySize;						// Size of a chainmap entry
 	UINT64		 Offset;				// Offset of the partition
 	UINT64		 Size;					// Size of the partition
 	UINT64		 AllocationTableSize;
-	UINT64		 ClusterSize;
-    unsigned int FatEntryShift;
+    UINT64		 ClusterSize;
+    DWORD FatEntryShift;
+    UINT64          FreeClusterRangeStart;
     Folder       *Root;
     Drive        *Disk;
     xVolume()
