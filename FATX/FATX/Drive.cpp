@@ -775,17 +775,17 @@ void Drive::SetValidPartitions( void )
 
             SysExt->Offset = HddOffsets::SystemExtended;
             SysAux->Offset = HddOffsets::SystemAux;
-            Compatibility->Offset = HddOffsets::SystemPartition;
+            SystemPartition->Offset = HddOffsets::SystemPartition;
             Data->Offset = HddOffsets::Data;
 
             SysExt->Size = HddSizes::SystemExtended;
             SysAux->Size = HddSizes::SystemAux;
-            Compatibility->Size = HddSizes::SystemPartition;
+            SystemPartition->Size = HddSizes::SystemPartition;
             Data->Size = DeviceStream->Length() - Data->Offset;
 
             SysExt->Name = "System Extended";
             SysAux->Name = "System Auxiliary";
-            Compatibility->Name = "System Partition";
+            SystemPartition->Name = "System Partition";
             Data->Name = "Data";
 
             DiskVolumes.push_back(SysExt);
@@ -1252,7 +1252,7 @@ void Drive::FatxProcessBootSector( xVolume* ref )
 
     ref->Clusters = Clusters;
     ref->AllocationTableSize = PartitionSize;
-    ref->EntrySize = (Clusters < FAT_CLUSTER16_RESERVED) ? 2 : 4;
+    ref->EntrySize = (Clusters < FAT_CLUSTER16_RESERVED) ? FAT16 : FAT32;
     ref->DataStart = ref->Offset + 0x1000 + PartitionSize;
 
     ref->Disk = this;
