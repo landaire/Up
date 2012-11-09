@@ -130,14 +130,21 @@ INT64 xDeviceStream::Length( void )
                 (INT64)Geometry.SectorsPerTrack		*
                 (INT64)Geometry.BytesPerSector;
 #else
-        unsigned int NumberOfSectors = 0;
+        unsigned int* NumberOfSectors = new unsigned int;
+        *NumberOfSectors = 0;
+        int device = Device;
         // Queue number of sectors
-        ioctl(Device, DKIOCGETBLOCKCOUNT, &NumberOfSectors);
+        ioctl(device, DKIOCGETBLOCKCOUNT, NumberOfSectors);
 
-        unsigned int SectorSize = 0;
-        ioctl(Device, DKIOCGETBLOCKSIZE, &SectorSize);
+        unsigned int* SectorSize = new unsigned int;
+        *SectorSize = 0;
+        ioctl(device, DKIOCGETBLOCKSIZE, SectorSize);
 
-        _Length = (UINT64)NumberOfSectors * (UINT64)SectorSize;
+        qDebug("#S: 0x%X, SS: 0x%X", *NumberOfSectors, *SectorSize);
+
+        _Length = (UINT64)*NumberOfSectors * (UINT64)*SectorSize;
+        delete NumberOfSectors;
+        delete SectorSize;
 #endif
 
     }
@@ -266,18 +273,19 @@ UINT16 xDeviceStream::ReadUInt16( void )
 
 UINT32 xDeviceStream::ReadUInt32( void )
 {
+    INT64 pos = Position(), len = Length();
     if (IsClosed)
     {
         throw xException("Stream is closed. At: xDeviceStream::ReadUInt32");
     }
-    else if (Position() > Length() - sizeof(UINT32))
+    else if (pos > len - sizeof(UINT32))
     {
         throw xException("End of file reached.  At: xDeviceStream::ReadUInt32");
     }
 
     int size = sizeof(UINT32);
 
-    BYTE temp[4];
+    BYTE temp[4] = {0};
     Read((BYTE*)&temp, size);
 
     UINT32 Return = 0;
