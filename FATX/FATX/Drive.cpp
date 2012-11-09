@@ -513,6 +513,28 @@ File *Drive::FileFromPath(std::string Path)
     throw xException("Folder not found");
 }
 
+
+// TODO: FINISH THIS FUNCTION AND MAKE SHIT WORK
+void Drive::FindFreeClusters(DWORD StartingCluster, DWORD ClusterCount, xVolume* Partition, std::vector<DWORD>& OutChain)
+{
+    // Set the stream position to the free cluster range start
+    Streams::IStream* Stream = DeviceStream;
+    if (Partition->FreeClusterRangeStart != 0xFFFFFFFF)
+        Stream->SetPosition(Partition->FreeClusterRangeStart);
+    else
+    {
+        // Go to the FAT start
+        Stream->SetPosition(Partition->Offset + 0x1000);
+        // Start reading data to see when we hit a free cluster
+        if (Partition->EntrySize == FAT32)
+            // Keep looping until we hit a free cluster
+            while (Stream->ReadUInt32() != FAT_CLUSTER_AVAILABLE){}
+        else
+            // Keep looping until we hit a free cluster
+            while(Stream->ReadUInt16() != FAT_CLUSTER16_AVAILABLE){}
+    }
+}
+
 void Drive::ReadDirectoryEntries(Folder* Directory)
 {
     // If the cluster chain size is 0, we haven't read the cluster chain yet.  We better do that
@@ -927,7 +949,28 @@ vector<Drive *> Drive::GetFATXDrives( bool HardDisks )
 
 INT64 Drive::GetLength( void )
 {
+    if (Type == DeviceDisk && !IsDevKitDrive)
+        return ((INT64)Drive::GetSectorsFromSecuritySector()) * 0x200LL;
     return DeviceStream->Length();
+}
+
+DWORD Drive::GetSectorsFromSecuritySector( void )
+{
+    static DWORD s_sectors = 0;
+    qDebug("s_sectors: 0x%LX", s_sectors);
+    qDebug("s_sectors * 0x200: 0x%LX", (INT64)s_sectors * 0x200LL);
+    if (s_sectors != 0)
+        return s_sectors;
+
+    // Set the stream position to the location of the security sector + 0x58 for the number of sectors
+    DeviceStream->SetPosition(HddOffsets::SecuritySector + 0x58);
+    // The integer here is little-endian, so switch to little-endian on our IO
+    DeviceStream->SetEndianness(Streams::Little);
+    s_sectors = DeviceStream->ReadUInt32();
+    DeviceStream->SetEndianness(Streams::Big);
+    qDebug("s_sectors: 0x%LX", s_sectors);
+    qDebug("s_sectors * 0x200: 0x%LX", (INT64)s_sectors * 0x200LL);
+    return s_sectors;
 }
 
 vector<Drive *> Drive::GetLogicalPartitions( void )
@@ -1197,10 +1240,17 @@ void Drive::FatxProcessBootSector( xVolume* ref )
     DeviceStream->SetPosition(ref->Offset + 0x8);
     ref->SectorsPerCluster = DeviceStream->ReadUInt32();
 
-    if (ref->SectorsPerCluster != 0x2  && ref->SectorsPerCluster != 0x4  && ref->SectorsPerCluster != 0x8  &&
-            ref->SectorsPerCluster != 0x10 && ref->SectorsPerCluster != 0x20 && ref->SectorsPerCluster != 0x40 &&
-            ref->SectorsPerCluster != 0x80)
+    switch(ref->SectorsPerCluster)
     {
+    case 0x2:
+    case 0x4:
+    case 0x8:
+    case 0x10:
+    case 0x20:
+    case 0x40:
+    case 0x80:
+        break;
+    default:
         qDebug("Exception thrown at FatxProcessBotSector: Invalid sectors per cluster");
         throw xException("FATX: found invalid sectors per cluster");
     }

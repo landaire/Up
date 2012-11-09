@@ -95,13 +95,15 @@ public:
     DWORD                   GetFolderCount      ( Folder *f );
     DWORD                   GetTotalFolderCount ( Folder *f );
     void                    ReadDirectoryEntries(Folder* Directory);
-    Folder*                 FolderFromPath     ( std::string Path );
-    File*                   FileFromPath       ( std::string Path );
+    Folder*                 FolderFromPath      ( std::string Path );
+    File*                   FileFromPath        ( std::string Path );
     void                    CopyFileToLocalDisk ( File *dest, const std::string &Output);
     void                    CopyFileToLocalDisk ( const std::string &Path, const std::string &Output);
     void                    CopyFolderToLocalDisk( Folder *f, const std::string &Output );
     void                    CopyFolderToLocalDisk( const std::string &Path, const std::string &Output);
     void                    CreateDirent        ( const xDirent& d );
+    void                    FindFreeClusters(DWORD StartingCluster, DWORD ClusterCount, xVolume* Partition, std::vector<DWORD>& OutChain);
+    DWORD                   GetSectorsFromSecuritySector( void );
 
     std::wstring            FriendlyName;
     std::string             FriendlySize;
