@@ -1,5 +1,6 @@
 #include "MainForm.h"
 #include <algorithm>
+#include "pcutils.h"
 
 using namespace std;
 MainForm::MainForm(QWidget *parent, Qt::WFlags flags)
@@ -439,7 +440,7 @@ void MainForm::OnLoadDevicesClick( void )
 {
     vector<Drive *> Drives;
 
-    Drives = Drive::GetFATXDrives(true);
+    Drives = PCUtils::GetFATXDrives(true);
 
     for (int i = 0; i < (int)Drives.size(); i++)
     {
