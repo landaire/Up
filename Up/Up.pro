@@ -9,7 +9,6 @@ QT       += core gui
 TARGET = Up
 TEMPLATE = app
 DEFINES += QT_NO_DEBUG_OUTPUT
-QMAKE_CXXFLAGS_RELEASE += -Zi -g
 
 SOURCES += main.cpp\
         MainForm.cpp \
@@ -28,6 +27,11 @@ FORMS    += MainForm.ui \
 #QMAKE_CFLAGS_RELEASE += -Zi
 #QMAKE_CXXFLAGS_RELEASE += -Zi -g
 #QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF}
+
+macx{
+    QMAKE_CC = clang
+    QMAKE_CXX = clang++
+}
 
 INCLUDEPATH += $$PWD/../FATX/FATX
 
