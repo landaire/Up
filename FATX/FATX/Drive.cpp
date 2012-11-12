@@ -723,12 +723,12 @@ void Drive::SetValidPartitions( void )
             Content.Size = DeviceStream->ReadUInt32();
 
             DeviceStream->SetPosition(0x10);
-            Dash.Name = "Xbox 360 Dashboard";
+            Dash.Name = "System Partition";
             Dash.Sector = DeviceStream->ReadUInt32();
             Dash.Size = DeviceStream->ReadUInt32();
 
-            DevPartitions.push_back(Content);
             DevPartitions.push_back(Dash);
+            DevPartitions.push_back(Content);
 
             for (int i = 0; i < (int)DevPartitions.size(); i++)
             {
