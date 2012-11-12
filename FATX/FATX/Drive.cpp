@@ -126,14 +126,13 @@ void Drive::CopyFileToLocalDisk(File *dest, const string &Output)
 {
     // Get the stream to the file
     Streams::xDeviceFileStream *xf = new Streams::xDeviceFileStream(dest, this);
-#ifdef _WIN32
-    TCHAR path[MAX_PATH + 1];
-    mbstowcs(path, Output.c_str(), Output.size());
-#else
-    const char* path = Output.c_str();
-#endif
+
     // Get a stream to the output file
-    Streams::xFileStream *output = new Streams::xFileStream(path, Streams::Create);
+#ifdef _WIN32
+    Streams::xFileStream *output = new Streams::xFileStream(nowide::convert(Output).c_str(), Streams::Create);
+#else
+    Streams::xFileStream *output = new Streams::xFileStream(Output.c_str(), Streams::Create);
+#endif
     UINT64 size = xf->Length();
     BYTE *Buffer = new BYTE[0x10000];
     memset(Buffer, 0, 0x10000);
