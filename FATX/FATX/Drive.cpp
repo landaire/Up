@@ -653,6 +653,7 @@ void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume 
 
 void Drive::Close( void )
 {
+    qDebug("Closing disk, destroying volumes");
     if (DeviceStream)
     {
         DeviceStream->Close();
@@ -665,7 +666,6 @@ void Drive::Close( void )
         xVolume *x = ValidVolumes->at(0);
         DestroyFolder(x->Root);
         ValidVolumes->erase(ValidVolumes->begin());
-        qDebug("Closing disk, destroying volumes");
         delete x;
     }
     delete ValidVolumes;
