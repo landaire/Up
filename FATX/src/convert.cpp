@@ -1,5 +1,5 @@
 #define NOWIDE_SOURCE
-#include "../nowide/convert.h"
+#include "nowide/convert.h"
 
 #ifdef NOWIDE_WIN_NATIVE
 
