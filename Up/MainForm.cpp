@@ -9,8 +9,12 @@ MainForm::MainForm(QWidget *parent, Qt::WFlags flags)
     ui.setupUi(this);
     Center();
     DoEvents();
-    ui.fileSystemTree->setColumnWidth(0, 240);
-    ui.fileSystemTree->setColumnWidth(1, 150);
+    // Name
+    ui.fileSystemTree->setColumnWidth(0, 270);
+    // Date
+    ui.fileSystemTree->setColumnWidth(1, 180);
+    // Dirent type
+    ui.fileSystemTree->setColumnWidth(2, 125);
 
     cache = new QSettings("threexortwo", "Up");
 
@@ -22,6 +26,9 @@ MainForm::MainForm(QWidget *parent, Qt::WFlags flags)
     iUsb.addFile(QString::fromUtf8(":/File System Icons/iUsb"), QSize(), QIcon::Normal, QIcon::Off);
     iFolder.addFile(QString::fromUtf8(":/File System Icons/iFolder"), QSize(), QIcon::Normal, QIcon::Off);
     iPartition.addFile(QString::fromUtf8(":/File System Icons/iPartition"), QSize(), QIcon::Normal, QIcon::Off);
+
+    // Remove the path bar, this will be moved to a separate window later
+    delete ui.pathBarLayout;
 }
 
 MainForm::~MainForm()
