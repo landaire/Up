@@ -7,7 +7,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>813</width>
+    <width>900</width>
     <height>420</height>
    </rect>
   </property>
@@ -35,7 +35,7 @@
      <number>0</number>
     </property>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="pathBarLayout">
       <property name="leftMargin">
        <number>6</number>
       </property>
@@ -171,7 +171,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>813</width>
+     <width>900</width>
      <height>22</height>
     </rect>
    </property>
