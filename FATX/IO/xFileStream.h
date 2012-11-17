@@ -15,12 +15,10 @@ namespace Streams
     public:
         xFileStream( char *FilePath, int Mode );
         xFileStream( std::string FilePath, int Mode );
-        xFileStream( wchar_t *FilePath, int Mode );
-        xFileStream( std::wstring FilePath, int Mode );
 
 		~xFileStream(void);
 
-        void Initialize(void *FilePath, int Mode, bool wchar);
+        void Initialize(std::string FilePath, int Mode);
 
         INT64 Position	( void );
         void SetPosition	( INT64 Position );

@@ -9,8 +9,8 @@ public:
 private:
     typedef struct _DISK_DRIVE_INFORMATION
     {
-        TCHAR Path[1024];
-        TCHAR FriendlyName[1024];
+        std::string Path;
+        std::string FriendlyName;
     } DISK_DRIVE_INFORMATION;
 
     static std::vector<Drive*> GetLogicalPartitions( void );

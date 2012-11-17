@@ -1,5 +1,6 @@
 #include "pcutils.h"
 #include <vector>
+#include <sstream>
 #include "IO/xDeviceStream.h"
 #ifdef _WIN32
     #include <windows.h>
@@ -47,20 +48,18 @@ std::vector<Drive *> PCUtils::GetFATXDrives( bool IncludeHardDisks )
             // First, try reading the disk way
             try
             {
-                char path[0x200] = {0};
-                wcstombs(path, ddi.Path, wcslen(ddi.Path));
-                DS = new Streams::xDeviceStream(ddi.Path);
+                DS = new Streams::xDeviceStream(std::string(ddi.Path));
             }
             catch (...)
             {
-                qDebug("Disk %s is bad", Helpers::QStringToStdString(QString::fromWCharArray(ddi.FriendlyName)).c_str());
+                qDebug("Disk %s is bad", ddi.FriendlyName.c_str());
                 DS = nullptr;
                 continue;
             }
 
             if (DS == nullptr || DS->Length() == 0 || DS->Length() < HddOffsets::Data)
             {
-                qDebug("Disk %s is bad", Helpers::QStringToStdString(QString::fromWCharArray(ddi.FriendlyName)).c_str());
+                qDebug("Disk %s is bad", ddi.FriendlyName.c_str());
                 DS = nullptr;
                 // Disk is not of valid length
                 continue;
@@ -77,12 +76,12 @@ std::vector<Drive *> PCUtils::GetFATXDrives( bool IncludeHardDisks )
             // Compare the magic we read to the *actual* FATX magic
             if (Magic == FatxMagic)
             {
-                qDebug("Disk %s is good!", Helpers::QStringToStdString(QString::fromWCharArray(ddi.FriendlyName)).c_str());
+                qDebug("Disk %s is good!", ddi.FriendlyName.c_str());
                 Drive* d = new Drive(ddi.Path, ddi.FriendlyName, false);
                 ReturnVector.push_back(d);
             }
             else
-                qDebug("Disk %s had bad magic (0x%X)", Helpers::QStringToStdString(QString::fromWCharArray(ddi.FriendlyName)).c_str(), Magic);
+                qDebug("Disk %s had bad magic (0x%X)", ddi.FriendlyName.c_str(), Magic);
         }
         if (DS != nullptr)
         {
@@ -157,16 +156,16 @@ void PCUtils::GetPhysicalDisks( std::vector<PCUtils::DISK_DRIVE_INFORMATION>& Ou
             continue;
         }
 
-        _tcscpy(AddToVector.Path, data->DevicePath);
-        qDebug("Disk path: %s", Helpers::QStringToStdString(QString::fromWCharArray(AddToVector.Path)).c_str());
+        AddToVector.Path = nowide::convert(std::wstring(data->DevicePath));
+        qDebug("Disk path: %s", AddToVector.Path.c_str());
 
         // Friendly name (e.g. SanDisk Cruzer USB...)
         SetupDiGetDeviceRegistryProperty (hDevInfo, &DeviceInfoData, SPDRP_FRIENDLYNAME,
                                           &dwPropertyRegDataType, (BYTE*)szDesc,
                                           sizeof(szDesc),   // The size, in bytes
                                           &dwSize);
-        _tcscpy(AddToVector.FriendlyName, (TCHAR*)szDesc);
-        qDebug("Friendly name: %s", Helpers::QStringToStdString(QString::fromWCharArray(AddToVector.FriendlyName)).c_str());
+        AddToVector.FriendlyName = nowide::convert(std::wstring((TCHAR*)szDesc));
+        qDebug("Friendly name: %s", AddToVector.FriendlyName.c_str());
 
         OutVector.push_back(AddToVector);
         delete data;
@@ -186,24 +185,26 @@ if (dir != NULL)
         exp.setCaseSensitivity(Qt::CaseInsensitive);
         if (exp.exactMatch(ent->d_name))
         {
-            DISK_DRIVE_INFORMATION curdir = {0};
+            DISK_DRIVE_INFORMATION curdir;
 
-            char diskPath[0x50] = {0};
-            sprintf(diskPath, "/dev/r%s", ent->d_name);
+            std::ostringstream ss;
+            ss << "/dev/r";
+            ss << ent->d_name;
+            std::string diskPath = ss.str();
 
-            mbstowcs(curdir.Path, diskPath, strlen(diskPath));
+            curdir.Path = diskPath;
 
             int device;
-            if ((device = open(diskPath, O_RDONLY)) > 0)
+            if ((device = open(diskPath.c_str(), O_RDONLY)) > 0)
             {
 #ifdef __linux
                 hd_driveid hd;
                 if (!ioctl(device, HDIO_GET_IDENTITY, &hd))
                 {
-                    swprintf(curdir.FriendlyName, strlen(hd) * 2, L"%hs", hd.model);
+                    curdir.FriendlyName = hd.model;
                 }
 #elif defined __APPLE__
-                mbstowcs(curdir.FriendlyName, ent->d_name, strlen(ent->d_name));
+                curdir.FriendlyName = ent->d_name;
 #endif
                 OutVector.push_back(curdir);
             }
@@ -222,9 +223,9 @@ std::vector<Drive *> PCUtils::GetLogicalPartitions( void )
     std::vector<Drive *> ReturnVector;
 
 #ifdef _WIN32
-    DWORD LettersSize = (26 * 2) + 1;
+    const DWORD LettersSize = (26 * 2) + 1;
 
-    TCHAR Letters[(26 * 2) + 1] = {0}; // 26 for every leter, multiplied by 2 for each null byte, plus 1 for the last null
+    TCHAR Letters[LettersSize] = {0}; // 26 for every leter, multiplied by 2 for each null byte, plus 1 for the last null
 
 if (!GetLogicalDriveStrings(LettersSize, Letters))
 {
@@ -246,16 +247,17 @@ for (int i = 0; i < 26; i+= 4)
                 NULL,
                 NULL,
                 NULL);
-    TCHAR temp[21] = {0};
+    std::ostringstream ss;
+    ss << Letters[i];
+    ss << "Xbox360\\Data0000";
 
-    swprintf(temp, 20, L"%s%s", &Letters[i], L"Xbox360\\Data0000");
     try
     {
-        Streams::xFileStream *tempFile = new Streams::xFileStream(temp, Streams::Open);
+        Streams::xFileStream *tempFile = new Streams::xFileStream(ss.str(), Streams::Open);
         tempFile->Close();
         delete tempFile;
         // Stream opened with no exception, we're good!
-        Drive *d = new Drive(&(Letters[i]), VolumeName, true);
+        Drive *d = new Drive(&((char)Letters[i]), nowide::convert(std::wstring(VolumeName)), true);
         ReturnVector.push_back(d);
     }
     catch(...)
@@ -274,31 +276,31 @@ if (dir != NULL)
     while ((ent = readdir(dir)) != NULL)
     {
         DISK_DRIVE_INFORMATION curdir;
-        // Set the strings in curdir to null
-        memset(curdir.FriendlyName, 0, sizeof(curdir.FriendlyName));
-        memset(curdir.Path, 0, sizeof(curdir.Path));
 
         // Create a temporary buffer to hold our disk name
-        char TempName[0x100] = {0};
-        sprintf(TempName, "/Volumes/%s/", ent->d_name);
-        // Copy that string to the current directory's buffer
-        mbstowcs(curdir.Path, TempName, ent->d_namlen + 0xA);
+        std::stringstream path;
+        path << "/Volumes/";
+        path << ent->d_name;
+        path << "/";
+
+        curdir.Path = path.str();
         try
         {
-            TCHAR Path[0x100] = {0};
-            wcscpy(Path, curdir.Path);
-            wcscpy(&(Path[0]) + wcslen(curdir.Path), L"Xbox360/Data0000");
-            Streams::xFileStream *x = new Streams::xFileStream(Path, Streams::Open);
+            // Reset the stringstream
+            path.str(std::string());
+            path << curdir.Path;
+            path << "Xbox360/Data0000";
+            Streams::xFileStream *x = new Streams::xFileStream(path.str(), Streams::Open);
             // Stream opened good, close it
             x->Close();
             delete x;
-            if (curdir.Path == L"/Volumes/.")
+            if (curdir.Path == "/Volumes/.")
             {
-                swprintf(curdir.FriendlyName, wcslen(L"OS Root"), L"OS Root");
+                curdir.FriendlyName = "OS Root";
             }
             else
             {
-                swprintf(curdir.FriendlyName, wcslen(curdir.Path) - 9, &(curdir.Path[0]) + 9);
+                curdir.FriendlyName = curdir.Path.substr(9);
             }
             Drive *d = new Drive(curdir.Path, curdir.FriendlyName, true);
             ReturnVector.push_back(d);

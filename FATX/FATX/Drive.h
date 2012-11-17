@@ -33,7 +33,7 @@ private:
     void    DestroyFolder           (Folder *Directory);
 
 public:
-    Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb );
+    Drive(std::string path, std::string friendlyName, bool isUsb );
     ~Drive(void);
 
     INT64 GetLength( void );
@@ -60,7 +60,7 @@ public:
     void                    FindFreeClusters(DWORD StartingCluster, DWORD ClusterCount, xVolume* Partition, std::vector<DWORD>& OutChain);
     DWORD                   GetSectorsFromSecuritySector( void );
 
-    std::wstring            FriendlyName;
+    std::string             FriendlyName;
     std::string             FriendlySize;
 
     DeviceType              Type;

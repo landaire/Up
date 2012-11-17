@@ -3,7 +3,7 @@
 
 namespace Streams
 {
-xDeviceStream::xDeviceStream( TCHAR* DevicePath )
+xDeviceStream::xDeviceStream(std::string DevicePath )
 {
     // Set our variables
     _Length = 0;
@@ -22,7 +22,7 @@ xDeviceStream::xDeviceStream( TCHAR* DevicePath )
 #ifdef _WIN32
     // Attempt to get a handle to the device
     DeviceHandle = CreateFile(
-                DevicePath,							// File name (device path)
+                nowide::convert(DevicePath).c_str(),// File name (device path)
                 GENERIC_READ | GENERIC_WRITE,		// Read/write access
                 FILE_SHARE_READ | FILE_SHARE_WRITE,	// Read/write share
                 NULL,								// Not used
@@ -36,13 +36,8 @@ xDeviceStream::xDeviceStream( TCHAR* DevicePath )
     }
 #endif
 #if (defined __APPLE__ || defined __linux)
-    // UNIX/LINUX/APPLE
-    char Path[0x200] = {0};
-
-    // Convert wchar_t string to standard ASCII string
-    wcstombs(Path, DevicePath, wcslen(DevicePath));
     // Open the device
-    Device = open(Path, O_RDWR);
+    Device = open(DevicePath.c_str(), O_RDWR);
     if (Device == -1)
     {
         throw xException("Error opening device");

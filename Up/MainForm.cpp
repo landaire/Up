@@ -132,7 +132,7 @@ Drive *MainForm::GetCurrentItemDrive(QTreeWidgetItem* Item)
     {
         Drive* d = ActiveDrives.at(i);
 
-        if (QString::fromWCharArray(d->FriendlyName.c_str()) == Parent->text(0))
+        if (QString::fromStdString(d->FriendlyName) == Parent->text(0))
             return d;
     }
     qDebug("returned nothing");
@@ -393,7 +393,7 @@ void MainForm::OnTreeItemExpand( QTreeWidgetItem* Item)
         for (int i = 0; i < ActiveDrives.size(); i++)
         {
             QString DeviceName = Helpers::QStringFromStdString(path.substr(0, path.find_first_of('/')));
-            QString FriendlyName = QString::fromWCharArray(((Drive*)ActiveDrives.at(i))->FriendlyName.c_str());
+            QString FriendlyName = QString::fromStdString(((Drive*)ActiveDrives.at(i))->FriendlyName);
             if (DeviceName == FriendlyName)
             {
                 index = i;
@@ -416,7 +416,7 @@ void MainForm::OnTreeItemDoubleClick(QTreeWidgetItem *Item, int)
         for (int i = 0; i < ActiveDrives.size(); i++)
         {
             QString DeviceName = Helpers::QStringFromStdString(path.substr(0, path.find_first_of('/')));
-            QString FriendlyName = QString::fromWCharArray(((Drive*)ActiveDrives.at(i))->FriendlyName.c_str());
+            QString FriendlyName = QString::fromStdString(((Drive*)ActiveDrives.at(i))->FriendlyName);
             if (DeviceName == FriendlyName)
             {
                 index = i;
@@ -449,7 +449,7 @@ void MainForm::OnLoadDevicesClick( void )
         // Do a check to make sure we aren't adding the same device twice
         for (int j = 0; j < (int)ui.fileSystemTree->topLevelItemCount(); j++)
         {
-            if (QString::fromWCharArray(current->FriendlyName.c_str()) == ui.fileSystemTree->topLevelItem(j)->text(0))
+            if (QString::fromStdString(current->FriendlyName) == ui.fileSystemTree->topLevelItem(j)->text(0))
             {
                 // Skip this item
                 Skip = true;
@@ -464,7 +464,7 @@ void MainForm::OnLoadDevicesClick( void )
         }
         ActiveDrives.push_back(current);
         QTreeWidgetItem* item = new QTreeWidgetItem();
-        item->setText(0, QString::fromWCharArray(current->FriendlyName.c_str()));			// Drive name
+        item->setText(0, QString::fromStdString(current->FriendlyName)); // Drive name
         char* Type = 0;
         switch (current->Type)
         {
