@@ -17,7 +17,7 @@ namespace Streams
 		int CurrentStream;
 
 	public:
-        xMultiFileStream( std::vector<std::wstring> InPaths );
+        xMultiFileStream(std::vector<std::string> InPaths );
 		~xMultiFileStream(void);
 
         INT64 Position		( void );

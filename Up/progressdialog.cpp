@@ -51,7 +51,7 @@ void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::st
             // Set d, break when we've found the proper drive.
             // POSSIBLE BUG: we'll go ahead and trust that everything is handled properly in MainForm though
             d = Drives.at(j);
-            if (QString::fromWCharArray(d->FriendlyName.c_str()) == Helpers::QStringFromStdString(Split.at(0)))
+            if (QString::fromStdString(d->FriendlyName) == Helpers::QStringFromStdString(Split.at(0)))
                 break;
         }
 
@@ -137,7 +137,7 @@ void ProgressDialog::OnFileProgressChanged(const Progress& p)
     // If we've just moved on to a new file
     if (Title.substr(Title.find_first_of('/') + 1) != p.FilePath)
     {
-        ui->groupBoxCurrent->setTitle(QString::fromWCharArray((p.Device->FriendlyName + L"/").c_str()) + Helpers::QStringFromStdString(p.FilePath));
+        ui->groupBoxCurrent->setTitle(QString::fromStdString(p.Device->FriendlyName + "/") + Helpers::QStringFromStdString(p.FilePath));
 
         // If the file is an STFS package
         if (p.IsStfsPackage)

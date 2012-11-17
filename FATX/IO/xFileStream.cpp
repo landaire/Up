@@ -2,51 +2,28 @@
 #include "xFileStream.h"
 #include <QDebug>
 #include "../xexception.h"
+#include "../nowide/convert.h"
 
 namespace Streams
 {
 xFileStream::xFileStream(char *FilePath, int Mode)
 {
-    Initialize((void*)FilePath, Mode, false);
+    Initialize(std::string(FilePath), Mode);
 }
-
-xFileStream::xFileStream(wchar_t *FilePath, int Mode)
-{
-    Initialize((void*)FilePath, Mode, true);
-}
-
 
 xFileStream::xFileStream(std::string FilePath, int Mode )
 {
-    Initialize((void*)FilePath.c_str(), Mode, false);
+    Initialize(FilePath, Mode);
 }
 
-xFileStream::xFileStream(std::wstring FilePath, int Mode)
-{
-    Initialize((void*)FilePath.c_str(), Mode, true);
-}
-
-void xFileStream::Initialize(void *FilePath, int Mode, bool wchar)
+void xFileStream::Initialize(std::string FilePath, int Mode)
 {
     using namespace std;
     _Length = 0;
     _Endian = Big;
     IsClosed = false;
     int iosMode = std::ios::binary;
-#ifndef _WIN32
-    char CharPath[0x200] = {0};
-    if (wchar)
-    {
-        wcstombs(CharPath, (wchar_t*)FilePath, wcslen((wchar_t*)FilePath));
-    }
-    else
-    {
-        strcpy(CharPath, (char*)FilePath);
-    }
-#endif
-#ifdef _WIN32
-    TCHAR *CharPath = (TCHAR*)FilePath;
-#endif
+    const char* CharPath = FilePath.c_str();
     switch (Mode)
     {
     // Specifies that a new file should be created.  If it exists, it is overwritten

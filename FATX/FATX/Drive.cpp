@@ -5,18 +5,20 @@
 #include "stfspackage.h"
 #include <sys/stat.h>
 #include <QTime>
+#include "../xexception.h"
+#include <sstream>
 
 using namespace std;
 
-Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
+Drive::Drive( std::string path, std::string friendlyName, bool isUsb ) : QObject()
 {
     ValidVolumes = 0;
     IsDevKitDrive = false;
-    this->FriendlyName = L"";
-    if (!IsUsb)
+    this->FriendlyName = "";
+    if (!isUsb)
     {
         qDebug("This is a disk.  It is nice.");
-        DeviceStream = new Streams::xDeviceStream(Path);
+        DeviceStream = new Streams::xDeviceStream(path);
         Type = DeviceDisk;
     }
     else
@@ -29,40 +31,38 @@ Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
 #endif
         qr.setPatternSyntax(QRegExp::Wildcard);
         qr.setCaseSensitivity(Qt::CaseInsensitive);
-        if (qr.exactMatch(QString::fromWCharArray(Path)))
+        if (qr.exactMatch(QString::fromStdString(path)))
         {
             // Find all valid Xbox 360 files
-            vector<wstring> Paths;
-            TCHAR TempPath[0x100] = {0};
-            int PathLength = wcslen(Path);
-            PathLength += 19;
+            vector<string> paths;
+            std::string filePath;
             for (int i = 0; i < 1000; i++)
             {
-                memset(TempPath, 0, 0x100);
-                TCHAR* FilePath = 0;
 
                 if (i < 10)
                 {
-                    FilePath = L"Xbox360/Data000";
+                    filePath = "Xbox360/Data000";
                 }
                 else if (i < 100)
                 {
-                    FilePath = L"Xbox360/Data00";
+                    filePath = "Xbox360/Data00";
                 }
                 else if (i < 1000)
                 {
-                    FilePath = L"Xbox360/Data0";
+                    filePath = "Xbox360/Data0";
                 }
-                wcscpy(TempPath, Path);
-                wcscpy(&(TempPath[0]) + wcslen(Path), FilePath);
-                swprintf(&(TempPath[0]) + wcslen(Path) + wcslen(FilePath), 3, L"%d", i);
+                std::stringstream stringStream;
+                stringStream << path;
+                stringStream << filePath;
+                stringStream << i;
+                filePath = stringStream.str();
 
                 try
                 {
-                    Streams::xFileStream temp(TempPath, Streams::Open);
+                    Streams::xFileStream temp(filePath, Streams::Open);
                     // File opened with no exceptions thrown, close the stream and add the path to the vector
                     temp.Close();
-                    Paths.push_back(wstring(TempPath));
+                    paths.push_back(filePath);
                 }
                 catch (...)
                 {
@@ -70,22 +70,22 @@ Drive::Drive( TCHAR* Path, TCHAR* FriendlyName, bool IsUsb ) : QObject()
                     break;
                 }
             }
-            if (Paths.size() == 0)
+            if (paths.size() == 0)
             {
                 qDebug("Exception thrown at Drive: No paths for device");
                 throw xException("No paths found for device!");
             }
-            DeviceStream = new Streams::xMultiFileStream(Paths);
+            DeviceStream = new Streams::xMultiFileStream(paths);
             Type = DeviceUsb;
         }
         // Backup
         else
         {
-            DeviceStream = new Streams::xFileStream(Path, Streams::Open);
+            DeviceStream = new Streams::xFileStream(path, Streams::Open);
             Type = DeviceBackup;
         }
     }
-    this->FriendlyName += FriendlyName;
+    this->FriendlyName = friendlyName;
     this->FriendlySize = Helpers::ConvertToFriendlySize(GetLength());
 
     InitializePartitions();
@@ -358,11 +358,9 @@ QString Drive::GetDiskName( void )
 }
 
 Folder *Drive::FolderFromPath(std::string Path)
-{
-    char Friendly[0x50] = {0};
-    wcstombs(Friendly, FriendlyName.c_str(), FriendlyName.size());
-    string cmp = Path.substr(0, Path.find('/'));
-    if (cmp == string(Friendly))
+{   
+    std::string cmp = Path.substr(0, Path.find('/'));
+    if (cmp == FriendlyName)
         Path = Path.substr(Path.find('/') + 1);
 
     for (int i = 0; i < (int)ValidVolumes->size(); i++)
@@ -423,11 +421,9 @@ Folder *Drive::FolderFromPath(std::string Path)
 
 File *Drive::FileFromPath(std::string Path)
 {
-    char Friendly[0x50] = {0};
-    wcstombs(Friendly, FriendlyName.c_str(), FriendlyName.size());
-    string cmp = Path.substr(0, Path.find('/'));
+    std::string cmp = Path.substr(0, Path.find('/'));
     // Because I'm stupid I need to convert
-    if (cmp == string(Friendly))
+    if (cmp == FriendlyName)
         Path = Path.substr(Path.find('/') + 1);
     // Loop through each volume
     for (int i = 0; i < (int)ValidVolumes->size(); i++)

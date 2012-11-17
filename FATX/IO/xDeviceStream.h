@@ -39,7 +39,7 @@ namespace Streams
 
 		INT64 RealPosition( void );
 	public:
-		xDeviceStream( TCHAR* DevicePath );
+        xDeviceStream( std::string DevicePath );
 		~xDeviceStream(void);
 
         INT64 Position	( void );
