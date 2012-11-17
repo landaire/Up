@@ -128,11 +128,7 @@ void Drive::CopyFileToLocalDisk(File *dest, const string &Output)
     Streams::xDeviceFileStream *xf = new Streams::xDeviceFileStream(dest, this);
 
     // Get a stream to the output file
-#ifdef _WIN32
-    Streams::xFileStream *output = new Streams::xFileStream(nowide::convert(Output).c_str(), Streams::Create);
-#else
-    Streams::xFileStream *output = new Streams::xFileStream(Output.c_str(), Streams::Create);
-#endif
+    Streams::xFileStream *output = new Streams::xFileStream(Output, Streams::Create);
     UINT64 size = xf->Length();
     BYTE *Buffer = new BYTE[0x10000];
     memset(Buffer, 0, 0x10000);
@@ -358,7 +354,7 @@ QString Drive::GetDiskName( void )
 }
 
 Folder *Drive::FolderFromPath(std::string Path)
-{   
+{
     std::string cmp = Path.substr(0, Path.find('/'));
     if (cmp == FriendlyName)
         Path = Path.substr(Path.find('/') + 1);
@@ -702,7 +698,7 @@ void Drive::SetValidPartitions( void )
 {
     if (!ValidVolumes)
     {
-		vector<xVolume *> DiskVolumes;
+        vector<xVolume *> DiskVolumes;
         // Get the partitions
 
         // Dev kit partitions
