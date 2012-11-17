@@ -223,9 +223,9 @@ std::vector<Drive *> PCUtils::GetLogicalPartitions( void )
     std::vector<Drive *> ReturnVector;
 
 #ifdef _WIN32
-    const DWORD LettersSize = (26 * 2) + 1;
+    const DWORD LettersSize = (26 * 6) + 1;
 
-    TCHAR Letters[LettersSize] = {0}; // 26 for every leter, multiplied by 2 for each null byte, plus 1 for the last null
+    TCHAR Letters[LettersSize] = {0}; // 26 for every leter, multiplied by 3 to include the semi colon/backslash, then 2 for each null byte, plus 1 for the last null
 
 if (!GetLogicalDriveStrings(LettersSize, Letters))
 {
@@ -248,16 +248,17 @@ for (int i = 0; i < 26; i+= 4)
                 NULL,
                 NULL);
     std::ostringstream ss;
-    ss << Letters[i];
+    ss << nowide::convert(&Letters[i]);
     ss << "Xbox360\\Data0000";
+    std::string path(ss.str());
 
     try
     {
-        Streams::xFileStream *tempFile = new Streams::xFileStream(ss.str(), Streams::Open);
+        Streams::xFileStream *tempFile = new Streams::xFileStream(path, Streams::Open);
         tempFile->Close();
         delete tempFile;
         // Stream opened with no exception, we're good!
-        Drive *d = new Drive(&((char)Letters[i]), nowide::convert(std::wstring(VolumeName)), true);
+        Drive *d = new Drive(nowide::convert(&Letters[i]), nowide::convert(std::wstring(VolumeName)), true);
         ReturnVector.push_back(d);
     }
     catch(...)
