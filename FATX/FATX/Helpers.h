@@ -5,13 +5,13 @@
 #include <QDateTime>
 #include <QDate>
 #include <QTime>
-#include "nowide/convert.h"
+#include "../nowide/convert.h"
 
 class Helpers
 {
 public:
     static QDateTime IntToQDateTime( FAT_TIME_STAMP Date );
-    static int   QDateTimeToInt( QDateTime Date );
+    static int   QDateTimeToInt(QDateTime);
 	static INT64 DownToNearestSector( INT64 Offset );
 	static INT64 UpToNearestSector( INT64 Offset );
     static INT64 UpToNearestX( INT64 Value, int x);

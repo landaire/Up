@@ -3,7 +3,9 @@
 #include <QDebug>
 #include <sstream>
 
-using namespace std;
+using std::string;
+using std::vector;
+using std::stringstream;
 
 QDateTime Helpers::IntToQDateTime( FAT_TIME_STAMP Date )
 {
@@ -12,7 +14,7 @@ QDateTime Helpers::IntToQDateTime( FAT_TIME_STAMP Date )
     return r;
 }
 
-int Helpers::QDateTimeToInt( QDateTime Date )
+int Helpers::QDateTimeToInt( QDateTime /* date */ )
 {
     return 0;
 }
@@ -122,7 +124,7 @@ QString Helpers::QStringFromStdString(string stringData)
 #endif
 }
 
-QString Helpers::QStringFromStdWString(wstring stringData)
+QString Helpers::QStringFromStdWString(std::wstring stringData)
 {
     return QString::fromUtf16((const ushort*)stringData.c_str());
 }
