@@ -36,18 +36,18 @@ HEADERS += \
     FATX/Helpers.h \
     FATX/Drive.h \
     FATX/stfspackage.h \
-    FATX/nowide/config.h \
-    FATX/nowide/convert.h \
-    FATX/nowide/cstdio.h \
-    FATX/nowide/fstream.h \
-    FATX/nowide/streambuf.h \
+    nowide/config.h \
+    nowide/convert.h \
+    nowide/cstdio.h \
+    nowide/fstream.h \
+    nowide/streambuf.h \
     FATX/pcutils.h
 SOURCES += \
     FATX/Helpers.cpp \
     FATX/Drive.cpp \
     FATX/stfspackage.cpp \
-    FATX/src/convert.cpp \
-    FATX/src/streambuf.cpp \
+    src/convert.cpp \
+    src/streambuf.cpp \
     FATX/pcutils.cpp
 
 # IO Headers
