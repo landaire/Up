@@ -1,7 +1,7 @@
 #include "progressdialog.h"
 #include "ui_progressdialog.h"
 #include <QThread>
-#include <QtConcurrentRun.h>
+#include <qtconcurrentrun.h>
 #include <algorithm>
 
 using namespace std;

@@ -7,7 +7,7 @@
 #include <qfiledialog.h>
 #include <qcommandlinkbutton.h>
 #include <qdesktopwidget.h>
-#include <qdatetime>
+#include <QDateTime>
 #include <QPainter>
 #include <QSettings>
 
