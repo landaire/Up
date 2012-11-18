@@ -201,7 +201,7 @@ if (dir != NULL)
                 hd_driveid hd;
                 if (!ioctl(device, HDIO_GET_IDENTITY, &hd))
                 {
-                    curdir.FriendlyName = hd.model;
+                    curdir.FriendlyName = std::string((const char *)hd.model);
                 }
 #elif defined __APPLE__
                 curdir.FriendlyName = ent->d_name;

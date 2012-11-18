@@ -1,6 +1,11 @@
 #include "stdafx.h"
 #include "xDeviceStream.h"
 
+#if defined __linux
+#include <fcntl.h>
+#include <linux/fs.h>
+#endif
+
 namespace Streams
 {
 xDeviceStream::xDeviceStream(std::string DevicePath )
@@ -124,6 +129,24 @@ INT64 xDeviceStream::Length( void )
                 (INT64)Geometry.TracksPerCylinder	*
                 (INT64)Geometry.SectorsPerTrack		*
                 (INT64)Geometry.BytesPerSector;
+#elif defined __linux
+        unsigned int* NumberOfSectors = new unsigned int;
+        *NumberOfSectors = 0;
+
+        int device = Device;
+
+        // Queue number of sectors
+	ioctl(device, BLKGETSIZE, &NumberOfSectors);
+
+        unsigned int* SectorSize = new unsigned int;
+        *SectorSize = 0;
+        ioctl(device, BLKBSZGET, SectorSize);
+
+        qDebug("#S: 0x%X, SS: 0x%X", *NumberOfSectors, *SectorSize);
+
+        _Length = (UINT64)*NumberOfSectors * (UINT64)*SectorSize;
+        delete NumberOfSectors;
+        delete SectorSize;
 #else
         unsigned int* NumberOfSectors = new unsigned int;
         *NumberOfSectors = 0;

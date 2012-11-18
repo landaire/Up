@@ -1,4 +1,4 @@
-#include "StfsPackage.h"
+#include "stfspackage.h"
 using namespace std;
 using namespace Streams;
 
