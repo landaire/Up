@@ -43,6 +43,9 @@ Up-OSX
 Up-Win
 FATX-OSX
 FATX-Win
+ui_*.h
+qrc_*.cpp
+moc_*.cpp
 
 Up.icns
 
