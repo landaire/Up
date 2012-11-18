@@ -2,7 +2,7 @@
 #define __STATIC__HG
 
 #include "../typedefs.h"
-#include "../StdAfx.h"
+#include "../stdafx.h"
 #include <vector>
 #include <QDateTime>
 #include <QMetaType>

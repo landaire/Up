@@ -1,7 +1,7 @@
 #ifndef __XDFS__HG
 #define __XDFS__HG
-#include "istream.h"
-#include "../xException.h"
+#include "IStream.h"
+#include "../xexception.h"
 #include "../FATX/StaticInformation.h"
 #include "../FATX/Drive.h"
 #include "../FATX/Helpers.h"

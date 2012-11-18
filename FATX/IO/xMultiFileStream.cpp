@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "xMultiFileStream.h"
 #include <QDebug>
 namespace Streams

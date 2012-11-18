@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Drive.h"
 #include "../IO/xDeviceFileStream.h"
 #include <QMetaType>

@@ -1,6 +1,6 @@
 #ifndef __DRIVE__HG
 #define __DRIVE__HG
-#include "../StdAfx.h"
+#include "../stdafx.h"
 #include <vector>
 #include "../IO/xDeviceStream.h"
 #include "../IO/xFileStream.h"
