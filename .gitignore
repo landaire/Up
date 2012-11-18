@@ -6,6 +6,7 @@
 *.exe
 *.o
 *.so
+*.a
 
 # Packages #
 ############
@@ -47,3 +48,5 @@ Up.icns
 
 Up/Up.pro.user.2.5pre1
 FATX/FATX.pro.user.2.5pre1
+
+Makefile
