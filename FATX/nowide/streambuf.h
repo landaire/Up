@@ -16,15 +16,15 @@ namespace nowide {
 			cur,
 			end
 		} pos_type;
-		virtual size_t read(char *pos,size_t length)
+        virtual size_t read(char */*pos*/,size_t /*length*/)
 		{
 			return 0;
 		}
-		virtual size_t write(char const *pos,size_t length)
+        virtual size_t write(char const */*pos*/,size_t /*length*/)
 		{
 			return 0;
 		}
-		virtual long long seek(long long position,pos_type pos = set)
+        virtual long long seek(long long /*position*/,pos_type /*pos*/ = set)
 		{
 			return -1;
 		}

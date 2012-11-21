@@ -240,7 +240,7 @@ struct xVolume
 {
 
     std::string		 Name;
-    DWORD Magic;					// Partition magic
+    INT32 Magic;					// Partition magic
     DWORD SerialNumber;			// Partition serial number
     DWORD SectorsPerCluster;		// Number of sectors per cluster
     DWORD RootDirectoryCluster;	// The cluster in which the root directory is located

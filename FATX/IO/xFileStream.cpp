@@ -102,7 +102,6 @@ void xFileStream::Close( void )
 
 INT64 xFileStream::Position( void )
 {
-    int x = _FileStream.tellg();
     return (IsClosed) ? 0 : (INT64)_FileStream.tellg();
 }
 
@@ -387,7 +386,7 @@ int xFileStream::Write( BYTE* Buffer, int count )
         throw xException("Stream is closed. At: xFileStream::Write");
     }
 
-    void* temp = DetermineAndDoEndianSwap(Buffer, count, sizeof(BYTE), true);
+    BYTE* temp = (BYTE *) DetermineAndDoEndianSwap(Buffer, count, sizeof(BYTE), true);
 
     if (!temp)
     {
@@ -410,7 +409,7 @@ size_t xFileStream::Write( void* Buffer, size_t ElementSize, int count)
         throw xException("Stream is closed. At: xFileStream::Write (the one with more arguments and stuff)");
     }
 
-    void* temp = DetermineAndDoEndianSwap((BYTE*)Buffer, count * ElementSize, sizeof(Buffer), true);
+    BYTE* temp = (BYTE *)DetermineAndDoEndianSwap((BYTE*)Buffer, count * ElementSize, sizeof(Buffer), true);
 
     if (!temp)
     {

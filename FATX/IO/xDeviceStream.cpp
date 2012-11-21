@@ -397,7 +397,7 @@ int xDeviceStream::Read( BYTE* DestBuff, int Count )
                     &BytesRead,		// Pointer to the number of bytes read
                     &Offset);		// OVERLAPPED structure containing the offset to read from
 #else
-        read(Device, LastReadData, 0x200);
+        BytesRead = read(Device, LastReadData, 0x200);
 #endif
         LastReadOffset = RealPosition();
     }
@@ -424,7 +424,7 @@ int xDeviceStream::Read( BYTE* DestBuff, int Count )
                     &BytesRead,		// Pointer to the number of bytes read
                     &Offset);		// OVERLAPPED structure containing the offset to read from
 #else
-        read(Device, AllData, AllDataLength - 0x200);
+        BytesRead = read(Device, AllData, AllDataLength - 0x200);
 #endif
 
         SetPosition(Position() + (Count - BytesThatAreInLastDataRead));
@@ -663,7 +663,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
                     &BytesRead,		// Pointer to the number of bytes read
                     &Offset);		// OVERLAPPED structure containing the offset to read from
 #else
-        read(Device, LastReadData, 0x200);
+        BytesRead = read(Device, LastReadData, 0x200);
 #endif
         LastReadOffset = RealPosition();
     }
@@ -680,7 +680,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
                     &BytesRead,
                     &Offset);
 #else
-        read(Device, AllData, BytesWeNeedToRead);
+        BytesRead = read(Device, AllData, BytesWeNeedToRead);
 #endif
 
         // Write over the data in memory
@@ -700,7 +700,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
                     &BytesRead,			// Pointer to number of bytes written (ignore that it says BytesRead)
                     &Offset);			// OVERLAPPED structure containing the offset to write from
 #else
-        write(Device, AllData, BytesWeNeedToRead);
+        BytesRead = write(Device, AllData, BytesWeNeedToRead);
 #endif
 
         delete[] AllData;
@@ -722,7 +722,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
                         &BytesRead,			// Pointer to number of bytes written (ignore that it says BytesRead)
                         &Offset);			// OVERLAPPED structure containing the offset to write from
 #else
-            write(Device, LastReadData, BytesWeNeedToRead);
+            BytesRead = write(Device, LastReadData, BytesWeNeedToRead);
 #endif
         }
         else
@@ -736,7 +736,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
                         &BytesRead,			// Pointer to number of bytes written (ignore that it says BytesRead)
                         &Offset);			// OVERLAPPED structure containing the offset to write from
 #else
-            write(Device, Data, BytesWeNeedToRead);
+            BytesRead = write(Device, Data, BytesWeNeedToRead);
 #endif
         }
     }

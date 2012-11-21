@@ -67,7 +67,7 @@ std::vector<Drive *> PCUtils::GetFATXDrives( bool IncludeHardDisks )
             DS->SetPosition(HddOffsets::Data);
 
             // Read the FATX partition magic
-            int Magic = DS->ReadInt32();
+            INT32 Magic = DS->ReadInt32();
             // Close the stream
             DS->Close();
             delete DS;
@@ -91,7 +91,7 @@ std::vector<Drive *> PCUtils::GetFATXDrives( bool IncludeHardDisks )
     }
 
     std::vector<Drive *> LogicalDisks = GetLogicalPartitions();
-    for (int i = 0; i < LogicalDisks.size(); i++)
+    for (unsigned int i = 0; i < LogicalDisks.size(); i++)
     {
         ReturnVector.push_back(LogicalDisks[i]);
     }
@@ -180,7 +180,11 @@ if (dir != NULL)
     while ((ent = readdir(dir)) != NULL)
     {
         // Check the directory name, and if it starts with "disk" then keep it!
+#ifdef __linux
+        QRegExp exp("sd[a-z]");
+#else
         QRegExp exp("disk*");
+#endif
         exp.setPatternSyntax(QRegExp::Wildcard);
         exp.setCaseSensitivity(Qt::CaseInsensitive);
         if (exp.exactMatch(ent->d_name))
@@ -188,7 +192,11 @@ if (dir != NULL)
             DISK_DRIVE_INFORMATION curdir;
 
             std::ostringstream ss;
+#ifdef __linux
+            ss << "/dev/";
+#else
             ss << "/dev/r";
+#endif
             ss << ent->d_name;
             std::string diskPath = ss.str();
 
@@ -270,7 +278,11 @@ for (int i = 0; i < 26; i+= 4)
 // First, enumerate the disks
 DIR *dir = NULL;
 dirent *ent = NULL;
+#ifdef __APPLE__
 dir = opendir("/Volumes/");
+#else
+dir = opendir("/media/");
+#endif
 if (dir != NULL)
 {
     // Read the shit
@@ -280,7 +292,11 @@ if (dir != NULL)
 
         // Create a temporary buffer to hold our disk name
         std::stringstream path;
+#ifdef __APPLE__
         path << "/Volumes/";
+#else
+        path << "/media/";
+#endif
         path << ent->d_name;
         path << "/";
 
@@ -295,7 +311,11 @@ if (dir != NULL)
             // Stream opened good, close it
             x->Close();
             delete x;
+#ifdef __APPLE__
             if (curdir.Path == "/Volumes/.")
+#else
+            if (curdir.Path == "/media/.")
+#endif
             {
                 curdir.FriendlyName = "OS Root";
             }
