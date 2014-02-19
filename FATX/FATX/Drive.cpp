@@ -1,24 +1,18 @@
-#include "StdAfx.h"
-#include "Drive.h"
-#include "../IO/xDeviceFileStream.h"
-#include <QMetaType>
-#include "stfspackage.h"
 #include <sys/stat.h>
+#include <QMetaType>
 #include <QTime>
-#include "../xexception.h"
-#include <sstream>
+#include "Drive.h"
+#include "stfspackage.h"
+#include "xexception.h"
 
-using namespace std;
-
-Drive::Drive( std::string path, std::string friendlyName, bool isUsb ) : QObject()
+Drive::Drive( string path, string friendlyName, bool isUsb ) : QObject()
 {
-    ValidVolumes = 0;
     IsDevKitDrive = false;
     this->FriendlyName = "";
     if (!isUsb)
     {
         qDebug("This is a disk.  It is nice.");
-        DeviceStream = new Streams::xDeviceStream(path);
+        deviceStream = new Streams::xdeviceStream(path);
         Type = DeviceDisk;
     }
     else
@@ -35,7 +29,7 @@ Drive::Drive( std::string path, std::string friendlyName, bool isUsb ) : QObject
         {
             // Find all valid Xbox 360 files
             vector<string> paths;
-            std::string filePath;
+            string filePath;
             for (int i = 0; i < 1000; i++)
             {
 
@@ -51,15 +45,15 @@ Drive::Drive( std::string path, std::string friendlyName, bool isUsb ) : QObject
                 {
                     filePath = "Xbox360/Data0";
                 }
-                std::stringstream stringStream;
-                stringStream << path;
-                stringStream << filePath;
-                stringStream << i;
-                filePath = stringStream.str();
+                stringstream pathStream;
+                pathStream << path;
+                pathStream << filePath;
+                pathStream << i;
+                filePath = pathStream.str();
 
                 try
                 {
-                    Streams::xFileStream temp(filePath, Streams::Open);
+                    Streams::FileStream temp(filePath, Streams::Open);
                     // File opened with no exceptions thrown, close the stream and add the path to the vector
                     temp.Close();
                     paths.push_back(filePath);
@@ -73,15 +67,15 @@ Drive::Drive( std::string path, std::string friendlyName, bool isUsb ) : QObject
             if (paths.size() == 0)
             {
                 qDebug("Exception thrown at Drive: No paths for device");
-                throw xException("No paths found for device!");
+                throw FatxException("No paths found for device!");
             }
-            DeviceStream = new Streams::xMultiFileStream(paths);
+            deviceStream = new Streams::MultiFileStream(paths);
             Type = DeviceUsb;
         }
         // Backup
         else
         {
-            DeviceStream = new Streams::xFileStream(path, Streams::Open);
+            deviceStream = new Streams::FileStream(path, Streams::Open);
             Type = DeviceBackup;
         }
     }
@@ -99,7 +93,7 @@ Drive::~Drive(void)
 void Drive::CreateDirent(const xDirent &d)
 {
     // Get the stream to the disk
-    Streams::IStream *ds = this->DeviceStream;
+    Streams::IStream *ds = this->deviceStream;
     // Go to the offset given by the dirent
     ds->SetPosition(d.Offset);
     // Write out the attributes
@@ -107,7 +101,7 @@ void Drive::CreateDirent(const xDirent &d)
     // Write out the filename size
     ds->WriteByte(d.NameSize);
     // Write out the filename
-    ds->Write((BYTE*)(&d.Name), d.NameSize);
+    ds->Write((uint8_t*)(&d.Name), d.NameSize);
     // Write out 0xFF if the size isn't 0x2A.  This helps when people want
     // to undelete files, because we just go until either 0x2A or 0xFF
     if (d.NameSize != 0x2A)
@@ -122,16 +116,16 @@ void Drive::CreateDirent(const xDirent &d)
     ds->WriteInt32(d.DateAccessed.AsDWORD);
 }
 
-void Drive::CopyFileToLocalDisk(File *dest, const string &Output)
+void Drive::CopyFileToLocalDisk(File *dest, string const &Output)
 {
     // Get the stream to the file
-    Streams::xDeviceFileStream *xf = new Streams::xDeviceFileStream(dest, this);
-
+    std::unique_ptr<DeviceFileStream> inputFileStream(new Streams::DeviceFileStream(dest, this));
     // Get a stream to the output file
-    Streams::xFileStream *output = new Streams::xFileStream(Output, Streams::Create);
-    UINT64 size = xf->Length();
-    BYTE *Buffer = new BYTE[0x10000];
-    memset(Buffer, 0, 0x10000);
+    std::unique_ptr<FileStream> outputStream(new Streams::FileStream(Output, Streams::Create));
+
+    uint64_t size = inputFileStream->Length();
+    uint8_t *buffer = new uint8_t[0x10000];
+    memset(buffer, 0, 0x10000);
 
     Progress p;
     // Set up our progress
@@ -142,10 +136,10 @@ void Drive::CopyFileToLocalDisk(File *dest, const string &Output)
     p.Current = 0;
     p.FilePath = dest->FullPath;
     p.Device = this;
-    p.FileName = std::string(dest->Dirent.Name);
+    p.FileName = string(dest->Dirent.Name);
 
     // Get the package's STFS information
-    StfsPackage pack(xf);
+    StfsPackage pack(inputFileStream);
     p.IsStfsPackage = pack.IsStfsPackage();
     if (p.IsStfsPackage)
     {
@@ -159,26 +153,26 @@ void Drive::CopyFileToLocalDisk(File *dest, const string &Output)
     qt.setHMS(0, 0, 0, 0);
     qt.start();
 
-    xf->SetPosition(0);
+    inputFileStream->SetPosition(0);
     // Start the reading
     while (size > dest->Volume->SectorsPerCluster * 0x200)
     {
-        INT64 read = 0;
+        uint64_t read = 0;
         if (size >= 0x10000)
-            read += xf->Read(Buffer, 0x10000);
+            read += inputFileStream->Read(buffer, 0x10000);
         else
-            read += xf->Read(Buffer, dest->Volume->SectorsPerCluster * 0x200);
+            read += inputFileStream->Read(buffer, dest->Volume->SectorsPerCluster * 0x200);
 
-        output->Write(Buffer, read);
+        outputStream->Write(buffer, read);
 
         size -= read;
         p.Current += (read / (dest->Volume->SectorsPerCluster * 0x200));
         emit FileProgressChanged(p);
     }
-    xf->SetPosition(xf->Length() - size);
+    inputFileStream->SetPosition(inputFileStream->Length() - size);
     // Read the last section of data
-    xf->Read(Buffer, size);
-    output->Write(Buffer, size);
+    inputFileStream->Read(buffer, size);
+    outputStream->Write(buffer, size);
 
     int Milliseconds = qt.elapsed();
 
@@ -191,74 +185,67 @@ void Drive::CopyFileToLocalDisk(File *dest, const string &Output)
     p.Done = true;
     emit FileProgressChanged(p);
 
-    xf->Close();
-    output->Close();
-    delete xf;
-    delete output;
-    delete Buffer;
+    inputFileStream->Close();
+    inputFileStream.release();
+    outputStream->Close();
+    delete outputStream;
+    delete buffer;
 }
 
-void Drive::CopyFileToLocalDisk(const string &Path, const string &Output)
+void Drive::CopyFileToLocalDisk(string const &path, string const &outputDirectory)
 {
-    CopyFileToLocalDisk(FileFromPath(Path), Output);
+    CopyFileToLocalDisk(FileFromPath(path), outputDirectory);
 }
 
-void Drive::CopyFolderToLocalDisk(Folder *f, const std::string &Output)
+void Drive::CopyFolderToLocalDisk(Folder *folder, string const &outputDirectory)
 {
     // Make the directory...
 #ifndef _WIN32
-    qDebug((((Output + "/") + f->Dirent.Name).c_str()));
-    mkdir(((Output + "/") + f->Dirent.Name).c_str(), 0777);
+    qDebug((((outputDirectory + "/") + folder->Dirent.Name).c_str()));
+    mkdir(((outputDirectory + "/") + folder->Dirent.Name).c_str(), 0777);
 #else
-    CreateDirectory(nowide::convert((Output + "/") + f->Dirent.Name).c_str(), NULL);
+    CreateDirectory(nowide::convert((outputDirectory + "/") + folder->Dirent.Name).c_str(), NULL);
 #endif
-    std::string Path = ((Output + "/") + f->Dirent.Name);
+    string path = ((outputDirectory + "/") + folder->Dirent.Name);
     // Cleanup the path string
     {
         size_t pos = 0;
 #ifdef _WIN32
-        while((pos = Path.find("\\/", pos)) != std::string::npos)
+        while((pos = path.find("\\/", pos)) != string::npos)
 #else
-        while((pos = Path.find("//", pos)) != std::string::npos)
+        while((pos = path.find("//", pos)) != string::npos)
 #endif
         {
 #ifdef _WIN32
-            Path.replace(pos, 2, "\\");
+            path.replace(pos, 2, "\\");
 #else
-            Path.replace(pos, 2, "/");
+            path.replace(pos, 2, "/");
 #endif
             pos += 1;
         }
     }
     // Make sure that this folder's dirents are read...
-    if (!f->FatxEntriesRead)
+    if (!folder->FatxEntriesRead)
         // Read the dirents
-        ReadDirectoryEntries(f);
+        ReadDirectoryEntries(folder);
 
     // For each folder, do an extract thingy
-    for (int i = 0; i < f->CachedFolders.size(); i++)
-    {
-        Folder *folder = f->CachedFolders[i];
-        CopyFolderToLocalDisk(folder, Path);
+    for (auto subFolder : folder->CachedFolders) {
+        CopyFolderToLocalDisk(subFolder, path);
     }
 
     // Extract all the files from this dir
-    // FUCK MAN ARE YOU KIDDING ME?  I CAN'T LIKE... USE C++11 RANGE-BASED LOOPS?!  FUCK MAN
-    for (int i = 0; i < f->CachedFiles.size(); i++)
-    {
-        File *file = f->CachedFiles[i];
-        CopyFileToLocalDisk(file, (Path + "/") + file->Dirent.Name);
+    for (auto file : folder->CachedFiles) {
+        CopyFileToLocalDisk(file, (path + "/") + file->Dirent.Name);
     }
 }
 
-void Drive::CopyFolderToLocalDisk(const std::string &Path, const std::string &Output)
+void Drive::CopyFolderToLocalDisk(string const &folderPath, string const &outputFolderPath)
 {
-    // Get the folder
-    Folder *f = FolderFromPath(Path);
-    CopyFolderToLocalDisk(f, Output);
+    CopyFolderToLocalDisk(FolderFromPath(folderPath), outputFolderPath);
 }
 
-DWORD Drive::GetFileCount(Folder *f)
+size_t Drive::GetFileCount(shared_ptr<Folder> *f)
 {
     // If we haven't yet read the dirents for this folder...
     if (!f->FatxEntriesRead)
@@ -269,454 +256,464 @@ DWORD Drive::GetFileCount(Folder *f)
     return f->CachedFiles.size();
 }
 
-DWORD Drive::GetTotalFileCount(Folder *f)
+size_t Drive::GetTotalFileCount(shared_ptr<Folder> *f)
 {
     // If we haven't yet read the dirents for this folder...
     if (!f->FatxEntriesRead)
         // Read them!
         ReadDirectoryEntries(f);
 
-    DWORD TotalCount = f->CachedFiles.size();
+    size_t totalCount = f->CachedFiles.size();
 
     // For each one of the folders within this folder, add that to our total count
-    for (int i = 0; i < f->CachedFolders.size(); i++)
-        TotalCount += GetTotalFileCount(f->CachedFolders.at(i));
+    for (size_t i = 0; i < f->CachedFolders.size(); i++)
+        totalCount += GetTotalFileCount(f->CachedFolders.at(i));
 
     // Return the total count
-    return TotalCount;
+    return totalCount;
 }
 
-DWORD Drive::GetFolderCount(Folder *f)
+size_t Drive::GetFolderCount(shared_ptr<Folder> folder)
 {
     // If we haven't yet read the dirents for this folder...
-    if (!f->FatxEntriesRead)
+    if (!folder->FatxEntriesRead)
         // Read the dirents
-        ReadDirectoryEntries(f);
+        ReadDirectoryEntries(folder);
 
     // Return file vector size
-    return f->CachedFolders.size();
+    return folder->CachedFolders.size();
 }
 
-DWORD Drive::GetTotalFolderCount(Folder *f)
+size_t Drive::GetTotalFolderCount(shared_ptr<Folder> folder)
 {
     // If we haven't yet read the dirents for this folder...
-    if (!f->FatxEntriesRead)
+    if (!folder->FatxEntriesRead)
         // Read them!
-        ReadDirectoryEntries(f);
+        ReadDirectoryEntries(folder);
 
-    DWORD TotalCount = f->CachedFolders.size();
+    size_t totalCount = folder->CachedFolders.size();
 
     // For each one of the folders within this folder, add that to our total count
-    for (int i = 0; i < f->CachedFolders.size(); i++)
-        TotalCount += GetTotalFolderCount(f->CachedFolders.at(i));
+    for (size_t i = 0; i < folder->CachedFolders.size(); i++)
+        totalCount += GetTotalFolderCount(folder->CachedFolders.at(i));
 
     // Return the total count
-    return TotalCount;
+    return totalCount;
 }
 
-void Drive::DestroyFolder(Folder *Directory)
+void Drive::DestroyFolder(shared_ptr<Folder> directory)
 {
-    while(Directory->CachedFiles.size())
+    while(directory->CachedFiles.size())
     {
-        File *f = Directory->CachedFiles.at(0);
-        delete f;
-        Directory->CachedFiles.erase(Directory->CachedFiles.begin());
+        unique_ptr<File> f = directory->CachedFiles.at(0);
+        f.release();
+        directory->CachedFiles.erase(directory->CachedFiles.begin());
     }
 
-    while(Directory->CachedFolders.size())
+    while(directory->CachedFolders.size())
     {
-        Folder *f = Directory->CachedFolders.at(0);
+        unqiue_ptr<Folder> f = directory->CachedFolders.at(0);
         DestroyFolder(f);
-        Directory->CachedFolders.erase(Directory->CachedFolders.begin());
+        directory->CachedFolders.erase(directory->CachedFolders.begin());
     }
-    delete Directory;
+    directory.release();
 }
 
 QString Drive::GetDiskName( void )
 {
     // Get the Data/name.txt file
-    File *name = FileFromPath(string("Data/name.txt"));
+    auto nameFile = FileFromPath(string("Data/name.txt"));
     // Open a stream to that file
-    Streams::xDeviceFileStream *fs = new Streams::xDeviceFileStream(name, this);
+    std::unique_ptr<DeviceFileStream> fs(new Streams::DeviceFileStream(nameFile, this));
 
     // Skip the first two bytes -- I have no idea what they're there for
     fs->SetPosition(2);
 
     // Create a new buffer to hold the name
-    BYTE charArray[0x50] = {0};
+    uint8_t charArray[0x50] = {0};
     // Read the name
-    fs->Read((BYTE*)&charArray, fs->Length() - 2);
+    fs->Read((uint8_t*)&charArray, fs->Length() - 2);
+
     for (int i = 0; i < fs->Length() - 2; i+=2)
-        fs->DetermineAndDoEndianSwap((BYTE*)&charArray + i, sizeof(short), sizeof(char));
+        fs->DetermineAndDoEndianSwap((uint8_t*)&charArray + i, sizeof(short), sizeof(char));
+
     fs->Close();
-    delete fs;
+    fs.release();
     return QString::fromUtf16((const ushort*)&charArray);
 }
 
-Folder *Drive::FolderFromPath(std::string Path)
+shared_ptr<Folder> Drive::FolderFromPath(string path)
 {
-    std::string cmp = Path.substr(0, Path.find('/'));
+    string cmp = path.substr(0, path.find('/'));
     if (cmp == FriendlyName)
-        Path = Path.substr(Path.find('/') + 1);
+        path = path.substr(path.find('/') + 1);
 
-    for (int i = 0; i < (int)ValidVolumes->size(); i++)
+    for (size_t i = 0; i < validVolumes.size(); i++)
     {
-        xVolume* activePartition = ValidVolumes->at(i);
+        FatxVolume* activePartition = validVolumes.at(i);
 
         // Split the path so by the backslash
-        vector<string> PathSplit;
-        Helpers::split(Path, '/', PathSplit);
+        vector<string> pathSplit;
+        Helpers::split(path, '/', pathSplit);
 
         // Match the partition name to that of the one we were given
-        QRegExp reg(PathSplit.at(0).c_str());
+        QRegExp reg(pathSplit.at(0).c_str());
         reg.setCaseSensitivity(Qt::CaseInsensitive);
         reg.setPatternSyntax(QRegExp::FixedString);
         if (reg.exactMatch(activePartition->Name.c_str()))
         {
             // We've found the partition, now get the root folder
-            Folder *current = activePartition->Root;
-            current->Dirent.ClusterStart = activePartition->RootDirectoryCluster;
+            auto currentFolder = activePartition->Root;
+            currentFolder->Dirent.ClusterStart = activePartition->RootDirectoryCluster;
             do
             {
-                PathSplit.erase(PathSplit.begin());
-                if (!current->FatxEntriesRead)
+                pathSplit.erase(pathSplit.begin());
+                if (!currentFolder->FatxEntriesRead)
                 {
-                    ReadDirectoryEntries(current);
+                    ReadDirectoryEntries(currentFolder);
                 }
-                if (!PathSplit.size() )
+                if (!pathSplit.size() )
                 {
                     break;
                 }
                 bool Found = false;
-                for (int j = 0; j < (int)current->CachedFolders.size(); j++)
+
+                for (size_t j = 0; j < currentFolder->CachedFolders.size(); j++)
                 {
-                    Folder *f = current->CachedFolders.at(j);
-                    QRegExp fReg(PathSplit.at(0).c_str());
+                    auto file = currentFolder->CachedFolders.at(j);
+
+                    QRegExp fReg(pathSplit.at(0).c_str());
                     fReg.setCaseSensitivity(Qt::CaseInsensitive);
                     fReg.setPatternSyntax(QRegExp::FixedString);
-                    if (fReg.exactMatch(f->Dirent.Name))
+
+                    if (fReg.exactMatch(file->Dirent.Name))
                     {
                         Found = true;
-                        current = f;
+                        currentFolder = file;
                         break;
                     }
                 }
                 if (!Found)
                 {
                     qDebug("Exception thrown at FolderFromPath: Folder not found");
-                    throw xException("Folder not found");
+                    throw FatxException("Folder not found");
                 }
             }
-            while (PathSplit.size() > 0);
-            return current;
+            while (pathSplit.size() > 0);
+            return shared_ptr(currentFolder);
         }
     }
     qDebug("Exception thrown at FolderFromPath: Folder not found");
-    throw xException("Folder not found");
+    throw FatxException("Folder not found");
 }
 
-File *Drive::FileFromPath(std::string Path)
+shared_ptr<File> Drive::FileFromPath(string path)
 {
-    std::string cmp = Path.substr(0, Path.find('/'));
+    string cmp = path.substr(0, path.find('/'));
     // Because I'm stupid I need to convert
     if (cmp == FriendlyName)
-        Path = Path.substr(Path.find('/') + 1);
+        path = path.substr(path.find('/') + 1);
     // Loop through each volume
-    for (int i = 0; i < (int)ValidVolumes->size(); i++)
+    for (size_t i = 0; i < validVolumes.size(); i++)
     {
-        xVolume* activePartition = ValidVolumes->at(i);
+        auto activePartition = validVolumes.at(i);
+
         // Split the path so by the backslash
-        vector<string> PathSplit;
-        Helpers::split(Path, '/', PathSplit);
+        vector<string> pathSplit;
+        Helpers::split(path, '/', pathSplit);
+
         // Match the partition name to that of the one we were given
-        QRegExp reg(PathSplit.at(0).c_str());
+        QRegExp reg(pathSplit.at(0).c_str());
         reg.setCaseSensitivity(Qt::CaseInsensitive);
         reg.setPatternSyntax(QRegExp::FixedString);
+
         if (reg.exactMatch(activePartition->Name.c_str()))
         {
             // We've found the partition, now get the root folder
-            Folder *current = activePartition->Root;
-            current->Dirent.ClusterStart = activePartition->RootDirectoryCluster;
+            auto currentFolder = activePartition->Root;
+            currentFolder->Dirent.ClusterStart = activePartition->RootDirectoryCluster;
             do
             {
                 // Remove this index
-                PathSplit.erase(PathSplit.begin());
+                pathSplit.erase(pathSplit.begin());
 
                 // If there's nothing left to find, break the loop
-                if (!PathSplit.size())
+                if (!pathSplit.size())
                 {
                     break;
                 }
 
                 // If the dirents haven't been read
-                if (!current->FatxEntriesRead)
+                if (!currentFolder->FatxEntriesRead)
                 {
                     // Read the dirents
-                    ReadDirectoryEntries(current);
+                    ReadDirectoryEntries(currentFolder);
                 }
 
                 bool Found = false;
-                if (PathSplit.size() > 1)
+                if (pathSplit.size() > 1)
                 {
-                    for (int j = 0; j < (int)current->CachedFolders.size(); j++)
+                    for (int j = 0; j < (int)currentFolder->CachedFolders.size(); j++)
                     {
                         // Get the subfolder
-                        Folder *f = current->CachedFolders.at(j);
+                        auto subFolder = currentFolder->CachedFolders.at(j);
+
                         // Try to match the name to whatever we're looking for
-                        QRegExp fReg(PathSplit.at(0).c_str());
+                        QRegExp fReg(pathSplit.at(0).c_str());
                         fReg.setCaseSensitivity(Qt::CaseInsensitive);
                         fReg.setPatternSyntax(QRegExp::FixedString);
-                        if (fReg.exactMatch(f->Dirent.Name))
+
+                        if (fReg.exactMatch(subFolder->Dirent.Name))
                         {
                             Found = true;
-                            current = f;
+                            currentFolder = subFolder;
                             break;
                         }
                     }
                 }
                 else
                 {
-                    for (int j = 0; j < (int)current->CachedFiles.size(); j++)
+                    for (size_t j = 0; j < currentFolder->CachedFiles.size(); j++)
                     {
                         // Get the current file
-                        File *f = current->CachedFiles.at(j);
+                        auto file = currentFolder->CachedFiles.at(j);
 
                         // Try to make a match!
-                        QRegExp fReg(PathSplit.at(0).c_str());
+                        QRegExp fReg(pathSplit.at(0).c_str());
                         fReg.setCaseSensitivity(Qt::CaseInsensitive);
                         fReg.setPatternSyntax(QRegExp::FixedString);
-                        if (fReg.exactMatch(f->Dirent.Name))
+
+                        if (fReg.exactMatch(file->Dirent.Name))
                         {
-                            return f;
+                            return file;
                         }
                     }
                 }
                 if (!Found)
                 {
                     qDebug("Exception thrown at FileFromPath: File not found");
-                    throw xException("File not found");
+                    throw FatxException("File not found");
                 }
             }
-            while (PathSplit.size() > 0);
+            while (pathSplit.size() > 0);
         }
     }
     qDebug("Exception thrown at FileFromPath: File not found");
-    throw xException("Folder not found");
+    throw FatxException("Folder not found");
 }
 
 
 // TODO: FINISH THIS FUNCTION AND MAKE SHIT WORK
-void Drive::FindFreeClusters(DWORD StartingCluster, DWORD ClusterCount, xVolume* Partition, std::vector<DWORD>& OutChain)
+void Drive::FindFreeClusters(uint32_t startingCluster, size_t clusterCount, const shared_ptr<FatxVolume> partition, vector<uint32_t>& outChain)
 {
     // Set the stream position to the free cluster range start
-    Streams::IStream* Stream = DeviceStream;
-    if (Partition->FreeClusterRangeStart != 0xFFFFFFFF)
-        Stream->SetPosition(Partition->FreeClusterRangeStart);
+    if (partition->FreeClusterRangeStart != 0xFFFFFFFF)
+        deviceStream->SetPosition(partition->FreeClusterRangeStart);
     else
     {
         // Go to the FAT start
-        Stream->SetPosition(Partition->Offset + 0x1000);
+        deviceStream->SetPosition(partition->Offset + 0x1000);
         // Start reading data to see when we hit a free cluster
-        if (Partition->EntrySize == FAT32)
+        if (partition->EntrySize == FAT32)
             // Keep looping until we hit a free cluster
-            while (Stream->ReadUInt32() != FAT_CLUSTER_AVAILABLE){}
+            while (deviceStream->ReadUInt32() != FAT_CLUSTER_AVAILABLE);
         else
             // Keep looping until we hit a free cluster
-            while(Stream->ReadUInt16() != FAT_CLUSTER16_AVAILABLE){}
+            while(deviceStream->ReadUInt16() != FAT_CLUSTER16_AVAILABLE);
     }
 }
 
-void Drive::ReadDirectoryEntries(Folder* Directory)
+void Drive::ReadDirectoryEntries(shard_ptr<Folder> directory)
 {
     // If the cluster chain size is 0, we haven't read the cluster chain yet.  We better do that
-    if (!Directory->ClusterChain.size())
+    if (!directory->ClusterChain.size())
     {
-        ReadClusterChain(Directory->ClusterChain, Directory->Dirent, *(Directory->Volume));
+        ReadClusterChain(directory->ClusterChain, directory->Dirent, *(directory->Volume));
     }
     // Loop for each cluster
-    for (int i = 0; i < (int)Directory->ClusterChain.size(); i++)
+    for (int i = 0; i < (int)directory->ClusterChain.size(); i++)
     {
         // Set the IO's position to the start of the cluster
-        DeviceStream->SetPosition(Directory->Volume->DataStart +
-                        ((UINT64)(Directory->ClusterChain.at(i) - 1)   * Directory->Volume->ClusterSize));
+        deviceStream->SetPosition(directory->Volume->DataStart +
+                        ((uint64_t)(directory->ClusterChain.at(i) - 1)   * directory->Volume->ClusterSize));
         // Loop for the maximum amount of entries per cluster
-        for (int j = 0; j < Directory->Volume->ClusterSize / 0x40; j++)
+        for (size_t j = 0; j < directory->Volume->ClusterSize / 0x40; j++)
         {
-            xDirent Entry;
-            memset(&Entry, 0, sizeof(Entry));
-            Entry.Offset = DeviceStream->Position();
+            xDirent entry;
+            memset(&entry, 0, sizeof(entry));
+            entry.Offset = deviceStream->Position();
             // Would just read the entire header here, but since there's the endian swap...
-            Entry.NameSize = DeviceStream->ReadByte();
+            entry.NameSize = deviceStream->ReadByte();
 
             // For now, I'm not messing with deleted stuff
-            if (Entry.NameSize == FAT_DIRENT_DELETED)
+            if (entry.NameSize == FAT_DIRENT_DELETED)
             {
-                DeviceStream->SetPosition(DeviceStream->Position() + 0x3F);
+                deviceStream->SetPosition(deviceStream->Position() + 0x3F);
                 continue;
             }
-            if (Entry.NameSize == FAT_DIRENT_NEVER_USED || Entry.NameSize == FAT_DIRENT_NEVER_USED2)
+            if (entry.NameSize == FAT_DIRENT_NEVER_USED || entry.NameSize == FAT_DIRENT_NEVER_USED2)
             {
                 break;
             }
 
-            Entry.Attributes = DeviceStream->ReadByte();
-            DeviceStream->Read((BYTE*)&Entry.Name, Entry.NameSize);
+            entry.Attributes = deviceStream->ReadByte();
+            deviceStream->Read((uint8_t*)&entry.Name, entry.NameSize);
 
-            DeviceStream->SetPosition((DeviceStream->Position() + 0x2A) - Entry.NameSize);
+            deviceStream->SetPosition((deviceStream->Position() + 0x2A) - entry.NameSize);
 
-            Entry.ClusterStart              = DeviceStream->ReadUInt32();
-            Entry.FileSize                  = DeviceStream->ReadUInt32();
-            Entry.DateCreated.AsDWORD       = DeviceStream->ReadUInt32();
-            Entry.DateLastWritten.AsDWORD   = DeviceStream->ReadUInt32();
-            Entry.DateAccessed.AsDWORD      = DeviceStream->ReadUInt32();
+            entry.ClusterStart              = deviceStream->ReadUInt32();
+            entry.FileSize                  = deviceStream->ReadUInt32();
+            entry.DateCreated.AsDWORD       = deviceStream->ReadUInt32();
+            entry.DateLastWritten.AsDWORD   = deviceStream->ReadUInt32();
+            entry.DateAccessed.AsDWORD      = deviceStream->ReadUInt32();
 
             // All of that's done, now determine what type of entry it is
-            if (Entry.Attributes & Attributes::DIRECTORY)
+            if (entry.Attributes & Attributes::DIRECTORY)
             {
                 // Folder, sweet.
-                Folder *f           = new Folder();
-                f->Dirent           = Entry;
-                f->FullPath         = Directory->FullPath + "/";
-                f->FullPath         += Entry.Name;
-                f->Parent           = Directory;
+                shared_ptr<Folder> f(new Folder());
+                f->Dirent           = entry;
+                f->FullPath         = directory->FullPath + "/";
+                f->FullPath         += entry.Name;
+                f->Parent           = directory;
                 f->FatxEntriesRead  = false;
-                f->Volume           = Directory->Volume;
-                f->DateAccessed     = Helpers::IntToQDateTime(Entry.DateLastWritten);
-                f->DateCreated      = Helpers::IntToQDateTime(Entry.DateCreated);
-                f->DateModified     = Helpers::IntToQDateTime(Entry.DateAccessed);
-                Directory->CachedFolders.push_back(f);
+                f->Volume           = directory->Volume;
+                f->DateAccessed     = Helpers::IntToQDateTime(entry.DateLastWritten);
+                f->DateCreated      = Helpers::IntToQDateTime(entry.DateCreated);
+                f->DateModified     = Helpers::IntToQDateTime(entry.DateAccessed);
+                directory->CachedFolders.push_back(f);
             }
             else
             {
-                File *f         = new File();
-                f->Dirent       = Entry;
-                f->FullPath     = Directory->FullPath + "/";
-                f->FullPath     += Entry.Name;
-                f->Parent       = Directory;
-                f->Volume       = Directory->Volume;
-                f->DateAccessed = Helpers::IntToQDateTime(Entry.DateLastWritten);
-                f->DateCreated  = Helpers::IntToQDateTime(Entry.DateCreated);
-                f->DateModified = Helpers::IntToQDateTime(Entry.DateAccessed);
+                shared_ptr<File> f(new File());
+                f->Dirent       = entry;
+                f->FullPath     = directory->FullPath + "/";
+                f->FullPath     += entry.Name;
+                f->Parent       = directory;
+                f->Volume       = directory->Volume;
+                f->DateAccessed = Helpers::IntToQDateTime(entry.DateLastWritten);
+                f->DateCreated  = Helpers::IntToQDateTime(entry.DateCreated);
+                f->DateModified = Helpers::IntToQDateTime(entry.DateAccessed);
                 f->FullClusterChainRead = false;
-                Directory->CachedFiles.push_back(f);
+                directory->CachedFiles.push_back(f);
             }
         }
     }
-    Directory->FatxEntriesRead = true;
+    directory->FatxEntriesRead = true;
 }
 
-void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition, int Count)
+void Drive::ReadClusterChain(vector<uint32_t>& chain, xDirent entry, const shared_ptr<FatxVolume> relativePartition, int count)
 {
     // Clear the chain
-    Chain.clear();
+    chain.clear();
     // The int that signifies end of cluster chain
-    UINT32 End = (RelativePartition.EntrySize == 2) ? FAT_CLUSTER16_LAST : FAT_CLUSTER_LAST;
+    uint32_t end = (relativePartition.EntrySize == 2) ? FAT_CLUSTER16_LAST : FAT_CLUSTER_LAST;
     // The previous cluster
-    UINT32 Previous = Entry.ClusterStart;
+    uint32_t previous = entry.ClusterStart;
     // Add the base cluster to the chain
-    Chain.push_back(Previous);
+    chain.push_back(previous);
     // Loop
     do
     {
         // Set the IO to the FAT index
-        DeviceStream->SetPosition((RelativePartition.Offset + 0x1000) + (UINT64)(Previous * RelativePartition.EntrySize));
+        deviceStream->SetPosition((relativePartition.Offset + 0x1000) + (uint64_t)(previous * relativePartition.EntrySize));
         // Read the int there
-        if (RelativePartition.EntrySize == 2)
+        if (relativePartition.EntrySize == 2)
         {
-            Previous = (UINT32)DeviceStream->ReadUInt16();
+            previous = static_cast<uint32_t>(deviceStream->ReadUInt16());
         }
         else
         {
-            Previous = (UINT32)DeviceStream->ReadUInt32();
+            previous = deviceStream->ReadUInt32();
         }
         // If we haven't reached the end of the chain, add the previous cluster to our chain
-        if (Previous != End)
+        if (previous != end)
         {
-            Chain.push_back(Previous);
+            chain.push_back(previous);
         }
     }
-    while(Previous != FAT_CLUSTER_AVAILABLE && Previous != End && Chain.size() != Count);
+    while(previous != FAT_CLUSTER_AVAILABLE && previous != end && chain.size() != count);
 
-    if (Previous == FAT_CLUSTER_AVAILABLE)
+    if (previous == FAT_CLUSTER_AVAILABLE)
     {
-        char buffer[0x46];
-        sprintf(buffer, "Free block referenced in FAT cluster chain! Dirent offset: 0x%lX", Entry.Offset);
+        std::string message;
+        message << "Free block referenced in FAT cluster chain! Dirent offset: 0x" << std::hex << entry.Offset;
         qDebug("Exception thrown at ReadClusterChain: Free block");
-        throw xException(buffer);
+        throw FatxException(message);
     }
 }
 
 void Drive::Close( void )
 {
     qDebug("Closing disk, destroying volumes");
-    if (DeviceStream)
+    if (deviceStream)
     {
-        DeviceStream->Close();
-        delete DeviceStream;
+        deviceStream->Close();
+        delete deviceStream;
     }
-    while (ValidVolumes->size())
+    while (validVolumes.size())
     {
-        if (!ValidVolumes->size())
+        if (!validVolumes.size())
             break;
-        xVolume *x = ValidVolumes->at(0);
+        FatxVolume *x = validVolumes.at(0);
         DestroyFolder(x->Root);
-        ValidVolumes->erase(ValidVolumes->begin());
+        validVolumes.erase(validVolumes.begin());
         delete x;
     }
-    delete ValidVolumes;
+    delete validVolumes;
 }
 
 vector<string> Drive::Partitions( void )
 {
     if (!_partitions.size())
     {
-        for (int i = 0; i < (int)ValidVolumes->size(); i++)
+        for (int i = 0; i < (int)validVolumes.size(); i++)
         {
-            _partitions.push_back(ValidVolumes->at(i)->Name);
+            _partitions.push_back(validVolumes.at(i)->Name);
         }
     }
     return _partitions;
 }
 
-UINT64 Drive::PartitionGetLength( string Partition )
+uint64_t Drive::PartitionGetLength( string Partition )
 {
-    for (int i = 0; i < (int)ValidVolumes->size(); i++)
+    for (int i = 0; i < (int)validVolumes.size(); i++)
     {
         QRegExp rgx(Partition.c_str());
         rgx.setCaseSensitivity(Qt::CaseInsensitive);
         rgx.setPatternSyntax(QRegExp::FixedString);
-        if (rgx.exactMatch(ValidVolumes->at(i)->Name.c_str()))
+        if (rgx.exactMatch(validVolumes.at(i)->Name.c_str()))
         {
-            return ValidVolumes->at(i)->Size;
+            return validVolumes.at(i)->Size;
         }
     }
     qDebug("Exception thrown at PartitionGetLength: Partition not found");
-    throw xException("Partition not found!");
+    throw FatxException("Partition not found!");
 }
 
 void Drive::SetValidPartitions( void )
 {
-    if (!ValidVolumes)
+    if (!validVolumes)
     {
-        vector<xVolume *> DiskVolumes;
+        vector<FatxVolume *> DiskVolumes;
         // Get the partitions
 
         // Dev kit partitions
         if (IsDevKitDrive)
         {
-            DeviceStream->SetPosition(8);
+            deviceStream->SetPosition(8);
             vector<DevPartition> DevPartitions;
             DevPartition Content;
             DevPartition Dash;
 
             Content.Name = "Data";
-            Content.Sector = DeviceStream->ReadUInt32();
-            Content.Size = DeviceStream->ReadUInt32();
+            Content.Sector = deviceStream->ReadUInt32();
+            Content.Size = deviceStream->ReadUInt32();
 
-            DeviceStream->SetPosition(0x10);
+            deviceStream->SetPosition(0x10);
             Dash.Name = "System Partition";
-            Dash.Sector = DeviceStream->ReadUInt32();
-            Dash.Size = DeviceStream->ReadUInt32();
+            Dash.Sector = deviceStream->ReadUInt32();
+            Dash.Size = deviceStream->ReadUInt32();
 
             DevPartitions.push_back(Dash);
             DevPartitions.push_back(Content);
@@ -724,8 +721,8 @@ void Drive::SetValidPartitions( void )
             for (int i = 0; i < (int)DevPartitions.size(); i++)
             {
                 DevPartition temp = DevPartitions.at(i);
-                xVolume *Actual = new xVolume();
-                Actual->Offset = (UINT64)temp.Sector * 0x200;
+                FatxVolume *Actual = new FatxVolume();
+                Actual->Offset = (uint64_t)temp.Sector * 0x200;
                 Actual->Size = temp.Size * 0x200;
                 Actual->Name = temp.Name;
                 DiskVolumes.push_back(Actual);
@@ -735,10 +732,10 @@ void Drive::SetValidPartitions( void )
         // Thumb drive partitions
         else if (Type == DeviceUsb)
         {
-            xVolume* SysExt = new xVolume();
-            xVolume* SysAux = new xVolume();
-            xVolume* Cache  = new xVolume();
-            xVolume* Data   = new xVolume();
+            FatxVolume* SysExt = new FatxVolume();
+            FatxVolume* SysAux = new FatxVolume();
+            FatxVolume* Cache  = new FatxVolume();
+            FatxVolume* Data   = new FatxVolume();
 
             SysExt->Offset = UsbOffsets::SystemExtended;
             SysAux->Offset = UsbOffsets::SystemAux;
@@ -748,7 +745,7 @@ void Drive::SetValidPartitions( void )
             SysExt->Size = UsbSizes::SystemExtended;
             SysAux->Size = UsbSizes::SystemAux;
             Cache->Size = UsbSizes::Cache;
-            Data->Size = (DeviceStream->Length() - Data->Offset);
+            Data->Size = (deviceStream->Length() - Data->Offset);
 
             SysExt->Name = "System Extended";
             SysAux->Name = "System Auxiliary";
@@ -760,8 +757,8 @@ void Drive::SetValidPartitions( void )
             Cache->Disk = this;
             Data->Disk = this;
 
-            DeviceStream->SetPosition(SysExt->Offset);
-            if (DeviceStream->ReadUInt32() == FatxMagic)
+            deviceStream->SetPosition(SysExt->Offset);
+            if (deviceStream->ReadUInt32() == FatxMagic)
             {
                 DiskVolumes.push_back(SysExt);
                 DiskVolumes.push_back(SysAux);
@@ -781,10 +778,10 @@ void Drive::SetValidPartitions( void )
         // Retail disk/disk backup partitions
         else if(Type == DeviceDisk || Type == DeviceBackup)
         {
-            xVolume* SysExt        = new xVolume();
-            xVolume* SysAux        = new xVolume();
-            xVolume* SystemPartition = new xVolume();
-            xVolume* Data          = new xVolume();
+            FatxVolume* SysExt        = new FatxVolume();
+            FatxVolume* SysAux        = new FatxVolume();
+            FatxVolume* SystemPartition = new FatxVolume();
+            FatxVolume* Data          = new FatxVolume();
 
             SysExt->Offset = HddOffsets::SystemExtended;
             SysAux->Offset = HddOffsets::SystemAux;
@@ -794,7 +791,7 @@ void Drive::SetValidPartitions( void )
             SysExt->Size = HddSizes::SystemExtended;
             SysAux->Size = HddSizes::SystemAux;
             SystemPartition->Size = HddSizes::SystemPartition;
-            Data->Size = DeviceStream->Length() - Data->Offset;
+            Data->Size = deviceStream->Length() - Data->Offset;
 
             SysExt->Name = "System Extended";
             SysAux->Name = "System Auxiliary";
@@ -813,7 +810,7 @@ void Drive::SetValidPartitions( void )
             try
             {
                 FatxProcessBootSector(DiskVolumes.at(i));
-                xVolume* p = DiskVolumes.at(i);
+                FatxVolume* p = DiskVolumes.at(i);
                 p->Root = new Folder();
                 p->Root->Volume = p;
                 p->Root->FullPath += p->Name;
@@ -831,7 +828,7 @@ void Drive::SetValidPartitions( void )
                 }
                 catch(...)
                 {
-                    throw xException("Bad partition FAT chain");
+                    throw FatxException("Bad partition FAT chain");
                 }
             }
             catch (...)
@@ -843,8 +840,8 @@ void Drive::SetValidPartitions( void )
             }
         }
 
-        ValidVolumes = new vector<xVolume *>();
-        *ValidVolumes = DiskVolumes;
+        validVolumes = new vector<FatxVolume *>();
+        *validVolumes = DiskVolumes;
     }
 }
 
@@ -853,9 +850,9 @@ void Drive::InitializePartitions( void )
     // First, check to see if the drive has devkit partitions
     if (Type != DeviceUsb)
     {
-        DeviceStream->SetPosition(0);
+        deviceStream->SetPosition(0);
         // Dev hard disks have 0x00020000 at offset 0
-        UINT32 Magic = DeviceStream->ReadInt32();
+        uint32_t Magic = deviceStream->ReadInt32();
         if (Magic == 0x00020000)
         {
             IsDevKitDrive = true;
@@ -863,43 +860,43 @@ void Drive::InitializePartitions( void )
         else if (Type == DeviceBackup && Magic != FatxMagic)
         {
             qDebug("Exception thrown at InitializePartitions: Not a valid FATX file");
-            throw xException("Not a valid FATX file.");
+            throw FatxException("Not a valid FATX file.");
         }
     }
     SetValidPartitions();
 }
 
-INT64 Drive::GetLength( void )
+uint64_t Drive::GetLength( void )
 {
     if (Type == DeviceDisk && !IsDevKitDrive)
-        return ((INT64)Drive::GetSectorsFromSecuritySector()) * 0x200LL;
-    return DeviceStream->Length();
+        return ((uint64_t)Drive::GetSectorsFromSecuritySector()) * 0x200LL;
+    return deviceStream->Length();
 }
 
-DWORD Drive::GetSectorsFromSecuritySector( void )
+uint32_t Drive::GetSectorsFromSecuritySector( void )
 {
-    static DWORD s_sectors = 0;
+    static uint32_t s_sectors = 0;
     qDebug("s_sectors: 0x%LX", s_sectors);
-    qDebug("s_sectors * 0x200: 0x%LX", (INT64)s_sectors * 0x200LL);
+    qDebug("s_sectors * 0x200: 0x%LX", (uint64_t)s_sectors * 0x200LL);
     if (s_sectors != 0)
         return s_sectors;
 
     // Set the stream position to the location of the security sector + 0x58 for the number of sectors
-    DeviceStream->SetPosition(HddOffsets::SecuritySector + 0x58);
+    deviceStream->SetPosition(HddOffsets::SecuritySector + 0x58);
     // The integer here is little-endian, so switch to little-endian on our IO
-    DeviceStream->SetEndianness(Streams::Little);
-    s_sectors = DeviceStream->ReadUInt32();
-    DeviceStream->SetEndianness(Streams::Big);
+    deviceStream->SetEndianness(Streams::Little);
+    s_sectors = deviceStream->ReadUInt32();
+    deviceStream->SetEndianness(Streams::Big);
     qDebug("s_sectors: 0x%LX", s_sectors);
-    qDebug("s_sectors * 0x200: 0x%LX", (INT64)s_sectors * 0x200LL);
+    qDebug("s_sectors * 0x200: 0x%LX", (uint64_t)s_sectors * 0x200LL);
     return s_sectors;
 }
 
 // Count leading zeroes word (but, we use a DWORD :) )
-BYTE Drive::cntlzw(unsigned int val)
+uint8_t Drive::cntlzw(uint32_t val)
 {
-    vector<BYTE> Consecutives;
-    BYTE consec = 0;
+    vector<uint8_t> Consecutives;
+    uint8_t consec = 0;
     for (unsigned int i = 1; i <= 0x80000000; i = i << 1)
     {
         if ((val & i) == 0)
@@ -918,7 +915,7 @@ BYTE Drive::cntlzw(unsigned int val)
     }
     Consecutives.push_back(consec);
 
-    BYTE highest = 0;
+    uint8_t highest = 0;
     for (int i = 0; i < (int)Consecutives.size(); i++)
     {
         if (Consecutives.at(i) > highest)
@@ -929,21 +926,21 @@ BYTE Drive::cntlzw(unsigned int val)
     return highest;
 }
 
-void Drive::FatxProcessBootSector( xVolume* ref )
+void Drive::FatxProcessBootSector( FatxVolume* ref )
 {
     // Get the partition size locally
-    UINT64 PartitionSize = (INT64)ref->Size;
+    uint64_t PartitionSize = (uint64_t)ref->Size;
 
-    DeviceStream->SetPosition(ref->Offset);
-    ref->Magic = DeviceStream->ReadUInt32();
+    deviceStream->SetPosition(ref->Offset);
+    ref->Magic = deviceStream->ReadUInt32();
     if (ref->Magic != FatxMagic)
     {
         qDebug("Exception thrown at FatxProcessBotSector: Invalid magic");
-        throw xException("Bad magic");
+        throw FatxException("Bad magic");
     }
 
-    DeviceStream->SetPosition(ref->Offset + 0x8);
-    ref->SectorsPerCluster = DeviceStream->ReadUInt32();
+    deviceStream->SetPosition(ref->Offset + 0x8);
+    ref->SectorsPerCluster = deviceStream->ReadUInt32();
 
     switch(ref->SectorsPerCluster)
     {
@@ -957,17 +954,17 @@ void Drive::FatxProcessBootSector( xVolume* ref )
         break;
     default:
         qDebug("Exception thrown at FatxProcessBotSector: Invalid sectors per cluster");
-        throw xException("FATX: found invalid sectors per cluster");
+        throw FatxException("FATX: found invalid sectors per cluster");
     }
 
-    DeviceStream->SetPosition(ref->Offset + 0xC);
-    ref->RootDirectoryCluster = DeviceStream->ReadUInt32();
+    deviceStream->SetPosition(ref->Offset + 0xC);
+    ref->RootDirectoryCluster = deviceStream->ReadUInt32();
 
-    DeviceStream->SetPosition(ref->Offset + 0x4);
-    ref->SerialNumber = DeviceStream->ReadUInt32();
+    deviceStream->SetPosition(ref->Offset + 0x4);
+    ref->SerialNumber = deviceStream->ReadUInt32();
 
     ref->ClusterSize = ref->SectorsPerCluster << 9;
-    BYTE ConsecutiveZeroes = cntlzw(ref->ClusterSize);
+    uint8_t ConsecutiveZeroes = cntlzw(ref->ClusterSize);
     int ShiftFactor = 0x1F - ConsecutiveZeroes;
 
     PartitionSize >>= ShiftFactor;
@@ -985,7 +982,7 @@ void Drive::FatxProcessBootSector( xVolume* ref )
     PartitionSize += 0x1000;
     PartitionSize--;
 
-    UINT64 Clusters = ref->Size;
+    uint64_t Clusters = ref->Size;
     Clusters -= 0x1000;
 
     PartitionSize &= ~0xFFF;
@@ -994,7 +991,7 @@ void Drive::FatxProcessBootSector( xVolume* ref )
     if (Clusters < PartitionSize)
     {
         qDebug("Exception thrown at FatxProcessBotSector: Volume too small to hold FAT");
-        throw xException("FATX: Volume too small to hold the FAT");
+        throw FatxException("FATX: Volume too small to hold the FAT");
     }
 
     Clusters -= PartitionSize;
@@ -1002,7 +999,7 @@ void Drive::FatxProcessBootSector( xVolume* ref )
     if (Clusters > 0xFFFFFFF)
     {
         qDebug("Exception thrown at FatxProcessBotSector: Too many clusters");
-        throw xException("FATX: too many clusters");
+        throw FatxException("FATX: too many clusters");
     }
 
     ref->Clusters = Clusters;

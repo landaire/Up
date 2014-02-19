@@ -4,7 +4,7 @@
 #include "../FATX/IO/IStream.h"
 #include "StaticInformation.h"
 #include <QString>
-#include <../QtGui/QImage>
+#include <QImage>
 
 class StfsPackage
 {
@@ -12,11 +12,11 @@ private:
     Streams::IStream *Stream;
     bool checkedIfIsStfsPackage;
     bool _isStfsPackage;
-    DWORD _magic;
-    DWORD _contentType;
-    DWORD _titleId;
-    UINT64 _consoleId;
-    UINT64 _profileId;
+    uint32_t2_t _magic;
+    uint32_t2_t _contentType;
+    uint32_t2_t _titleId;
+    uint64_t_t _consoleId;
+    uint64_t_t _profileId;
     QString _displayName;
     QString _description;
     QString _titleName;
@@ -28,11 +28,11 @@ public:
     StfsPackage( Streams::IStream *Stream );
     ~StfsPackage( void );
     bool IsStfsPackage( void );
-    DWORD Magic( void );
-    DWORD ContentType( void );
-    DWORD TitleId( void );
-    UINT64 ConsoleId( void );
-    UINT64 ProfileId( void );
+    uint32_t2_t Magic( void );
+    uint32_t2_t ContentType( void );
+    uint32_t2_t TitleId( void );
+    uint64_t_t ConsoleId( void );
+    uint64_t_t ProfileId( void );
     QString DisplayName( int Locale = 0 );
     QString Description( int Locale = 0 );
     QString TitleName( int Locale = 0 );

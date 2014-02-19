@@ -2,7 +2,7 @@
 #define MAINFORM_H
 
 // Qt referencces
-#include <QtGui/QMainWindow>
+#include <QtWidgets/QMainWindow>
 #include <qmessagebox.h>
 #include <qfiledialog.h>
 #include <qcommandlinkbutton.h>
@@ -42,7 +42,7 @@ class MainForm : public QMainWindow
         Q_OBJECT
 
 public:
-        MainForm(QWidget *parent = 0, Qt::WFlags flags = 0);
+        MainForm(QWidget *parent = 0, Qt::WindowFlags flags = 0);
         ~MainForm();
 public slots:
         void OnLoadDevicesClick( void );
@@ -56,7 +56,7 @@ private:
         QIcon iFile;
         QIcon iPartition;
         QIcon iUsb;        
-        std::map<DWORD, QIcon*> Icons;
+        std::map<uint32_t, QIcon*> Icons;
 
         Ui::MainFormClass ui;
         void                    Center          ( void );

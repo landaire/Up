@@ -41,14 +41,14 @@ std::vector<Drive *> PCUtils::GetFATXDrives( bool IncludeHardDisks )
         // Get the hard disks
         PCUtils::GetPhysicalDisks(Disks);
 
-        Streams::xDeviceStream* DS = nullptr;
+        Streams::DeviceStream* DS = nullptr;
         for (int i = 0; i < (int)Disks.size(); i++)
         {
             DISK_DRIVE_INFORMATION ddi = Disks[i];
             // First, try reading the disk way
             try
             {
-                DS = new Streams::xDeviceStream(std::string(ddi.Path));
+                DS = new Streams::DeviceStream(std::string(ddi.Path));
             }
             catch (...)
             {
@@ -291,7 +291,7 @@ if (dir != NULL)
             path.str(std::string());
             path << curdir.Path;
             path << "Xbox360/Data0000";
-            Streams::xFileStream *x = new Streams::xFileStream(path.str(), Streams::Open);
+            Streams::FileStream *x = new Streams::FileStream(path.str(), Streams::Open);
             // Stream opened good, close it
             x->Close();
             delete x;

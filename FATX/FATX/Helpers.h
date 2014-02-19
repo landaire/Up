@@ -1,7 +1,7 @@
 #ifndef __HELPERS__HG
 #define __HELPERS__HG
 #include "../typedefs.h"
-#include "../FATX/StaticInformation.h"
+#include "StaticInformation.h"
 #include <QDateTime>
 #include <QDate>
 #include <QTime>
@@ -12,11 +12,11 @@ class Helpers
 public:
     static QDateTime IntToQDateTime( FAT_TIME_STAMP Date );
     static int   QDateTimeToInt(QDateTime);
-	static INT64 DownToNearestSector( INT64 Offset );
-	static INT64 UpToNearestSector( INT64 Offset );
-    static INT64 UpToNearestX( INT64 Value, int x);
-    static INT64 DownToNearestX( INT64 Value, int x);
-    static std::string ConvertToFriendlySize( INT64 Size );
+	static uint64_t4_t DownToNearestSectouint64_tnt64_t Offset );
+	static uint64_t4_t UpToNearestSectouint64_tnt64_t Offset );
+    static uint64_t4_t UpToNearestuint64_tnt64_t Value, int x);
+    static uint64_t4_t DownToNearestuint64_tnt64_t Value, int x);
+    static std::string ConvertToFriendlySize( uint64_t4_t Size );
     static void split(const std::string &s, char delim, std::vector<std::string> &elems);
 
     static std::string QStringToStdString(QString stringData);

@@ -1,7 +1,7 @@
 #include "AboutForm.h"
 
 
-AboutForm::AboutForm(QWidget *parent, Qt::WFlags flags)
+AboutForm::AboutForm(QWidget *parent, Qt::WindowFlags flags)
 	: QDialog(parent, flags)
 {
 	ui.setupUi(this);

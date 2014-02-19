@@ -3,20 +3,20 @@
 #ifndef _WINDOWS_
 #ifndef _WIN32
 
-typedef unsigned long       DWORD;
+typedef unsigned long       uint32_t;
 typedef int                 BOOL;
-typedef unsigned char       BYTE;
+typedef unsigned char       uint8_t;
 typedef unsigned short      WORD;
 
 
 typedef          char       INT8, *PINT8;
 typedef          short      INT16, *PINT16;
 typedef          int        INT32, *PINT32;
-typedef          long long  INT64, *PINT64;
+typedef          long long  uint64_t, *PINT64;
 typedef unsigned char       UINT8, *PUINT8;
 typedef unsigned short      UINT16, *PUINT16;
-typedef unsigned int        UINT32, *PUINT32;
-typedef unsigned long long  UINT64, *PUINT64;
+typedef unsigned int        uint32_t, *PUINT32;
+typedef unsigned long long  uint64_t, *PUINT64;
 #else
 #include <Windows.h>
 #include <tchar.h>

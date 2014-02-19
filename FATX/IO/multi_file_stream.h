@@ -8,7 +8,7 @@
 #include <stdexcept>
 namespace Streams
 {
-	class xMultiFileStream :
+	class MultiFileStream :
 		public IStream
 	{
 	private:
@@ -17,8 +17,8 @@ namespace Streams
 		int CurrentStream;
 
 	public:
-        xMultiFileStream(std::vector<std::string> InPaths );
-		~xMultiFileStream(void);
+        MultiFileStream(const std::vector<std::___LIBCPP_ABI_VERSION::string> InPaths );
+		~MultiFileStream(void);
 
         INT64 Position		( void );
         void SetPosition		( INT64 Position );
@@ -30,7 +30,7 @@ namespace Streams
 
 		 void	WriteUInt16		( unsigned short	_UInt16	);	// Function for writing	an unsigned Int16	
 		 void	WriteUInt32		( unsigned int		_UInt	);	// Function for writing an unsigned Int32
-		 void	WriteUInt64		( UINT64			_UInt64	);	// Function for writing an unsigned Int64
+		 void	WriteUInt64		( uint64_t			_UInt64	);	// Function for writing an unsigned Int64
 
 		 void	WriteInt16		( short	_UInt16 );				// Writes a signed Int16 (WORD)
 		 void	WriteInt32		( int	_Int32	);				// Writes a signed Int32 (DWORD)
@@ -45,7 +45,7 @@ namespace Streams
 		 BYTE				ReadByte		( void );			// Function for reading a single byte
 
 		 // float				ReadFloat		( void );			// Function for reading a float
-		 UINT64				ReadUInt64		( void );			// Function for reading a uint64
+		 uint64_t				ReadUInt64		( void );			// Function for reading a uint64
 		 unsigned int		ReadUInt32		( void );			// Function for reading a uint
 		 unsigned short		ReadUInt16		( void );			// Function for reading a ushort
 

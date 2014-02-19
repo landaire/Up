@@ -1,9 +1,9 @@
 #include "StdAfx.h"
-#include "xDeviceStream.h"
+#include "device_stream.h"
 
 namespace Streams
 {
-xDeviceStream::xDeviceStream(std::string DevicePath )
+DeviceStream::DeviceStream(std::string DevicePath )
 {
     // Set our variables
     _Length = 0;
@@ -47,12 +47,12 @@ xDeviceStream::xDeviceStream(std::string DevicePath )
 }
 
 
-xDeviceStream::~xDeviceStream(void)
+DeviceStream::~DeviceStream(void)
 {
 
 }
 
-void xDeviceStream::Close( void )
+void DeviceStream::Close( void )
 {
     if (IsClosed)
         return;
@@ -68,12 +68,12 @@ void xDeviceStream::Close( void )
     IsClosed = true;
 }
 
-INT64 xDeviceStream::Position( void )
+INT64 DeviceStream::Position( void )
 {
     return UserOffset;
 }
 
-INT64 xDeviceStream::RealPosition( void )
+INT64 DeviceStream::RealPosition( void )
 {
 #ifdef _WIN32
     return (INT64)(((INT64)Offset.OffsetHigh << 32) | Offset.Offset);
@@ -82,7 +82,7 @@ INT64 xDeviceStream::RealPosition( void )
 #endif
 }
 
-void xDeviceStream::SetPosition( INT64 Position )
+void DeviceStream::SetPosition( INT64 Position )
 {
     if (IsClosed)
     {
@@ -99,7 +99,7 @@ void xDeviceStream::SetPosition( INT64 Position )
 #endif
 }
 
-INT64 xDeviceStream::Length( void )
+INT64 DeviceStream::Length( void )
 {
     if (!IsClosed && !_Length)
     {
@@ -146,7 +146,7 @@ INT64 xDeviceStream::Length( void )
     return _Length;
 }
 
-BYTE xDeviceStream::ReadByte( void )
+BYTE DeviceStream::ReadByte( void )
 {
     if (IsClosed)
     {
@@ -163,7 +163,7 @@ BYTE xDeviceStream::ReadByte( void )
     return Return;
 }
 
-short xDeviceStream::ReadInt16( void )
+short DeviceStream::ReadInt16( void )
 {
     if (IsClosed)
     {
@@ -182,7 +182,7 @@ short xDeviceStream::ReadInt16( void )
     return Return;
 }
 
-int xDeviceStream::ReadInt32( void )
+int DeviceStream::ReadInt32( void )
 {
     if (IsClosed)
     {
@@ -214,7 +214,7 @@ int xDeviceStream::ReadInt32( void )
     return Return;
 }
 
-INT64 xDeviceStream::ReadInt64( void )
+INT64 DeviceStream::ReadInt64( void )
 {
     if (IsClosed)
     {
@@ -240,7 +240,7 @@ INT64 xDeviceStream::ReadInt64( void )
     return Return;
 }
 
-UINT16 xDeviceStream::ReadUInt16( void )
+UINT16 DeviceStream::ReadUInt16( void )
 {
     if (IsClosed)
     {
@@ -266,7 +266,7 @@ UINT16 xDeviceStream::ReadUInt16( void )
     return Return;
 }
 
-UINT32 xDeviceStream::ReadUInt32( void )
+UINT32 DeviceStream::ReadUInt32( void )
 {
     INT64 pos = Position(), len = Length();
     if (IsClosed)
@@ -293,7 +293,7 @@ UINT32 xDeviceStream::ReadUInt32( void )
     return Return;
 }
 
-UINT64 xDeviceStream::ReadUInt64( void )
+UINT64 DeviceStream::ReadUInt64( void )
 {
     if (IsClosed)
     {
@@ -319,7 +319,7 @@ UINT64 xDeviceStream::ReadUInt64( void )
     return Return;
 }
 
-int xDeviceStream::Read( BYTE* DestBuff, int Count )
+int DeviceStream::Read( BYTE* DestBuff, int Count )
 {
     if (IsClosed)
     {
@@ -422,7 +422,7 @@ int xDeviceStream::Read( BYTE* DestBuff, int Count )
     return Count;
 }
 
-std::string xDeviceStream::ReadString( size_t Count )
+std::string DeviceStream::ReadString( size_t Count )
 {
     if (IsClosed)
     {
@@ -442,7 +442,7 @@ std::string xDeviceStream::ReadString( size_t Count )
     return ret;
 }
 
-std::string xDeviceStream::ReadCString( void )
+std::string DeviceStream::ReadCString( void )
 {
     if (IsClosed)
     {
@@ -475,7 +475,7 @@ std::string xDeviceStream::ReadCString( void )
     return Return;
 }
 
-std::wstring xDeviceStream::ReadUnicodeString( size_t Count )
+std::wstring DeviceStream::ReadUnicodeString( size_t Count )
 {
     if (IsClosed)
     {
@@ -496,7 +496,7 @@ std::wstring xDeviceStream::ReadUnicodeString( size_t Count )
     return ret;
 }
 
-void xDeviceStream::WriteByte( BYTE _Byte )
+void DeviceStream::WriteByte( BYTE _Byte )
 {
     if (IsClosed)
     {
@@ -509,7 +509,7 @@ void xDeviceStream::WriteByte( BYTE _Byte )
     Write(&_Byte, 1);
 }
 
-void xDeviceStream::WriteInt16( short _Int16 )
+void DeviceStream::WriteInt16( short _Int16 )
 {
     if (IsClosed)
     {
@@ -523,7 +523,7 @@ void xDeviceStream::WriteInt16( short _Int16 )
     Write((BYTE*)&_Int16, sizeof(short));
 }
 
-void xDeviceStream::WriteInt32( int _Int32 )
+void DeviceStream::WriteInt32( int _Int32 )
 {
     if (IsClosed)
     {
@@ -538,7 +538,7 @@ void xDeviceStream::WriteInt32( int _Int32 )
     Write((BYTE*)&_Int32, sizeof(int));
 }
 
-void xDeviceStream::WriteInt64( INT64 _Int64 )
+void DeviceStream::WriteInt64( INT64 _Int64 )
 {
     if (IsClosed)
     {
@@ -553,7 +553,7 @@ void xDeviceStream::WriteInt64( INT64 _Int64 )
     Write((BYTE*)&_Int64, sizeof(INT64));
 }
 
-void xDeviceStream::WriteUInt16( UINT16 _UInt16 )
+void DeviceStream::WriteUInt16( UINT16 _UInt16 )
 {
     if (IsClosed)
     {
@@ -568,7 +568,7 @@ void xDeviceStream::WriteUInt16( UINT16 _UInt16 )
     Write((BYTE*)&_UInt16, sizeof(UINT16));
 }
 
-void xDeviceStream::WriteUInt32( UINT32 _UInt32 )
+void DeviceStream::WriteUInt32( UINT32 _UInt32 )
 {
     if (IsClosed)
     {
@@ -583,7 +583,7 @@ void xDeviceStream::WriteUInt32( UINT32 _UInt32 )
     Write((BYTE*)&_UInt32, sizeof(UINT32));
 }
 
-void xDeviceStream::WriteUInt64( UINT64 _UInt64 )
+void DeviceStream::WriteUInt64( UINT64 _UInt64 )
 {
     if (IsClosed)
     {
@@ -598,7 +598,7 @@ void xDeviceStream::WriteUInt64( UINT64 _UInt64 )
     Write((BYTE*)&_UInt64, sizeof(UINT64));
 }
 
-int xDeviceStream::Write( BYTE* Buffer, int count )
+int DeviceStream::Write( BYTE* Buffer, int count )
 {
     if (IsClosed)
     {

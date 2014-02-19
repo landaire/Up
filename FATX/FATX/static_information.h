@@ -6,7 +6,7 @@
 #include <vector>
 #include <QDateTime>
 #include <QMetaType>
-#include <../QtGui/QImage>
+#include <QImage>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -14,7 +14,7 @@
 class Drive;
 namespace Streams
 {
-class xDeviceFileStream;
+class DeviceFileStream;
 }
 #define FAT32 4
 #define FAT16 2
@@ -126,22 +126,22 @@ typedef union _FAT_TIME_STAMP
         UINT16 Month    : 4;
         UINT16 Year     : 7; // Relative to 2000
     } DateTime;
-    DWORD AsDWORD;
+    uint32_t AsDWORD;
 } FAT_TIME_STAMP;
 typedef FAT_TIME_STAMP *PFAT_TIME_STAMP;
 
 struct xDirent
 {
     // Size of the file/folder name
-    BYTE NameSize;
+    uint8_t NameSize;
     // System attributes
-    BYTE Attributes;
+    uint8_t Attributes;
     // Name of the file/folder
     char Name[0x2B];
     // The beginning cluster (cluster chain index 0)
-    UINT32 ClusterStart;
+    uint32_t ClusterStart;
     // Size of the file; 0 if folder/null
-    UINT32 FileSize;
+    uint32_t FileSize;
     // Entry creation date
     FAT_TIME_STAMP DateCreated;
     // Entry date for when it was last written
@@ -149,7 +149,7 @@ struct xDirent
     // Entry date for when it was last accessed
     FAT_TIME_STAMP DateAccessed;
     // Offset of the entry (relative to disk start)
-    UINT64 Offset;
+    uint64_t Offset;
 };
 
 struct Progress
@@ -169,18 +169,18 @@ struct Progress
 Q_DECLARE_METATYPE(Progress)
 
 struct File;
-struct xVolume;
+struct FatxVolume;
 
 struct Folder
 {
-    std::vector<UINT32>     ClusterChain;
+    std::vector<uint32_t>     ClusterChain;
     xDirent                 Dirent;
-    std::vector<Folder*>    CachedFolders;
-    std::vector<File*>      CachedFiles;
+    std::vector<std::shared_ptr<Folder>> CachedFolders;
+    std::vector<std::shared_ptr<File>>   CachedFiles;
     bool                    FatxEntriesRead;
     std::string             FullPath;
-    Folder                  *Parent;
-    xVolume                 *Volume;
+    std::shared_ptr<Folder> Parent;
+    std::shared_ptr<FatxVolume> Volume;
     QDateTime               DateCreated;
     QDateTime               DateModified;
     QDateTime               DateAccessed;
@@ -218,11 +218,11 @@ struct Folder
 
 struct File
 {
-    std::vector<UINT32> ClusterChain;
+    std::vector<uint32_t> ClusterChain;
     xDirent             Dirent;
     std::string         FullPath;
-    Folder              *Parent;
-    xVolume             *Volume;
+    std::shared_ptr<Folder>     Parent;
+    std::shared_ptr<FatxVolume> Volume;
     QDateTime           DateCreated;
     QDateTime           DateModified;
     QDateTime           DateAccessed;
@@ -232,30 +232,32 @@ struct File
 typedef struct _DEV_PARTITION
 {
     std::string Name;
-    DWORD Sector;
-	INT64 Size;
+    uint32_t Sector;
+	uint64_t4_t Size;
 } DevPartition;
 
-struct xVolume
+/**
+ * @brief The FATX Volume struct
+ */
+struct FatxVolume
 {
-
     std::string		 Name;
-    DWORD Magic;					// Partition magic
-    DWORD SerialNumber;			// Partition serial number
-    DWORD SectorsPerCluster;		// Number of sectors per cluster
-    DWORD RootDirectoryCluster;	// The cluster in which the root directory is located
-	UINT64		 DataStart;
-    DWORD Clusters;				// Total number of clusters in the partition
-	BYTE EntrySize;						// Size of a chainmap entry
-	UINT64		 Offset;				// Offset of the partition
-	UINT64		 Size;					// Size of the partition
-	UINT64		 AllocationTableSize;
-    UINT64		 ClusterSize;
-    DWORD FatEntryShift;
-    UINT64          FreeClusterRangeStart;
-    Folder       *Root;
-    Drive        *Disk;
-    xVolume()
+    uint32_t Magic;					// Partition magic
+    uint32_t SerialNumber;			// Partition serial number
+    uint32_t SectorsPerCluster;		// Number of sectors per cluster
+    uint32_t RootDirectoryCluster;	// The cluster in which the root directory is located
+    uint64_t DataStart;
+    uint32_t Clusters;				// Total number of clusters in the partition
+    uint8_t  EntrySize;						// Size of a chainmap entry
+    uint64_t Offset;				// Offset of the partition
+    uint64_t Size;					// Size of the partition
+    uint64_t AllocationTableSize;
+    uint64_t ClusterSize;
+    uint32_t FatEntryShift;
+    uint64_t FreeClusterRangeStart;
+    std::shared_ptr<Folder> Root;
+    std::shared_ptr<Drive> Disk;
+    FatxVolume()
     {
         // Set all members to 0
         Magic = 0;
@@ -291,18 +293,18 @@ enum StfsOffsets
 
 struct UsbOffsets
 {
-    static const INT64 SystemAux = 0x8115200;
-    static const INT64 SystemExtended = 0x12000400;
-    static const INT64 Cache = 0x8000400;
-    static const INT64 Data = 0x20000000;
+    static const uint64_t4_t SystemAux = 0x8115200;
+    static const uint64_t4_t SystemExtended = 0x12000400;
+    static const uint64_t4_t Cache = 0x8000400;
+    static const uint64_t4_t Data = 0x20000000;
 };
 
 struct UsbSizes
 {
-    static const INT64 CacheNoSystem = 0x4000000;
-	static const INT64 Cache = 0x47FF000;
-    static const INT64 SystemAux = 0x8000000;
-    static const INT64 SystemExtended = 0xDFFFC00;
+    static const uint64_t4_t CacheNoSystem = 0x4000000;
+	static const uint64_t4_t Cache = 0x47FF000;
+    static const uint64_t4_t SystemAux = 0x8000000;
+    static const uint64_t4_t SystemExtended = 0xDFFFC00;
 };
 
 struct Attributes
@@ -317,27 +319,27 @@ struct Attributes
     static const int TEMPORARY    = 0x00000100;
 };
 
-static const INT64 MaxFileSize		= 0x100000000;
+static const uint64_t4_t MaxFileSize		= 0x100000000;
 static const int   FatxMagic		= 0x58544146;
 
 struct HddSizes
 {
-    static const INT64 SystemCache		= 0x80000000;
-    static const INT64 GameCache		= 0xA0E30000;
-    static const INT64 SystemPartition	= 0x10000000;
-    static const INT64 SystemAux		= 0xCE30000;
-    static const INT64 SystemExtended	= 0x8000000;
+    static const uint64_t4_t SystemCache		= 0x80000000;
+    static const uint64_t4_t GameCache		= 0xA0E30000;
+    static const uint64_t4_t SystemPartition	= 0x10000000;
+    static const uint64_t4_t SystemAux		= 0xCE30000;
+    static const uint64_t4_t SystemExtended	= 0x8000000;
 };
 
 struct HddOffsets
 {
-    static const INT64 Data				= 0x130EB0000;
-    static const INT64 Josh				= 0x800;
-    static const INT64 SecuritySector	= 0x2000;
-    static const INT64 SystemCache		= 0x80000;
-    static const INT64 GameCache		= 0x80080000;
-    static const INT64 SystemAux		= 0x10C080000;
-    static const INT64 SystemExtended	= 0x118EB0000;
-    static const INT64 SystemPartition	= 0x120EB0000;
+    static const uint64_t4_t Data				= 0x130EB0000;
+    static const uint64_t4_t Josh				= 0x800;
+    static const uint64_t4_t SecuritySector	= 0x2000;
+    static const uint64_t4_t SystemCache		= 0x80000;
+    static const uint64_t4_t GameCache		= 0x80080000;
+    static const uint64_t4_t SystemAux		= 0x10C080000;
+    static const uint64_t4_t SystemExtended	= 0x118EB0000;
+    static const uint64_t4_t SystemPartition	= 0x120EB0000;
 };
 #endif

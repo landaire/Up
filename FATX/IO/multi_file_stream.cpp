@@ -1,9 +1,9 @@
 #include "StdAfx.h"
-#include "xMultiFileStream.h"
+#include "multi_file_stream.h"
 #include <QDebug>
 namespace Streams
 {
-xMultiFileStream::xMultiFileStream( std::vector<std::string> InPaths )
+MultiFileStream::MultiFileStream( const std::vector<std::string> InPaths )
 {
     _Length = 0;
     _Endian = Big;
@@ -19,11 +19,11 @@ xMultiFileStream::xMultiFileStream( std::vector<std::string> InPaths )
 }
 
 
-xMultiFileStream::~xMultiFileStream(void)
+MultiFileStream::~MultiFileStream(void)
 {
 }
 
-void xMultiFileStream::Close( void )
+void MultiFileStream::Close( void )
 {
     if (IsClosed)
         return;
@@ -39,12 +39,12 @@ void xMultiFileStream::Close( void )
     IsClosed = true;
 }
 
-INT64 xMultiFileStream::Position( void )
+INT64 MultiFileStream::Position( void )
 {
     return UserOffset;
 }
 
-void xMultiFileStream::SetPosition( INT64 Position )
+void MultiFileStream::SetPosition( INT64 Position )
 {
     // If the position is too large, throw an exception
     if (Position > Length())
@@ -69,7 +69,7 @@ void xMultiFileStream::SetPosition( INT64 Position )
     }
 }
 
-INT64 xMultiFileStream::Length( void )
+INT64 MultiFileStream::Length( void )
 {
     if (!_Length && !IsClosed)
     {
@@ -81,7 +81,7 @@ INT64 xMultiFileStream::Length( void )
     return _Length;
 }
 
-BYTE xMultiFileStream::ReadByte( void )
+BYTE MultiFileStream::ReadByte( void )
 {
     if (IsClosed)
     {
@@ -98,7 +98,7 @@ BYTE xMultiFileStream::ReadByte( void )
     return Return;
 }
 
-short xMultiFileStream::ReadInt16( void )
+short MultiFileStream::ReadInt16( void )
 {
     if (IsClosed)
     {
@@ -117,7 +117,7 @@ short xMultiFileStream::ReadInt16( void )
     return Return;
 }
 
-int xMultiFileStream::ReadInt32( void )
+int MultiFileStream::ReadInt32( void )
 {
     if (IsClosed)
     {
@@ -149,7 +149,7 @@ int xMultiFileStream::ReadInt32( void )
     return Return;
 }
 
-INT64 xMultiFileStream::ReadInt64( void )
+INT64 MultiFileStream::ReadInt64( void )
 {
     if (IsClosed)
     {
@@ -175,7 +175,7 @@ INT64 xMultiFileStream::ReadInt64( void )
     return Return;
 }
 
-UINT16 xMultiFileStream::ReadUInt16( void )
+UINT16 MultiFileStream::ReadUInt16( void )
 {
     if (IsClosed)
     {
@@ -201,7 +201,7 @@ UINT16 xMultiFileStream::ReadUInt16( void )
     return Return;
 }
 
-UINT32 xMultiFileStream::ReadUInt32( void )
+UINT32 MultiFileStream::ReadUInt32( void )
 {
     if (IsClosed)
     {
@@ -228,7 +228,7 @@ UINT32 xMultiFileStream::ReadUInt32( void )
     return Return;
 }
 
-UINT64 xMultiFileStream::ReadUInt64( void )
+UINT64 MultiFileStream::ReadUInt64( void )
 {
     if (IsClosed)
     {
@@ -254,7 +254,7 @@ UINT64 xMultiFileStream::ReadUInt64( void )
     return Return;
 }
 
-int xMultiFileStream::Read( BYTE* DestBuff, int Count )
+int MultiFileStream::Read( BYTE* DestBuff, int Count )
 {
     int Offset = 0;
     if (IsClosed)
@@ -288,7 +288,7 @@ int xMultiFileStream::Read( BYTE* DestBuff, int Count )
     }
 }
 
-std::string xMultiFileStream::ReadString( size_t Count )
+std::string MultiFileStream::ReadString( size_t Count )
 {
     if (IsClosed)
     {
@@ -309,7 +309,7 @@ std::string xMultiFileStream::ReadString( size_t Count )
     return ret;
 }
 
-std::string xMultiFileStream::ReadCString( void )
+std::string MultiFileStream::ReadCString( void )
 {
     if (IsClosed)
     {
@@ -342,7 +342,7 @@ std::string xMultiFileStream::ReadCString( void )
     return Return;
 }
 
-std::wstring xMultiFileStream::ReadUnicodeString( size_t Count )
+std::wstring MultiFileStream::ReadUnicodeString( size_t Count )
 {
     if (IsClosed)
     {
@@ -364,7 +364,7 @@ std::wstring xMultiFileStream::ReadUnicodeString( size_t Count )
     return ret;
 }
 
-void xMultiFileStream::WriteByte( BYTE _Byte )
+void MultiFileStream::WriteByte( BYTE _Byte )
 {
     if (IsClosed)
     {
@@ -377,7 +377,7 @@ void xMultiFileStream::WriteByte( BYTE _Byte )
     Write(&_Byte, 1);
 }
 
-void xMultiFileStream::WriteInt16( short _Int16 )
+void MultiFileStream::WriteInt16( short _Int16 )
 {
     if (IsClosed)
     {
@@ -391,7 +391,7 @@ void xMultiFileStream::WriteInt16( short _Int16 )
     Write((BYTE*)&_Int16, sizeof(short));
 }
 
-void xMultiFileStream::WriteInt32( int _Int32 )
+void MultiFileStream::WriteInt32( int _Int32 )
 {
     if (IsClosed)
     {
@@ -406,7 +406,7 @@ void xMultiFileStream::WriteInt32( int _Int32 )
     Write((BYTE*)&_Int32, sizeof(int));
 }
 
-void xMultiFileStream::WriteInt64( INT64 _Int64 )
+void MultiFileStream::WriteInt64( INT64 _Int64 )
 {
     if (IsClosed)
     {
@@ -421,7 +421,7 @@ void xMultiFileStream::WriteInt64( INT64 _Int64 )
     Write((BYTE*)&_Int64, sizeof(INT64));
 }
 
-void xMultiFileStream::WriteUInt16( UINT16 _UInt16 )
+void MultiFileStream::WriteUInt16( UINT16 _UInt16 )
 {
     if (IsClosed)
     {
@@ -436,7 +436,7 @@ void xMultiFileStream::WriteUInt16( UINT16 _UInt16 )
     Write((BYTE*)&_UInt16, sizeof(UINT16));
 }
 
-void xMultiFileStream::WriteUInt32( UINT32 _UInt32 )
+void MultiFileStream::WriteUInt32( UINT32 _UInt32 )
 {
     if (IsClosed)
     {
@@ -451,7 +451,7 @@ void xMultiFileStream::WriteUInt32( UINT32 _UInt32 )
     Write((BYTE*)&_UInt32, sizeof(UINT32));
 }
 
-void xMultiFileStream::WriteUInt64( UINT64 _UInt64 )
+void MultiFileStream::WriteUInt64( UINT64 _UInt64 )
 {
     if (IsClosed)
     {
@@ -466,7 +466,7 @@ void xMultiFileStream::WriteUInt64( UINT64 _UInt64 )
     Write((BYTE*)&_UInt64, sizeof(UINT64));
 }
 
-int xMultiFileStream::Write( BYTE* Buffer, int count )
+int MultiFileStream::Write( BYTE* Buffer, int count )
 {
     int offset;
     if (IsClosed)

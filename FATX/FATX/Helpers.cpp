@@ -19,19 +19,19 @@ int Helpers::QDateTimeToInt( QDateTime /* date */ )
     return 0;
 }
 
-INT64 Helpers::DownToNearestSector( INT64 Offset )
+uint64_t Helpers::DownToNearestSector( uint64_t Offset )
 {
     return Offset -= (Offset % 0x200);
 }
 
-INT64 Helpers::UpToNearestSector( INT64 Offset )
+uint64_t Helpers::UpToNearestSector( uint64_t Offset )
 {
     int Add = 0x200 - (Offset % 0x200);
     // If add doesn't equal 0x200, return offset + add
     return (Add != 0x200) ? Offset + Add : Offset;
 }
 
-INT64 Helpers::UpToNearestX(INT64 Value, int x)
+uint64_t Helpers::UpToNearestX(uint64_t Value, int x)
 {
     int Remainder = Value % x;
     int Add = x - Remainder;
@@ -39,12 +39,12 @@ INT64 Helpers::UpToNearestX(INT64 Value, int x)
     return (Remainder != 0) ? Value + Add : Value;
 }
 
-INT64 Helpers::DownToNearestX( INT64 Value, int x)
+uint64_t Helpers::DownToNearestX( uint64_t Value, int x)
 {
     return Value -= (Value % x);
 }
 
-string Helpers::ConvertToFriendlySize( INT64 Size )
+string Helpers::ConvertToFriendlySize( uint64_t Size )
 {
     double size = Size;
     string returnVal;

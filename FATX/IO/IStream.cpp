@@ -54,8 +54,8 @@ void* IStream::DetermineAndDoEndianSwap( void* Data, size_t DataLength, size_t E
     }
     else if ((is_big_endian() && _Endian == Big) || (!is_big_endian() && _Endian == Little))
     {
-        BYTE* NewData = new BYTE[ElementSize * DataLength];
-        memcpy(NewData, (BYTE*)Data, ElementSize * DataLength);
+        uint8_t* NewData = new uint8_t[ElementSize * DataLength];
+        memcpy(NewData, (uint8_t*)Data, ElementSize * DataLength);
         EndianSwap( NewData, DataLength, ElementSize );
         return NewData;
     }
@@ -79,23 +79,23 @@ void* IStream::DetermineAndDoEndianSwap( void* Data, size_t DataLength, size_t E
     }
     else if ((!is_big_endian() && _Endian == Big) || (is_big_endian() && _Endian == Little))
     {
-        BYTE* NewData = new BYTE[ElementSize * DataLength];
-        memcpy(NewData, (BYTE*)Data, ElementSize * DataLength);
+        uint8_t* NewData = new uint8_t[ElementSize * DataLength];
+        memcpy(NewData, (uint8_t*)Data, ElementSize * DataLength);
         EndianSwap( NewData, DataLength, ElementSize );
         return NewData;
     }
     return 0;
 }
 
-void IStream::DetermineAndDoArraySwap( BYTE* Data, int Length )
+void IStream::DetermineAndDoArraySwap( uint8_t* Data, int Length )
 {
     if ((is_big_endian() && _Endian == Big) || (!is_big_endian() && _Endian == Little))
     {
-        EndianSwap( Data, Length, sizeof(BYTE));
+        EndianSwap( Data, Length, sizeof(uint8_t));
     }
 }
 
-void IStream::DetermineAndDoArraySwap( BYTE* Data, int Length, bool ReverseOrder )
+void IStream::DetermineAndDoArraySwap( uint8_t* Data, int Length, bool ReverseOrder )
 {
     if (!ReverseOrder)
     {
@@ -103,7 +103,7 @@ void IStream::DetermineAndDoArraySwap( BYTE* Data, int Length, bool ReverseOrder
     }
     else if ((!is_big_endian() && _Endian == Big) || (is_big_endian() && _Endian == Little))
     {
-        EndianSwap( Data, Length, sizeof(BYTE));
+        EndianSwap( Data, Length, sizeof(uint8_t));
     }
 }
 }

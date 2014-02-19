@@ -27,11 +27,11 @@ enum Exceptions
     ExStreamWrite
 };
 
-class xException : public std::runtime_error
+class FatxException : public std::runtime_error
 {
 public:
     int Exception;
-    xException(const std::string& message, int exception = 0) : std::runtime_error(message)
+    FatxException(const std::string& message, int exception = 0) : std::runtime_error(message)
     {
         Exception = exception;
         qDebug("%s", message.c_str());

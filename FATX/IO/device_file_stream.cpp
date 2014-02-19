@@ -1,24 +1,24 @@
 #include "StdAfx.h"
-#include "xDeviceFileStream.h"
+#include "device_file_stream.h"
 
 namespace Streams
 {
-xDeviceFileStream::xDeviceFileStream(const std::string& Path, Drive *device, bool ReadFullChain)
+DeviceFileStream::DeviceFileStream(const std::string& Path, Drive *device, bool ReadFullChain)
 {
     File *dest = device->FileFromPath(Path);
     Initialize(dest, device, ReadFullChain);
 }
 
-xDeviceFileStream::xDeviceFileStream(File *dest, Drive *device, bool ReadFullChain)
+DeviceFileStream::DeviceFileStream(File *dest, Drive *device, bool ReadFullChain)
 {
     Initialize(dest, device, ReadFullChain);
 }
 
-xDeviceFileStream::~xDeviceFileStream(void)
+DeviceFileStream::~DeviceFileStream(void)
 {
 }
 
-void xDeviceFileStream::Initialize(File *xf, Drive *device, bool ReadFullChain)
+void DeviceFileStream::Initialize(File *xf, Drive *device, bool ReadFullChain)
 {
     IsClosed = false;
     _Endian = Big;
@@ -33,28 +33,28 @@ void xDeviceFileStream::Initialize(File *xf, Drive *device, bool ReadFullChain)
     SetPosition(0);
 }
 
-void xDeviceFileStream::Close( void )
+void DeviceFileStream::Close( void )
 {
     IsClosed = true;
 }
 
-INT64 xDeviceFileStream::Position( void )
+INT64 DeviceFileStream::Position( void )
 {
     return UserPosition;
 }
 
-INT64 xDeviceFileStream::Length( void )
+INT64 DeviceFileStream::Length( void )
 {
     return (INT64)xf->Dirent.FileSize;
 }
 
-void xDeviceFileStream::SetPosition( INT64 Position )
+void DeviceFileStream::SetPosition( INT64 Position )
 {
     device->DeviceStream->SetPosition(GetPhysicalPosition(Position));
     UserPosition = Position;
 }
 
-INT64 xDeviceFileStream::GetPhysicalPosition(int FilePosition)
+INT64 DeviceFileStream::GetPhysicalPosition(int FilePosition)
 {
     int ClusterIndex = Helpers::DownToNearestX(FilePosition, xf->Volume->ClusterSize) / xf->Volume->ClusterSize;
     FilePosition -= (xf->Volume->ClusterSize * ClusterIndex);
@@ -66,7 +66,7 @@ INT64 xDeviceFileStream::GetPhysicalPosition(int FilePosition)
     return ((xf->ClusterChain.at(ClusterIndex) - 1) * xf->Volume->ClusterSize) + xf->Volume->DataStart + FilePosition;
 }
 
-BYTE xDeviceFileStream::ReadByte( void )
+BYTE DeviceFileStream::ReadByte( void )
 {
     if (IsClosed)
     {
@@ -83,7 +83,7 @@ BYTE xDeviceFileStream::ReadByte( void )
     return Return;
 }
 
-short xDeviceFileStream::ReadInt16( void )
+short DeviceFileStream::ReadInt16( void )
 {
     if (IsClosed)
     {
@@ -102,7 +102,7 @@ short xDeviceFileStream::ReadInt16( void )
     return Return;
 }
 
-int xDeviceFileStream::ReadInt32( void )
+int DeviceFileStream::ReadInt32( void )
 {
     if (IsClosed)
     {
@@ -134,7 +134,7 @@ int xDeviceFileStream::ReadInt32( void )
     return Return;
 }
 
-INT64 xDeviceFileStream::ReadInt64( void )
+INT64 DeviceFileStream::ReadInt64( void )
 {
     if (IsClosed)
     {
@@ -160,7 +160,7 @@ INT64 xDeviceFileStream::ReadInt64( void )
     return Return;
 }
 
-UINT16 xDeviceFileStream::ReadUInt16( void )
+UINT16 DeviceFileStream::ReadUInt16( void )
 {
     if (IsClosed)
     {
@@ -186,7 +186,7 @@ UINT16 xDeviceFileStream::ReadUInt16( void )
     return Return;
 }
 
-UINT32 xDeviceFileStream::ReadUInt32( void )
+UINT32 DeviceFileStream::ReadUInt32( void )
 {
     if (IsClosed)
     {
@@ -213,7 +213,7 @@ UINT32 xDeviceFileStream::ReadUInt32( void )
     return Return;
 }
 
-UINT64 xDeviceFileStream::ReadUInt64( void )
+UINT64 DeviceFileStream::ReadUInt64( void )
 {
     if (IsClosed)
     {
@@ -239,7 +239,7 @@ UINT64 xDeviceFileStream::ReadUInt64( void )
     return Return;
 }
 
-int xDeviceFileStream::Read( BYTE* DestBuff, int Count )
+int DeviceFileStream::Read( BYTE* DestBuff, int Count )
 {
     SetPosition(Position());
     // How many clusters the data we're reading is spread across
@@ -303,7 +303,7 @@ int xDeviceFileStream::Read( BYTE* DestBuff, int Count )
     }
 }
 
-std::string xDeviceFileStream::ReadString( size_t Count )
+std::string DeviceFileStream::ReadString( size_t Count )
 {
     if (IsClosed)
     {
@@ -323,7 +323,7 @@ std::string xDeviceFileStream::ReadString( size_t Count )
     return ret;
 }
 
-std::string xDeviceFileStream::ReadCString( void )
+std::string DeviceFileStream::ReadCString( void )
 {
     if (IsClosed)
     {
@@ -356,7 +356,7 @@ std::string xDeviceFileStream::ReadCString( void )
     return Return;
 }
 
-std::wstring xDeviceFileStream::ReadUnicodeString( size_t Count )
+std::wstring DeviceFileStream::ReadUnicodeString( size_t Count )
 {
     if (IsClosed)
     {
@@ -381,7 +381,7 @@ std::wstring xDeviceFileStream::ReadUnicodeString( size_t Count )
     return ret;
 }
 
-void xDeviceFileStream::WriteByte( BYTE _Byte )
+void DeviceFileStream::WriteByte( BYTE _Byte )
 {
     if (IsClosed)
     {
@@ -394,7 +394,7 @@ void xDeviceFileStream::WriteByte( BYTE _Byte )
     Write(&_Byte, 1);
 }
 
-void xDeviceFileStream::WriteInt16( short _Int16 )
+void DeviceFileStream::WriteInt16( short _Int16 )
 {
     if (IsClosed)
     {
@@ -408,7 +408,7 @@ void xDeviceFileStream::WriteInt16( short _Int16 )
     Write((BYTE*)&_Int16, sizeof(short));
 }
 
-void xDeviceFileStream::WriteInt32( int _Int32 )
+void DeviceFileStream::WriteInt32( int _Int32 )
 {
     if (IsClosed)
     {
@@ -423,7 +423,7 @@ void xDeviceFileStream::WriteInt32( int _Int32 )
     Write((BYTE*)&_Int32, sizeof(int));
 }
 
-void xDeviceFileStream::WriteInt64( INT64 _Int64 )
+void DeviceFileStream::WriteInt64( INT64 _Int64 )
 {
     if (IsClosed)
     {
@@ -438,7 +438,7 @@ void xDeviceFileStream::WriteInt64( INT64 _Int64 )
     Write((BYTE*)&_Int64, sizeof(INT64));
 }
 
-void xDeviceFileStream::WriteUInt16( UINT16 _UInt16 )
+void DeviceFileStream::WriteUInt16( UINT16 _UInt16 )
 {
     if (IsClosed)
     {
@@ -453,7 +453,7 @@ void xDeviceFileStream::WriteUInt16( UINT16 _UInt16 )
     Write((BYTE*)&_UInt16, sizeof(UINT16));
 }
 
-void xDeviceFileStream::WriteUInt32( UINT32 _UInt32 )
+void DeviceFileStream::WriteUInt32( UINT32 _UInt32 )
 {
     if (IsClosed)
     {
@@ -468,7 +468,7 @@ void xDeviceFileStream::WriteUInt32( UINT32 _UInt32 )
     Write((BYTE*)&_UInt32, sizeof(UINT32));
 }
 
-void xDeviceFileStream::WriteUInt64( UINT64 _UInt64 )
+void DeviceFileStream::WriteUInt64( UINT64 _UInt64 )
 {
     if (IsClosed)
     {
@@ -483,7 +483,7 @@ void xDeviceFileStream::WriteUInt64( UINT64 _UInt64 )
     Write((BYTE*)&_UInt64, sizeof(UINT64));
 }
 
-int xDeviceFileStream::Write( BYTE* Buffer, int count )
+int DeviceFileStream::Write( BYTE* Buffer, int count )
 {
 #ifndef _WIN32
 #warning "ADD HANDING FOR EXTENDING FILES"

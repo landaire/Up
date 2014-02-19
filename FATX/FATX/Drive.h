@@ -1,16 +1,19 @@
 #ifndef __DRIVE__HG
 #define __DRIVE__HG
-#include "../StdAfx.h"
+/** Standard lib **/
 #include <vector>
-#include "../IO/xDeviceStream.h"
-#include "../IO/xFileStream.h"
-#include "../IO/xMultiFileStream.h"
-#include "../typedefs.h"
-#include "../FATX/StaticInformation.h"
+/** Qt **/
 #include <QRegExp>
 #include <QDateTime>
 #include <QDebug>
 #include <QObject>
+
+#include "stdafx.h"
+#include "io/device_stream.h"
+#include "io/file_stream.h"
+#include "io/multi_file_stream.h"
+#include "typedefs.h"
+#include "static_information.h"
 
 // Disable warnings 4018 and 4082
 //(unsigned type mismatch and nonstandard extension used in qualified name, respectively)
@@ -20,50 +23,54 @@
 
 class Drive : public QObject
 {
+    using std::string;
+    using std::vector;
+    using std::stringstream;
+    using shared_ptr;
+
     Q_OBJECT
+
 private:
-    std::vector<xVolume*> *ValidVolumes;
+    std::vector<FatxVolume*> validVolumes;
     void	SetValidPartitions      ( void );
     void	InitializePartitions    ( void );
-    void	FatxProcessBootSector   ( xVolume* ref );
-    BYTE	cntlzw                  (unsigned int val);
+    void	FatxProcessBootSector   ( FatxVolume* ref );
+    void    DestroyFolder           (shared_ptr<Folder> Directory);
+    uint8_t	cntlzw                  (uint32_t val);
     std::vector<std::string> _partitions;
 
-    void    DestroyFolder           (Folder *Directory);
+    string              friendlyName;
+    string              friendlySize;
+    DeviceType          type;
+    bool                isDevKitDrive;
+    Streams::IStream*   deviceStream;
 
 public:
-    Drive(std::string path, std::string friendlyName, bool isUsb );
+    Drive(string path, string friendlyName, bool isUsb );
     ~Drive(void);
 
-    INT64 GetLength( void );
+    uint64_t GetLength( void );
 
-    void    ReadClusterChain        (std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition, int Count=-1);
+    void    ReadClusterChain        (std::vector<uint32_t>& Chain, xDirent Entry, const shared_ptr<FatxVolume> RelativePartition, int Count=-1);
 
-    Streams::IStream*       DeviceStream;
     std::vector<std::string>Partitions          ( void );
-    QString                 GetDiskName         ( void );
-    UINT64                  PartitionGetLength  ( std::string Partition );
+    string                  GetDiskName         ( void );
+    uint64_t                PartitionGetLength  ( string Partition );
     void                    Close               ( void );
-    DWORD                   GetFileCount( Folder *f );
-    DWORD                   GetTotalFileCount   ( Folder *f );
-    DWORD                   GetFolderCount      ( Folder *f );
-    DWORD                   GetTotalFolderCount ( Folder *f );
-    void                    ReadDirectoryEntries(Folder* Directory);
-    Folder*                 FolderFromPath      ( std::string Path );
-    File*                   FileFromPath        ( std::string Path );
-    void                    CopyFileToLocalDisk ( File *dest, const std::string &Output);
-    void                    CopyFileToLocalDisk ( const std::string &Path, const std::string &Output);
-    void                    CopyFolderToLocalDisk( Folder *f, const std::string &Output );
-    void                    CopyFolderToLocalDisk( const std::string &Path, const std::string &Output);
-    void                    CreateDirent        ( const xDirent& d );
-    void                    FindFreeClusters(DWORD StartingCluster, DWORD ClusterCount, xVolume* Partition, std::vector<DWORD>& OutChain);
-    DWORD                   GetSectorsFromSecuritySector( void );
-
-    std::string             FriendlyName;
-    std::string             FriendlySize;
-
-    DeviceType              Type;
-    bool                    IsDevKitDrive;
+    size_t                  GetFileCount( shared_ptr<Folder> f );
+    size_t                  GetTotalFileCount   ( shared_ptr<Folder> f );
+    size_t                  GetFolderCount      ( shared_ptr<Folder> f );
+    size_t                  GetTotalFolderCount ( shared_ptr<Folder> f );
+    void                    ReadDirectoryEntries(shard_ptr<Folder> Directory);
+    shared_ptr<Folder>      FolderFromPath      ( string Path );
+    shared_ptr<File>        FileFromPath( string Path );
+    void                    CopyFileToLocalDisk ( File *dest, const string &Output);
+    void                    CopyFileToLocalDisk (const string &path, const string &outputDirectory);
+    void                    CopyFolderToLocalDisk( shared_ptr<Folder> f, const string &Output );
+    void                    CopyFolderToLocalDisk( const string &folderPath, const string &outputFolderPath);
+    void                    CreateDirent        ( xDirent const &d );
+    void                    FindFreeClusters(uint32_t startingCluster, size_t clusterCount, const shared_ptr<FatxVolume> partition, std::vector<uint32_t>& outChain);
+    size_t                  GetSectorsFromSecuritySector( void );
 signals:
     void                    FileProgressChanged(const Progress &progress);
 };

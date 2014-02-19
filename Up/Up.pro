@@ -4,11 +4,11 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core widgets concurrent
 
 TARGET = Up
 TEMPLATE = app
-DEFINES += QT_NO_DEBUG_OUTPUT
+CONFIG += c++11
 
 SOURCES += main.cpp\
         MainForm.cpp \
@@ -23,49 +23,25 @@ FORMS    += MainForm.ui \
     AboutForm.ui \
     progressdialog.ui
 
-#win32{
-#QMAKE_CFLAGS_RELEASE += -Zi
-#QMAKE_CXXFLAGS_RELEASE += -Zi -g
-#QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF}
-
-macx{
-    QMAKE_CC = clang
-    QMAKE_CXX = clang++
-}
-
 INCLUDEPATH += $$PWD/../FATX/FATX
 
 RESOURCES += \
     MainForm.qrc
 
-ICON = up.icns
 CONFIG(debug, debug|release) {
-macx: LIBS += -L$$PWD/../FATX-OSX/debug/ -lFATX
+    macx: LIBS += -L$$PWD/../FATX-BUILD-OSX/debug/ -lFATX
 
-INCLUDEPATH += $$PWD/../FATX-OSX/debug
-DEPENDPATH += $$PWD/../FATX-OSX/debug
+    INCLUDEPATH += $$PWD/../FATX-BUILD-OSX/debug
+    DEPENDPATH += $$PWD/../FATX-BUILD-OSX/debug
 
-macx: PRE_TARGETDEPS += $$PWD/../FATX-OSX/debug/libFATX.a
+    macx: PRE_TARGETDEPS += $$PWD/../FATX-BUILD-OSX/debug/libFATX.a
 } else {
-macx: LIBS += -L$$PWD/../FATX-OSX/release/ -lFATX
+    macx: LIBS += -L$$PWD/../FATX-OSX/release/ -lFATX
 
-INCLUDEPATH += $$PWD/../FATX-OSX/release
-DEPENDPATH += $$PWD/../FATX-OSX/release
+    INCLUDEPATH += $$PWD/../FATX-BUILD-OSX/release
+    DEPENDPATH += $$PWD/../FATX-BUILD-OSX/release
 
-macx: PRE_TARGETDEPS += $$PWD/../FATX-OSX/release/libFATX.a
+    macx: PRE_TARGETDEPS += $$PWD/../FATX-OSX/release/libFATX.a
 }
 
-win32{
-    CONFIG(release, debug|release){
-        LIBS += -L$$PWD/../FATX-Win/release/ -lFATX
-        #message("release")
-        INCLUDEPATH += $$PWD/../FATX-Win/release
-        DEPENDPATH += $$PWD/../FATX-Win/release
-    }
-    CONFIG(debug, debug|release){
-        LIBS += -L$$PWD/../FATX-Win/debug/ -lFATX
-        #message("debug")
-        INCLUDEPATH += $$PWD/../FATX-Win/debug
-        DEPENDPATH += $$PWD/../FATX-Win/debug
-    }
-}
+cache()

@@ -1,4 +1,4 @@
-#include "StfsPackage.h"
+#include "stfs_package.h"
 using namespace std;
 using namespace Streams;
 
@@ -30,7 +30,7 @@ bool StfsPackage::IsStfsPackage( void )
         return false;
     if (checkedIfIsStfsPackage)
         return _isStfsPackage;
-    DWORD Magic = this->Magic();
+    uint32_t Magic = this->Magic();
     switch (Magic)
     {
     case STFS_PACKAGE_CON:
@@ -42,7 +42,7 @@ bool StfsPackage::IsStfsPackage( void )
     }
 }
 
-DWORD StfsPackage::Magic( void )
+uint32_t StfsPackage::Magic( void )
 {
     if (_magic)
         return _magic;
@@ -50,7 +50,7 @@ DWORD StfsPackage::Magic( void )
     return (_magic = Stream->ReadUInt32());
 }
 
-DWORD StfsPackage::ContentType( void )
+uint32_t StfsPackage::ContentType( void )
 {
     if (_contentType)
         return _contentType;
@@ -58,7 +58,7 @@ DWORD StfsPackage::ContentType( void )
     return (_contentType = Stream->ReadUInt32());
 }
 
-DWORD StfsPackage::TitleId( void )
+uint32_t StfsPackage::TitleId( void )
 {
     if (_titleId)
         return _titleId;
@@ -66,7 +66,7 @@ DWORD StfsPackage::TitleId( void )
     return (_titleId = Stream->ReadUInt32());
 }
 
-UINT64 StfsPackage::ConsoleId( void )
+uint64_t StfsPackage::ConsoleId( void )
 {
     if (_consoleId)
         return _consoleId;
@@ -74,7 +74,7 @@ UINT64 StfsPackage::ConsoleId( void )
     return (_consoleId = (Stream->ReadUInt64() & 0xFFFFFF0000000000));
 }
 
-UINT64 StfsPackage::ProfileId( void )
+uint64_t StfsPackage::ProfileId( void )
 {
     if (_profileId)
         return _profileId;
@@ -87,10 +87,10 @@ QString StfsPackage::DisplayName( int Locale )
     if (_displayName != "")
         return _displayName;
     Stream->SetPosition(0x411 + (0x80 * Locale));
-    BYTE dn[0x80] = {0};
-    Stream->Read((BYTE*)&dn, 0x80);
+    uint8_t dn[0x80] = {0};
+    Stream->Read((uint8_t*)&dn, 0x80);
     for (int i = 0; i < 0x80; i+=2)
-        Stream->DetermineAndDoEndianSwap((BYTE*)&dn + i, sizeof(short), sizeof(char));
+        Stream->DetermineAndDoEndianSwap((uint8_t*)&dn + i, sizeof(short), sizeof(char));
     return (_displayName = QString::fromUtf16((const ushort*)&dn));
 }
 
@@ -99,10 +99,10 @@ QString StfsPackage::Description( int Locale )
     if (_description != "")
         return _description;
     Stream->SetPosition(0xD11 + (0x80 * Locale));
-    BYTE dd[0x80] = {0};
-    Stream->Read((BYTE*)&dd, 0x80);
+    uint8_t dd[0x80] = {0};
+    Stream->Read((uint8_t*)&dd, 0x80);
     for (int i = 0; i < 0x80; i+=2)
-        Stream->DetermineAndDoEndianSwap((BYTE*)&dd + i, sizeof(short), sizeof(char));
+        Stream->DetermineAndDoEndianSwap((uint8_t*)&dd + i, sizeof(short), sizeof(char));
     return (_description = QString::fromUtf16((const ushort*)&dd));
 }
 
@@ -111,10 +111,10 @@ QString StfsPackage::TitleName( int Locale )
     if (_titleName != "")
         return _titleName;
     Stream->SetPosition(0x1691 + (0x80 * Locale));
-    BYTE dd[0x80] = {0};
-    Stream->Read((BYTE*)&dd, 0x80);
+    uint8_t dd[0x80] = {0};
+    Stream->Read((uint8_t*)&dd, 0x80);
     for (int i = 0; i < 0x80; i+=2)
-        Stream->DetermineAndDoEndianSwap((BYTE*)&dd + i, sizeof(short), sizeof(char));
+        Stream->DetermineAndDoEndianSwap((uint8_t*)&dd + i, sizeof(short), sizeof(char));
     return (_titleName = QString::fromUtf16((const ushort*)&dd));
 }
 
@@ -123,10 +123,10 @@ QImage StfsPackage::ThumbnailImage( void )
     if (_thumbnailImageRead)
         return _thumbnailImage;
     Stream->SetPosition(0x1712);
-    DWORD Size = Stream->ReadUInt32();
+    uint32_t Size = Stream->ReadUInt32();
     Stream->SetPosition(0x171A);
-    BYTE Image[0x4000] = {0};
-    Stream->Read((BYTE*)&Image, Size);
+    uint8_t Image[0x4000] = {0};
+    Stream->Read((uint8_t*)&Image, Size);
     return (_thumbnailImage = QImage::fromData(QByteArray::fromRawData((const char*)&Image, Size)));
 }
 
@@ -135,79 +135,79 @@ QImage StfsPackage::TitleImage( void )
     if (_titleImageRead)
         return _titleImage;
     Stream->SetPosition(0x1716);
-    DWORD Size = Stream->ReadUInt32();
+    uint32_t Size = Stream->ReadUInt32();
     Stream->SetPosition(0x571A);
-    BYTE Image[0x4000] = {0};
-    Stream->Read((BYTE*)&Image, Size);
+    uint8_t Image[0x4000] = {0};
+    Stream->Read((uint8_t*)&Image, Size);
     return (_titleImage = QImage::fromData(QByteArray::fromRawData((const char*)&Image, Size)));
 }
 
 QString StfsPackage::ContentType_s( void )
 {
-    DWORD ContentType = this->ContentType();
+    uint32_t ContentType = this->ContentType();
     switch (ContentType)
     {
     case STFS_CONTENT_TYPE_ARCADE_TITLE:
-        return QString::fromAscii("Arcade Title");
+        return QString("Arcade Title");
     case STFS_CONTENT_TYPE_AVATAR_ITEM:
-        return QString::fromAscii("Avatar Item");
+        return QString("Avatar Item");
     case STFS_CONTENT_TYPE_CACHE_FILE:
-        return QString::fromAscii("Cache File");
+        return QString("Cache File");
     case STFS_CONTENT_TYPE_COMMUNITY_GAME:
-        return QString::fromAscii("Community Game");
+        return QString("Community Game");
     case STFS_CONTENT_TYPE_GAME_DEMO:
-        return QString::fromAscii("Game Demo");
+        return QString("Game Demo");
     case STFS_CONTENT_TYPE_GAMER_PICTURE:
-        return QString::fromAscii("Gamer Picture");
+        return QString("Gamer Picture");
     case STFS_CONTENT_TYPE_GAME_TITLE:
-        return QString::fromAscii("Game Title");
+        return QString("Game Title");
     case STFS_CONTENT_TYPE_GAME_TRAILER:
-        return QString::fromAscii("Game Trailer");
+        return QString("Game Trailer");
     case STFS_CONTENT_TYPE_GAME_VIDEO:
-        return QString::fromAscii("Game Video");
+        return QString("Game Video");
     case STFS_CONTENT_TYPE_INSTALLED_GAME:
-        return QString::fromAscii("Installed Game");
+        return QString("Installed Game");
     case STFS_CONTENT_TYPE_INSTALLER:
-        return QString::fromAscii("Installer");
+        return QString("Installer");
     case STFS_CONTENT_TYPE_IPTV_PAUSE_BUFFER:
-        return QString::fromAscii("IPTV Pause Buffer");
+        return QString("IPTV Pause Buffer");
     case STFS_CONTENT_TYPE_LICENSE_STORE:
-        return QString::fromAscii("License Store");
+        return QString("License Store");
     case STFS_CONTENT_TYPE_MARKETPLACE_CONTENT:
-        return QString::fromAscii("Marketplace Content");
+        return QString("Marketplace Content");
     case STFS_CONTENT_TYPE_MOVIE:
-        return QString::fromAscii("Movie");
+        return QString("Movie");
     case STFS_CONTENT_TYPE_MUSIC_VIDEO:
-        return QString::fromAscii("Music Video");
+        return QString("Music Video");
     case STFS_CONTENT_TYPE_PODCAST_VIDEO:
-        return QString::fromAscii("Podcast Video");
+        return QString("Podcast Video");
     case STFS_CONTENT_TYPE_PROFILE:
-        return QString::fromAscii("Profile");
+        return QString("Profile");
     case STFS_CONTENT_TYPE_PUBLISHER:
-        return QString::fromAscii("Publisher");
+        return QString("Publisher");
     case STFS_CONTENT_TYPE_SAVED_GAME:
-        return QString::fromAscii("Saved Game");
+        return QString("Saved Game");
     case STFS_CONTENT_TYPE_STORAGE_DOWNLOAD:
-        return QString::fromAscii("Storage Download");
+        return QString("Storage Download");
     case STFS_CONTENT_TYPE_THEME:
-        return QString::fromAscii("Theme");
+        return QString("Theme");
     case STFS_CONTENT_TYPE_TV:
-        return QString::fromAscii("TV");
+        return QString("TV");
     case STFS_CONTENT_TYPE_VIDEO:
-        return QString::fromAscii("Video");
+        return QString("Video");
     case STFS_CONTENT_TYPE_VIRAL_VIDEO:
-        return QString::fromAscii("Viral Video");
+        return QString("Viral Video");
     case STFS_CONTENT_TYPE_XBOX_DOWNLOAD:
-        return QString::fromAscii("Xbox Download");
+        return QString("Xbox Download");
     case STFS_CONTENT_TYPE_XBOX_ORIGINAL_GAME:
-        return QString::fromAscii("Xbox Original Game");
+        return QString("Xbox Original Game");
     case STFS_CONTENT_TYPE_XBOX_SAVED_GAME:
-        return QString::fromAscii("Xbox Saved Game");
+        return QString("Xbox Saved Game");
     case STFS_CONTENT_TYPE_XBOX_360_TITLE:
-        return QString::fromAscii("Xbox 360 Title");
+        return QString("Xbox 360 Title");
     case STFS_CONTENT_TYPE_XNA:
-        return QString::fromAscii("XNA");
+        return QString("XNA");
     default:
-        return QString::fromAscii("STFS Package");
+        return QString("STFS Package");
     }
 }

@@ -3,7 +3,7 @@
 #include "pcutils.h"
 
 using namespace std;
-MainForm::MainForm(QWidget *parent, Qt::WFlags flags)
+MainForm::MainForm(QWidget *parent, Qt::WindowFlags flags)
     : QMainWindow(parent, flags)
 {
     ui.setupUi(this);
@@ -75,7 +75,7 @@ void MainForm::OnCopyToLocalDiskClick( void )
     int size = ui.fileSystemTree->selectedItems().size();
     if (size == 0)
         return;
-    else if (size == 1 && ui.fileSystemTree->selectedItems().at(0)->text(2).left(6) != QString::fromAscii("Folder"))
+    else if (size == 1 && ui.fileSystemTree->selectedItems().at(0)->text(2).left(6) != QString("Folder"))
     {
         s = QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("Select Where to Save File"), ui.fileSystemTree->selectedItems().at(0)->text(0));
     }
@@ -84,7 +84,7 @@ void MainForm::OnCopyToLocalDiskClick( void )
         QFileDialog qfd;
         qfd.setFileMode(QFileDialog::Directory);
         qfd.setOption(QFileDialog::ShowDirsOnly);
-        s = qfd.getExistingDirectory(this, QString::fromAscii("Select Directory to Save Files"));
+        s = qfd.getExistingDirectory(this, QString("Select Directory to Save Files"));
     }
     if (s.isEmpty() || s.isNull())
     {
@@ -171,11 +171,11 @@ std::string MainForm::GetItemPath(QTreeWidgetItem *Item)
 QTreeWidgetItem *MainForm::AddFolder(QTreeWidgetItem* Item, Folder *f)
 {
     QTreeWidgetItem *fItem = new QTreeWidgetItem(Item);
-    fItem->setText(0, QString::fromAscii(f->Dirent.Name));
+    fItem->setText(0, QString(f->Dirent.Name));
     fItem->setData(0, Qt::UserRole, QVariant(false));
     QDateTime ModifiedDate = f->DateModified;
     fItem->setText(1, ModifiedDate.toString());
-    fItem->setText(2, QString::fromAscii("Folder"));
+    fItem->setText(2, QString("Folder"));
     fItem->setIcon(0, iFolder);
 
     return fItem;
@@ -184,12 +184,12 @@ QTreeWidgetItem *MainForm::AddFolder(QTreeWidgetItem* Item, Folder *f)
 QTreeWidgetItem *MainForm::AddFile(QTreeWidgetItem* Item, File *f, Drive *device)
 {
     QTreeWidgetItem *fItem = new QTreeWidgetItem(Item);
-    fItem->setText(0, QString::fromAscii(f->Dirent.Name));
+    fItem->setText(0, QString(f->Dirent.Name));
     fItem->setIcon(0, iFile);
 
     QDateTime ModifiedDate = f->DateModified;
     fItem->setText(1, ModifiedDate.toString());
-    fItem->setText(2, QString::fromAscii("File"));
+    fItem->setText(2, QString("File"));
     fItem->setText(3, QString::fromLocal8Bit(Helpers::ConvertToFriendlySize(f->Dirent.FileSize).c_str()));
 
     // If the file's clusters haven't been read yet...
@@ -202,7 +202,7 @@ QTreeWidgetItem *MainForm::AddFile(QTreeWidgetItem* Item, File *f, Drive *device
         device->ReadClusterChain(f->ClusterChain, f->Dirent, *f->Volume, Clusters);
     }
     // Determine if the file is a valid STFS package
-    Streams::xDeviceFileStream *fs = new Streams::xDeviceFileStream(f->FullPath, device, false);
+    Streams::DeviceFileStream *fs = new Streams::DeviceFileStream(f->FullPath, device, false);
     StfsPackage pack(fs);
     if (pack.IsStfsPackage())
     {
@@ -210,7 +210,7 @@ QTreeWidgetItem *MainForm::AddFile(QTreeWidgetItem* Item, File *f, Drive *device
         QIcon *Icon = 0;
         if (Icons.size())
         {
-            map<DWORD, QIcon*>::iterator it;
+            map<uint32_t, QIcon*>::iterator it;
             it = Icons.find(pack.TitleId());
             if (it != Icons.end())
                 Icon = it->second;
@@ -219,7 +219,7 @@ QTreeWidgetItem *MainForm::AddFile(QTreeWidgetItem* Item, File *f, Drive *device
         {
             Icon = new QIcon(QPixmap::fromImage(pack.ThumbnailImage()));
             if (!Icon->isNull())
-                Icons.insert(Icons.begin(), pair<DWORD, QIcon*>(pack.TitleId(), Icon));
+                Icons.insert(Icons.begin(), pair<uint32_t, QIcon*>(pack.TitleId(), Icon));
         }
         if (!Icon->isNull())
             fItem->setIcon(0, *Icon);
@@ -252,7 +252,7 @@ void MainForm::PopulateTreeItems(QTreeWidgetItem *Item, bool expand)
         {
             for (int x = 0; x < Item->childCount(); x++)
             {
-                if (Item->child(x)->text(0) == QString::fromAscii(sub->Dirent.Name))
+                if (Item->child(x)->text(0) == QString(sub->Dirent.Name))
                 {
                     subItem = Item->child(x);
                     break;
@@ -352,7 +352,7 @@ void MainForm::SetTitleIdName(QTreeWidgetItem *Item)
                         for (int j = 0; j < id->CachedFiles.size(); j++)
                         {
                             File *f = id->CachedFiles.at(j);
-                            Streams::xDeviceFileStream *fs = new Streams::xDeviceFileStream(f, f->Volume->Disk);
+                            Streams::DeviceFileStream *fs = new Streams::DeviceFileStream(f, f->Volume->Disk);
                             StfsPackage pack(fs);
                             if (pack.IsStfsPackage())
                             {
@@ -486,8 +486,8 @@ void MainForm::OnLoadDevicesClick( void )
             break;
         }
 
-        item->setText(2, QString::fromAscii(Type));     									// Drive type
-        item->setText(3, QString::fromAscii(current->FriendlySize.c_str()));                // Drive size
+        item->setText(2, QString(Type));     									// Drive type
+        item->setText(3, QString(current->FriendlySize.c_str()));                // Drive size
         // if it's a USB device
         if (current->Type == DeviceUsb)
         {
@@ -514,9 +514,9 @@ void MainForm::OnLoadDevicesClick( void )
             }
             QTreeWidgetItem* partition = new QTreeWidgetItem(item);
             string currentVolume = current->Partitions().at(j);
-            partition->setText(0, QString::fromAscii(currentVolume.c_str()));	// Partition name
-            partition->setText(2, QString::fromAscii("Partition"));
-            partition->setText(3, QString::fromAscii(Helpers::ConvertToFriendlySize((INT64)current->PartitionGetLength(currentVolume)).c_str()));
+            partition->setText(0, QString(currentVolume.c_str()));	// Partition name
+            partition->setText(2, QString("Partition"));
+            partition->setText(3, QString(Helpers::ConvertToFriendlySize((uint64_t)current->PartitionGetLength(currentVolume)).c_str()));
             partition->setIcon(0, iPartition);
             partition->setData(0, Qt::UserRole, QVariant(false));
 

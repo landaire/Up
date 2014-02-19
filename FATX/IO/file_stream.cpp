@@ -1,22 +1,22 @@
 #include "StdAfx.h"
-#include "xFileStream.h"
+#include "file_stream.h"
 #include <QDebug>
 #include "../xexception.h"
 #include "../nowide/convert.h"
 
 namespace Streams
 {
-xFileStream::xFileStream(char *FilePath, int Mode)
+FileStream::FileStream(char *FilePath, int Mode)
 {
     Initialize(std::string(FilePath), Mode);
 }
 
-xFileStream::xFileStream(std::string FilePath, int Mode )
+FileStream::FileStream(std::string FilePath, int Mode )
 {
     Initialize(FilePath, Mode);
 }
 
-void xFileStream::Initialize(std::string FilePath, int Mode)
+void FileStream::Initialize(std::string FilePath, int Mode)
 {
     using namespace std;
     _Length = 0;
@@ -86,12 +86,12 @@ void xFileStream::Initialize(std::string FilePath, int Mode)
 }
 
 
-xFileStream::~xFileStream(void)
+FileStream::~FileStream(void)
 {
 
 }
 
-void xFileStream::Close( void )
+void FileStream::Close( void )
 {
     if (!IsClosed)
     {
@@ -100,13 +100,13 @@ void xFileStream::Close( void )
     }
 }
 
-INT64 xFileStream::Position( void )
+INT64 FileStream::Position( void )
 {
     int x = _FileStream.tellg();
     return (IsClosed) ? 0 : (INT64)_FileStream.tellg();
 }
 
-void xFileStream::SetPosition( INT64 Position )
+void FileStream::SetPosition( INT64 Position )
 {
     if (IsClosed)
     {
@@ -118,7 +118,7 @@ void xFileStream::SetPosition( INT64 Position )
     _FileStream.seekp((DWORD)Position);
 }
 
-INT64 xFileStream::Length( void )
+INT64 FileStream::Length( void )
 {
     if (IsClosed)
     {
@@ -131,7 +131,7 @@ INT64 xFileStream::Length( void )
     return _Length;
 }
 
-std::string xFileStream::ReadString( size_t Count )
+std::string FileStream::ReadString( size_t Count )
 {
     char* buff = new char[Count + 1];
     memset(buff, 0, Count + 1);
@@ -142,7 +142,7 @@ std::string xFileStream::ReadString( size_t Count )
     return Return;
 }
 
-std::wstring xFileStream::ReadUnicodeString( size_t Count)
+std::wstring FileStream::ReadUnicodeString( size_t Count)
 {
     char* buff = new char[Count + 1];
     memset(buff, 0, Count + 1);
@@ -154,7 +154,7 @@ std::wstring xFileStream::ReadUnicodeString( size_t Count)
     return Return;
 }
 
-std::string xFileStream::ReadCString( void )
+std::string FileStream::ReadCString( void )
 {
     std::vector<char> temp;
     bool Null;
@@ -184,7 +184,7 @@ std::string xFileStream::ReadCString( void )
     return Return;
 }
 
-BYTE xFileStream::ReadByte( void )
+BYTE FileStream::ReadByte( void )
 {
     if (IsClosed)
     {
@@ -195,7 +195,7 @@ BYTE xFileStream::ReadByte( void )
     return Return;
 }
 
-short xFileStream::ReadInt16( void )
+short FileStream::ReadInt16( void )
 {
     if (IsClosed)
     {
@@ -209,7 +209,7 @@ short xFileStream::ReadInt16( void )
     return Return;
 }
 
-int xFileStream::ReadInt32( void )
+int FileStream::ReadInt32( void )
 {
     if (IsClosed)
     {
@@ -223,7 +223,7 @@ int xFileStream::ReadInt32( void )
     return Return;
 }
 
-INT64 xFileStream::ReadInt64( void )
+INT64 FileStream::ReadInt64( void )
 {
     if (IsClosed)
     {
@@ -237,7 +237,7 @@ INT64 xFileStream::ReadInt64( void )
     return Return;
 }
 
-UINT16 xFileStream::ReadUInt16( void )
+UINT16 FileStream::ReadUInt16( void )
 {
     if (IsClosed)
     {
@@ -251,7 +251,7 @@ UINT16 xFileStream::ReadUInt16( void )
     return Return;
 }
 
-UINT32 xFileStream::ReadUInt32( void )
+UINT32 FileStream::ReadUInt32( void )
 {
     if (IsClosed)
     {
@@ -265,7 +265,7 @@ UINT32 xFileStream::ReadUInt32( void )
     return Return;
 }
 
-UINT64 xFileStream::ReadUInt64( void )
+UINT64 FileStream::ReadUInt64( void )
 {
     if (IsClosed)
     {
@@ -279,7 +279,7 @@ UINT64 xFileStream::ReadUInt64( void )
     return Return;
 }
 
-int xFileStream::Read( BYTE* DestBuff, int Count )
+int FileStream::Read( BYTE* DestBuff, int Count )
 {
     if (IsClosed)
     {
@@ -299,7 +299,7 @@ int xFileStream::Read( BYTE* DestBuff, int Count )
     return Count;
 }
 
-void xFileStream::WriteByte( BYTE _Byte )
+void FileStream::WriteByte( BYTE _Byte )
 {
     if (IsClosed)
     {
@@ -308,7 +308,7 @@ void xFileStream::WriteByte( BYTE _Byte )
     _FileStream.write((char*)&_Byte, sizeof(BYTE));
 }
 
-void xFileStream::WriteInt16( short _Int16 )
+void FileStream::WriteInt16( short _Int16 )
 {
     if (IsClosed)
     {
@@ -320,7 +320,7 @@ void xFileStream::WriteInt16( short _Int16 )
     _FileStream.write((char*)&_Int16, sizeof(INT16));
 }
 
-void xFileStream::WriteInt32( int _Int32 )
+void FileStream::WriteInt32( int _Int32 )
 {
     if (IsClosed)
     {
@@ -332,7 +332,7 @@ void xFileStream::WriteInt32( int _Int32 )
     _FileStream.write((char*)&_Int32, sizeof(INT32));
 }
 
-void xFileStream::WriteInt64( INT64 _Int64 )
+void FileStream::WriteInt64( INT64 _Int64 )
 {
     if (IsClosed)
     {
@@ -344,7 +344,7 @@ void xFileStream::WriteInt64( INT64 _Int64 )
     _FileStream.write((char*)&_Int64, sizeof(INT64));
 }
 
-void xFileStream::WriteUInt16( UINT16 _UInt16 )
+void FileStream::WriteUInt16( UINT16 _UInt16 )
 {
     if (IsClosed)
     {
@@ -356,7 +356,7 @@ void xFileStream::WriteUInt16( UINT16 _UInt16 )
     _FileStream.write((char*)&_UInt16, sizeof(UINT16));
 }
 
-void xFileStream::WriteUInt32( UINT32 _UInt32 )
+void FileStream::WriteUInt32( UINT32 _UInt32 )
 {
     if (IsClosed)
     {
@@ -368,7 +368,7 @@ void xFileStream::WriteUInt32( UINT32 _UInt32 )
     _FileStream.write((char*)&_UInt32, sizeof(UINT32));
 }
 
-void xFileStream::WriteUInt64( UINT64 _UInt64 )
+void FileStream::WriteUInt64( UINT64 _UInt64 )
 {
     if (IsClosed)
     {
@@ -380,7 +380,7 @@ void xFileStream::WriteUInt64( UINT64 _UInt64 )
     _FileStream.write((char*)&_UInt64, sizeof(UINT64));
 }
 
-int xFileStream::Write( BYTE* Buffer, int count )
+int FileStream::Write( BYTE* Buffer, int count )
 {
     if (IsClosed)
     {
@@ -403,7 +403,7 @@ int xFileStream::Write( BYTE* Buffer, int count )
     }
 }
 
-size_t xFileStream::Write( void* Buffer, size_t ElementSize, int count)
+size_t FileStream::Write( void* Buffer, size_t ElementSize, int count)
 {
     if (IsClosed)
     {

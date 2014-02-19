@@ -3,67 +3,49 @@
 # Project created by QtCreator 2011-12-30T11:35:47
 #
 #-------------------------------------------------
-include(IO/include.pri)
-include(FATX/include.pri)
-
-QT       -= gui
+QT += core gui
+QT -= widgets
 
 TARGET = FATX
 TEMPLATE = lib
-CONFIG += staticlib app_bundle
-DEFINES += UNICODE _UNICODE #QT_NO_DEBUG_OUTPUT # _LARGEFILE64_SOURCE
-QMAKE_CXXFLAGS += -std=c++0x
-macx {
-    QMAKE_CC = clang
-    QMAKE_CXX = clang++
-}
-
-#QMAKE_CXXFLAGS += -D_FILE_OFFSET_BITS=64
-
-#win32{
-#QMAKE_CFLAGS_RELEASE += -Zi
-#QMAKE_CXXFLAGS_RELEASE += -Zi -g
-#QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF}
-
-
-CONFIG(release, debug|release) {
- #DEFINES += QT_NO_DEBUG_OUTPUT
-}
+DEFINES += UNICODE _UNICODE
+QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c++11 -stdlib=libc++
+CONFIG += staticlib app_bundle c++11
 
 # FATX Headers
 HEADERS += \
-    FATX/StaticInformation.h \
-    FATX/Helpers.h \
-    FATX/Drive.h \
-    FATX/stfspackage.h \
-    nowide/config.h \
-    nowide/convert.h \
-    nowide/cstdio.h \
-    nowide/fstream.h \
-    nowide/streambuf.h \
-    FATX/pcutils.h
+    nowide/config.h             \
+    nowide/convert.h            \
+    nowide/cstdio.h             \
+    nowide/fstream.h            \
+    nowide/streambuf.h          \
+    fatx/pcutils.h \
+    fatx/drive.h \
+    fatx/helpers.h \
+    fatx/static_information.h \
+    fatx/stfs_package.h \
+    io/istream.h \
+    io/device_file_stream.h \
+    io/device_stream.h \
+    io/file_stream.h \
+    io/multi_file_stream.h
 SOURCES += \
-    FATX/Helpers.cpp \
-    FATX/Drive.cpp \
-    FATX/stfspackage.cpp \
-    src/convert.cpp \
-    src/streambuf.cpp \
-    FATX/pcutils.cpp
+    src/convert.cpp         \
+    src/streambuf.cpp       \
+    fatx/pcutils.cpp \
+    fatx/drive.cpp \
+    fatx/helpers.cpp \
+    fatx/stfs_package.cpp \
+    io/istream.cpp \
+    io/device_file_stream.cpp \
+    io/device_stream.cpp \
+    io/file_stream.cpp \
+    io/multi_file_stream.cpp
 
 # IO Headers
-HEADERS += \
-    IO/xMultiFileStream.h \
-    IO/xFileStream.h \
-    IO/xDeviceStream.h \
-    IO/xDeviceFileStream.h \
-    IO/IStream.h
+HEADERS +=
 
-SOURCES += \
-    IO/xMultiFileStream.cpp \
-    IO/xFileStream.cpp \
-    IO/xDeviceStream.cpp \
-    IO/xDeviceFileStream.cpp \
-    IO/IStream.cpp
+SOURCES +=
 
 HEADERS += \
     stdafx.h \
@@ -72,3 +54,5 @@ HEADERS += \
 
 SOURCES += \
     stdafx.cpp
+
+cache()
