@@ -28,7 +28,10 @@ HEADERS += \
     io/device_file_stream.h \
     io/device_stream.h \
     io/file_stream.h \
-    io/multi_file_stream.h
+    io/multi_file_stream.h \
+    fatx/ientry.h \
+    fatx/file.h \
+    fatx/folder.h
 SOURCES += \
     src/convert.cpp         \
     src/streambuf.cpp       \
@@ -40,7 +43,10 @@ SOURCES += \
     io/device_file_stream.cpp \
     io/device_stream.cpp \
     io/file_stream.cpp \
-    io/multi_file_stream.cpp
+    io/multi_file_stream.cpp \
+    fatx/ientry.cpp \
+    fatx/file.cpp \
+    fatx/folder.cpp
 
 # IO Headers
 HEADERS +=

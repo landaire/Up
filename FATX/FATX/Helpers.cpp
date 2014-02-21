@@ -7,10 +7,10 @@ using std::string;
 using std::vector;
 using std::stringstream;
 
-QDateTime Helpers::IntToQDateTime( FAT_TIME_STAMP Date )
+QDateTime Helpers::IntToQDateTime( FAT_TIME_STAMP date )
 {
-    QDateTime r(QDate(Date.DateTime.Year, Date.DateTime.Month, Date.DateTime.Day),
-                QTime(Date.DateTime.Hour, Date.DateTime.Minute, Date.DateTime.Seconds * 2));
+    QDateTime r(QDate(date.DateTime.Year, date.DateTime.Month, date.DateTime.Day),
+                QTime(date.DateTime.Hour, date.DateTime.Minute, date.DateTime.Seconds * 2));
     return r;
 }
 
@@ -19,44 +19,44 @@ int Helpers::QDateTimeToInt( QDateTime /* date */ )
     return 0;
 }
 
-uint64_t Helpers::DownToNearestSector( uint64_t Offset )
+uint64_t Helpers::DownToNearestSector( uint64_t offset )
 {
-    return Offset -= (Offset % 0x200);
+    return offset -= (offset % 0x200);
 }
 
-uint64_t Helpers::UpToNearestSector( uint64_t Offset )
+uint64_t Helpers::UpToNearestSector( uint64_t offset )
 {
-    int Add = 0x200 - (Offset % 0x200);
+    int Add = 0x200 - (offset % 0x200);
     // If add doesn't equal 0x200, return offset + add
-    return (Add != 0x200) ? Offset + Add : Offset;
+    return (Add != 0x200) ? offset + Add : offset;
 }
 
-uint64_t Helpers::UpToNearestX(uint64_t Value, int x)
+uint64_t Helpers::UpToNearestX(uint64_t value, int x)
 {
-    int Remainder = Value % x;
-    int Add = x - Remainder;
+    int remainder = value % x;
+    int add = x - remainder;
     // If add doesn't equal x, return value + add
-    return (Remainder != 0) ? Value + Add : Value;
+    return (remainder != 0) ? value + add : value;
 }
 
-uint64_t Helpers::DownToNearestX( uint64_t Value, int x)
+uint64_t Helpers::DownToNearestX( uint64_t value, int x)
 {
-    return Value -= (Value % x);
+    return value -= (value % x);
 }
 
-string Helpers::ConvertToFriendlySize( uint64_t Size )
+string Helpers::ConvertToFriendlySize( uint64_t size )
 {
-    double size = Size;
+    double size = size;
     string returnVal;
-    char Output[50];
-    memset(Output, 0, 50);
+    char output[50];
+    memset(output, 0, 50);
     // There's 0x400 bytes in a kilobyte, 0x400 KB in a MB, 0x400 MB in a GB
     // if the size is below 1KB
     if ((size / 0x400) < 1)
     {
-        sprintf(Output, "%.2lf", size);
+        sprintf(output, "%.2lf", size);
         returnVal.clear();
-        returnVal += Output;
+        returnVal += output;
         if (size != 1)
         {
             returnVal += " bytes";
@@ -70,9 +70,9 @@ string Helpers::ConvertToFriendlySize( uint64_t Size )
     if (size / 0x400 > 1)
     {
         size = size / 0x400;
-        sprintf(Output, "%.2lf", size);
+        sprintf(output, "%.2lf", size);
         returnVal.clear();
-        returnVal += Output;
+        returnVal += output;
         returnVal += " KB";
     }
 
@@ -80,9 +80,9 @@ string Helpers::ConvertToFriendlySize( uint64_t Size )
     if (size / 0x400 > 1)
     {
         size = size / 0x400;
-        sprintf(Output, "%.2lf", size);
+        sprintf(output, "%.2lf", size);
         returnVal.clear();
-        returnVal += Output;
+        returnVal += output;
         returnVal += " MB";
     }
 
@@ -90,9 +90,9 @@ string Helpers::ConvertToFriendlySize( uint64_t Size )
     if (size / 0x400 > 1)
     {
         size = size / 0x400;
-        sprintf(Output, "%.2lf", size);
+        sprintf(output, "%.2lf", size);
         returnVal.clear();
-        returnVal += Output;;
+        returnVal += output;;
         returnVal += " GB";
     }
 

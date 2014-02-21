@@ -11,11 +11,14 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+
 class Drive;
 namespace Streams
 {
 class DeviceFileStream;
 }
+
+/** FAT Information **/
 #define FAT32 4
 #define FAT16 2
 
@@ -39,6 +42,7 @@ class DeviceFileStream;
 #define FAT_DIRENT_DELETED              0xE5
 #define FAT_DIRENT_NEVER_USED2          0xFF
 
+/** STFS Information **/
 #define STFS_PACKAGE_LIVE               0x4C495645
 #define STFS_PACKAGE_PIRS               0x50495253
 #define STFS_PACKAGE_CON                0x434F4E20
@@ -75,37 +79,41 @@ class DeviceFileStream;
 #define STFS_CONTENT_TYPE_XNA               0xE0000
 
 
-static char KnownIds[][9] =
-{
-    "000D0000","00009000","00040000","02000000","00080000",
-    "00020000","000A0000","000C0000","00400000","00004000",
-    "000B0000","00002000","000F0000","00000002","00100000",
-    "00300000","00500000","00010000","00000003","00000001",
-    "00050000","00030000","00200000","00090000","00600000",
-    "00070000","00005000","00060000","00001000","00005000",
-    "000E0000","FFFE07D1","00007000","00008000"
-};
-
-static char KnownEquivalent[][0x20] =
-{
-    "Arcade Title", "Avatar Item",              "Cache File",       "Community Game",           "Game Demo",
-    "Gamer Picture","Game Title",               "Game Trailer",     "Game Video",               "Installed Game",
-    "Installer",    "IPTV Pause Buffer",        "License Store",    "Marketplace Content",      "Movie",
-    "Music Video",  "Podcast Video","Profile",  "Publisher",        "Saved Game",               "Storage Download",
-    "Theme",        "TV",                       "Video",            "Viral Video",              "Xbox Download",
-    "Xbox Original Game","Xbox Saved Game",     "Installed Xbox 360 Title","Xbox Title",        "XNA",
-    "Xbox 360 Dashboard","Games on Demand",     "Storage Pack"
-};
-
-static char KnownFolders[][0x20] =
-{
-    "Arcade Titles", "Avatar Items",            "Cache Files",      "Community Games",          "Game Demos",
-    "Gamer Pictures","Game Titles",             "Game Trailers",    "Game Videos",              "Installed Games",
-    "Installers",    "IPTV Pause Buffers",      "License Store",    "Marketplace Content",      "Movies",
-    "Music Videos",  "Podcast Videos",          "Profiles",         "Publisher",                "Saved Games",
-    "Storage Downloads","Themes",               "TV Content",       "Videos",                   "Viral Videos",
-    "Xbox Downloads","Xbox Original Games",     "Xbox Saved Games", "Installed Xbox 360 Titles","Xbox Titles",
-    "XNA Content",   "Xbox 360 Dashboard Content","Games on Demand","Storage Pack"
+static std::map<const char*, const std::string> KnownContent = {
+    {"000D0000", "Arcade Title"             },
+    {"00009000", "Avatar Item"              },
+    {"00040000", "Cache File"               },
+    {"02000000", "Community Game"           },
+    {"00080000", "Game Demo"                },
+    {"00020000", "Gamer Picture"            },
+    {"000A0000", "Game Title"               },
+    {"000C0000", "Game Trailer"             },
+    {"00400000", "Game Video"               },
+    {"00004000", "Installed Game"           },
+    {"000B0000", "Installer"                },
+    {"00002000", "IPTV Pause Buffer"        },
+    {"000F0000", "License Store"            },
+    {"00000002", "Marketplace Content"      },
+    {"00100000", "Movie"                    },
+    {"00300000", "Music Video"              },
+    {"00500000", "Podcast Video"            },
+    {"00010000", "Profile"                  },
+    {"00000003", "Publisher"                },
+    {"00000001", "Saved Game"               },
+    {"00050000", "Storage Download"         },
+    {"00030000", "Theme"                    },
+    {"00200000", "TV"                       },
+    {"00090000", "Video"                    },
+    {"00600000", "Viral Video"              },
+    {"00070000", "Xbox Download"            },
+    {"00005000", "Xbox Original Game"       },
+    {"00060000", "Xbox Save Game"           },
+    {"00001000", "Installed Xbox 360 Title" },
+    {"00005000", "Xbox Title"               },
+    {"000E0000", "XNA"                      },
+    {"FFFE07D1", "Xbox 360 Dashboard"       },
+    {"00007000", "Games on Demand"          },
+    {"00008000", "Storage Pack"             },
 };
 
 enum DeviceType
@@ -119,18 +127,17 @@ typedef union _FAT_TIME_STAMP
 {
     struct
     {
-        UINT16 Seconds  : 5;
-        UINT16 Minute   : 6;
-        UINT16 Hour     : 5;
-        UINT16 Day      : 5;
-        UINT16 Month    : 4;
-        UINT16 Year     : 7; // Relative to 2000
+        uint16_t Seconds  : 5;
+        uint16_t Minute   : 6;
+        uint16_t Hour     : 5;
+        uint16_t Day      : 5;
+        uint16_t Month    : 4;
+        uint16_t Year     : 7; // Relative to 2000
     } DateTime;
     uint32_t AsDWORD;
-} FAT_TIME_STAMP;
-typedef FAT_TIME_STAMP *PFAT_TIME_STAMP;
+} TimeStamp;
 
-struct xDirent
+struct FATXDirent
 {
     // Size of the file/folder name
     uint8_t NameSize;
@@ -143,11 +150,11 @@ struct xDirent
     // Size of the file; 0 if folder/null
     uint32_t FileSize;
     // Entry creation date
-    FAT_TIME_STAMP DateCreated;
+    TimeStamp DateCreated;
     // Entry date for when it was last written
-    FAT_TIME_STAMP DateLastWritten;
+    TimeStamp DateLastWritten;
     // Entry date for when it was last accessed
-    FAT_TIME_STAMP DateAccessed;
+    TimeStamp DateAccessed;
     // Offset of the entry (relative to disk start)
     uint64_t Offset;
 };
@@ -169,18 +176,18 @@ struct Progress
 Q_DECLARE_METATYPE(Progress)
 
 struct File;
-struct FatxVolume;
+struct FATXVolume;
 
 struct Folder
 {
     std::vector<uint32_t>     ClusterChain;
-    xDirent                 Dirent;
+    FATXDirent                 Dirent;
     std::vector<std::shared_ptr<Folder>> CachedFolders;
     std::vector<std::shared_ptr<File>>   CachedFiles;
     bool                    FatxEntriesRead;
     std::string             FullPath;
     std::shared_ptr<Folder> Parent;
-    std::shared_ptr<FatxVolume> Volume;
+    std::shared_ptr<FATXVolume> Volume;
     QDateTime               DateCreated;
     QDateTime               DateModified;
     QDateTime               DateAccessed;
@@ -219,10 +226,10 @@ struct Folder
 struct File
 {
     std::vector<uint32_t> ClusterChain;
-    xDirent             Dirent;
+    FATXDirent             Dirent;
     std::string         FullPath;
     std::shared_ptr<Folder>     Parent;
-    std::shared_ptr<FatxVolume> Volume;
+    std::shared_ptr<FATXVolume> Volume;
     QDateTime           DateCreated;
     QDateTime           DateModified;
     QDateTime           DateAccessed;
@@ -239,7 +246,7 @@ typedef struct _DEV_PARTITION
 /**
  * @brief The FATX Volume struct
  */
-struct FatxVolume
+struct FATXVolume
 {
     std::string		 Name;
     uint32_t Magic;					// Partition magic
@@ -257,7 +264,7 @@ struct FatxVolume
     uint64_t FreeClusterRangeStart;
     std::shared_ptr<Folder> Root;
     std::shared_ptr<Drive> Disk;
-    FatxVolume()
+    FATXVolume()
     {
         // Set all members to 0
         Magic = 0;

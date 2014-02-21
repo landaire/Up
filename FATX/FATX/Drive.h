@@ -31,10 +31,10 @@ class Drive : public QObject
     Q_OBJECT
 
 private:
-    std::vector<FatxVolume*> validVolumes;
+    std::vector<FATXVolume*> validVolumes;
     void	SetValidPartitions      ( void );
     void	InitializePartitions    ( void );
-    void	FatxProcessBootSector   ( FatxVolume* ref );
+    void	FatxProcessBootSector   ( FATXVolume* ref );
     void    DestroyFolder           (shared_ptr<Folder> Directory);
     uint8_t	cntlzw                  (uint32_t val);
     std::vector<std::string> _partitions;
@@ -51,7 +51,7 @@ public:
 
     uint64_t GetLength( void );
 
-    void    ReadClusterChain        (std::vector<uint32_t>& Chain, xDirent Entry, const shared_ptr<FatxVolume> RelativePartition, int Count=-1);
+    void    ReadClusterChain        (std::vector<uint32_t>& Chain, FatxDirentent Entry, const shared_ptr<FATXVolume> RelativePartition, int Count=-1);
 
     std::vector<std::string>Partitions          ( void );
     string                  GetDiskName         ( void );
@@ -68,8 +68,8 @@ public:
     void                    CopyFileToLocalDisk (const string &path, const string &outputDirectory);
     void                    CopyFolderToLocalDisk( shared_ptr<Folder> f, const string &Output );
     void                    CopyFolderToLocalDisk( const string &folderPath, const string &outputFolderPath);
-    void                    CreateDirent        ( xDirent const &d );
-    void                    FindFreeClusters(uint32_t startingCluster, size_t clusterCount, const shared_ptr<FatxVolume> partition, std::vector<uint32_t>& outChain);
+    void                    CreateDirent        ( FatxDirentent const &d );
+    void                    FindFreeClusters(uint32_t startingCluster, size_t clusterCount, const shared_ptr<FATXVolume> partition, std::vector<uint32_t>& outChain);
     size_t                  GetSectorsFromSecuritySector( void );
 signals:
     void                    FileProgressChanged(const Progress &progress);

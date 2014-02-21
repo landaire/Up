@@ -1,8 +1,9 @@
+#include <memory>
 #include <sys/stat.h>
 #include <QMetaType>
 #include <QTime>
 #include "Drive.h"
-#include "stfspackage.h"
+#include "stfs_package.h"
 #include "xexception.h"
 
 Drive::Drive( string path, string friendlyName, bool isUsb ) : QObject()
@@ -90,7 +91,7 @@ Drive::~Drive(void)
 
 }
 
-void Drive::CreateDirent(const xDirent &d)
+void Drive::CreateDirent(const FATXDirent &d)
 {
     // Get the stream to the disk
     Streams::IStream *ds = this->deviceStream;
@@ -119,7 +120,7 @@ void Drive::CreateDirent(const xDirent &d)
 void Drive::CopyFileToLocalDisk(File *dest, string const &Output)
 {
     // Get the stream to the file
-    std::unique_ptr<DeviceFileStream> inputFileStream(new Streams::DeviceFileStream(dest, this));
+    std::unique_ptr<DeviceFileStream> inputFileStream = (new Streams::DeviceFileStream(dest, this));
     // Get a stream to the output file
     std::unique_ptr<FileStream> outputStream(new Streams::FileStream(Output, Streams::Create));
 
@@ -350,7 +351,7 @@ shared_ptr<Folder> Drive::FolderFromPath(string path)
 
     for (size_t i = 0; i < validVolumes.size(); i++)
     {
-        FatxVolume* activePartition = validVolumes.at(i);
+        FATXVolume* activePartition = validVolumes.at(i);
 
         // Split the path so by the backslash
         vector<string> pathSplit;
@@ -504,7 +505,7 @@ shared_ptr<File> Drive::FileFromPath(string path)
 
 
 // TODO: FINISH THIS FUNCTION AND MAKE SHIT WORK
-void Drive::FindFreeClusters(uint32_t startingCluster, size_t clusterCount, const shared_ptr<FatxVolume> partition, vector<uint32_t>& outChain)
+void Drive::FindFreeClusters(uint32_t startingCluster, size_t clusterCount, const shared_ptr<FATXVolume> partition, vector<uint32_t>& outChain)
 {
     // Set the stream position to the free cluster range start
     if (partition->FreeClusterRangeStart != 0xFFFFFFFF)
@@ -539,7 +540,7 @@ void Drive::ReadDirectoryEntries(shard_ptr<Folder> directory)
         // Loop for the maximum amount of entries per cluster
         for (size_t j = 0; j < directory->Volume->ClusterSize / 0x40; j++)
         {
-            xDirent entry;
+            FATXDirent entry;
             memset(&entry, 0, sizeof(entry));
             entry.Offset = deviceStream->Position();
             // Would just read the entire header here, but since there's the endian swap...
@@ -571,7 +572,7 @@ void Drive::ReadDirectoryEntries(shard_ptr<Folder> directory)
             if (entry.Attributes & Attributes::DIRECTORY)
             {
                 // Folder, sweet.
-                shared_ptr<Folder> f(new Folder());
+                auto f = std::make_shared<Folder>();
                 f->Dirent           = entry;
                 f->FullPath         = directory->FullPath + "/";
                 f->FullPath         += entry.Name;
@@ -585,7 +586,7 @@ void Drive::ReadDirectoryEntries(shard_ptr<Folder> directory)
             }
             else
             {
-                shared_ptr<File> f(new File());
+                auto f = std::make_shared<File>();
                 f->Dirent       = entry;
                 f->FullPath     = directory->FullPath + "/";
                 f->FullPath     += entry.Name;
@@ -602,7 +603,7 @@ void Drive::ReadDirectoryEntries(shard_ptr<Folder> directory)
     directory->FatxEntriesRead = true;
 }
 
-void Drive::ReadClusterChain(vector<uint32_t>& chain, xDirent entry, const shared_ptr<FatxVolume> relativePartition, int count)
+void Drive::ReadClusterChain(vector<uint32_t>& chain, FATXDirent entry, const shared_ptr<FATXVolume> relativePartition, int count)
 {
     // Clear the chain
     chain.clear();
@@ -655,7 +656,7 @@ void Drive::Close( void )
     {
         if (!validVolumes.size())
             break;
-        FatxVolume *x = validVolumes.at(0);
+        FATXVolume *x = validVolumes.at(0);
         DestroyFolder(x->Root);
         validVolumes.erase(validVolumes.begin());
         delete x;
@@ -695,7 +696,7 @@ void Drive::SetValidPartitions( void )
 {
     if (!validVolumes)
     {
-        vector<FatxVolume *> DiskVolumes;
+        vector<FATXVolume *> DiskVolumes;
         // Get the partitions
 
         // Dev kit partitions
@@ -721,7 +722,7 @@ void Drive::SetValidPartitions( void )
             for (int i = 0; i < (int)DevPartitions.size(); i++)
             {
                 DevPartition temp = DevPartitions.at(i);
-                FatxVolume *Actual = new FatxVolume();
+                FATXVolume *Actual = new FATXVolume();
                 Actual->Offset = (uint64_t)temp.Sector * 0x200;
                 Actual->Size = temp.Size * 0x200;
                 Actual->Name = temp.Name;
@@ -732,10 +733,10 @@ void Drive::SetValidPartitions( void )
         // Thumb drive partitions
         else if (Type == DeviceUsb)
         {
-            FatxVolume* SysExt = new FatxVolume();
-            FatxVolume* SysAux = new FatxVolume();
-            FatxVolume* Cache  = new FatxVolume();
-            FatxVolume* Data   = new FatxVolume();
+            FATXVolume* SysExt = new FATXVolume();
+            FATXVolume* SysAux = new FATXVolume();
+            FATXVolume* Cache  = new FATXVolume();
+            FATXVolume* Data   = new FATXVolume();
 
             SysExt->Offset = UsbOffsets::SystemExtended;
             SysAux->Offset = UsbOffsets::SystemAux;
@@ -778,10 +779,10 @@ void Drive::SetValidPartitions( void )
         // Retail disk/disk backup partitions
         else if(Type == DeviceDisk || Type == DeviceBackup)
         {
-            FatxVolume* SysExt        = new FatxVolume();
-            FatxVolume* SysAux        = new FatxVolume();
-            FatxVolume* SystemPartition = new FatxVolume();
-            FatxVolume* Data          = new FatxVolume();
+            FATXVolume* SysExt        = new FATXVolume();
+            FATXVolume* SysAux        = new FATXVolume();
+            FATXVolume* SystemPartition = new FATXVolume();
+            FATXVolume* Data          = new FATXVolume();
 
             SysExt->Offset = HddOffsets::SystemExtended;
             SysAux->Offset = HddOffsets::SystemAux;
@@ -810,7 +811,7 @@ void Drive::SetValidPartitions( void )
             try
             {
                 FatxProcessBootSector(DiskVolumes.at(i));
-                FatxVolume* p = DiskVolumes.at(i);
+                FATXVolume* p = DiskVolumes.at(i);
                 p->Root = new Folder();
                 p->Root->Volume = p;
                 p->Root->FullPath += p->Name;
@@ -840,7 +841,7 @@ void Drive::SetValidPartitions( void )
             }
         }
 
-        validVolumes = new vector<FatxVolume *>();
+        validVolumes = new vector<FATXVolume *>();
         *validVolumes = DiskVolumes;
     }
 }
@@ -926,7 +927,7 @@ uint8_t Drive::cntlzw(uint32_t val)
     return highest;
 }
 
-void Drive::FatxProcessBootSector( FatxVolume* ref )
+void Drive::FatxProcessBootSector( FATXVolume* ref )
 {
     // Get the partition size locally
     uint64_t PartitionSize = (uint64_t)ref->Size;
