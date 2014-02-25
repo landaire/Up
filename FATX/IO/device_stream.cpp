@@ -6,8 +6,8 @@ namespace Streams
 DeviceStream::DeviceStream(std::string DevicePath )
 {
     // Set our variables
-    _Length = 0;
-    _Endian = Big;
+    length = 0;
+    endian = Big;
     IsClosed = false;
     UserOffset = 0;
     LastReadOffset = -1;
@@ -101,7 +101,7 @@ void DeviceStream::SetPosition( INT64 Position )
 
 INT64 DeviceStream::Length( void )
 {
-    if (!IsClosed && !_Length)
+    if (!IsClosed && !length)
     {
 #ifdef _WIN32
         DISK_GEOMETRY Geometry;
@@ -137,13 +137,13 @@ INT64 DeviceStream::Length( void )
 
         qDebug("#S: 0x%X, SS: 0x%X", *NumberOfSectors, *SectorSize);
 
-        _Length = (UINT64)*NumberOfSectors * (UINT64)*SectorSize;
+        length = (UINT64)*NumberOfSectors * (UINT64)*SectorSize;
         delete NumberOfSectors;
         delete SectorSize;
 #endif
 
     }
-    return _Length;
+    return length;
 }
 
 BYTE DeviceStream::ReadByte( void )

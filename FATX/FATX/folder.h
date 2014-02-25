@@ -1,6 +1,9 @@
 #ifndef FOLDER_H
 #define FOLDER_H
 
+#import "ientry.h"
+#import "file.h"
+
 class Folder : public IEntry
 {
     std::vector<std::shared_ptr<Folder>>    cachedFolders;
@@ -8,6 +11,7 @@ class Folder : public IEntry
 
 public:
     Folder();
+    ~Folder();
 
     bool IsTitleIdFolder();
 };

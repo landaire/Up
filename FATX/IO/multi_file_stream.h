@@ -20,8 +20,8 @@ namespace Streams
         MultiFileStream(const std::vector<std::___LIBCPP_ABI_VERSION::string> InPaths );
 		~MultiFileStream(void);
 
-        INT64 Position		( void );
-        void SetPosition		( INT64 Position );
+        INT64 GetPosition		( void );
+        void SetPosition		( INT64 GetPosition );
         INT64 Length			( void );
 
 		/* Writing Functions	 */

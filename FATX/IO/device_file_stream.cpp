@@ -20,12 +20,12 @@ DeviceFileStream::~DeviceFileStream(void)
 
 void DeviceFileStream::Initialize(File *xf, Drive *device, bool ReadFullChain)
 {
-    IsClosed = false;
-    _Endian = Big;
+    IsClosed() = false;
+    endian = Big;
     this->xf = xf;
     this->device = device;
     UserPosition = 0;
-    IsClosed = false;
+    IsClosed() = false;
     if (!xf->ClusterChain.size() || (!xf->FullClusterChainRead & ReadFullChain))
     {
         device->ReadClusterChain(xf->ClusterChain, xf->Dirent, *xf->Volume);
@@ -35,10 +35,10 @@ void DeviceFileStream::Initialize(File *xf, Drive *device, bool ReadFullChain)
 
 void DeviceFileStream::Close( void )
 {
-    IsClosed = true;
+    IsClosed() = true;
 }
 
-INT64 DeviceFileStream::Position( void )
+INT64 DeviceFileStream::GetPosition( void )
 {
     return UserPosition;
 }
@@ -68,11 +68,11 @@ INT64 DeviceFileStream::GetPhysicalPosition(int FilePosition)
 
 BYTE DeviceFileStream::ReadByte( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::ReadByte");
     }
-    else if (Position() > Length() - sizeof(BYTE))
+    else if (GetPosition() > Length() - sizeof(BYTE))
     {
         throw xException("End of file reached.  At: xDeviceFileStream::ReadByte");
     }
@@ -85,11 +85,11 @@ BYTE DeviceFileStream::ReadByte( void )
 
 short DeviceFileStream::ReadInt16( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::ReadInt16");
     }
-    else if (Position() > Length() - sizeof(INT16))
+    else if (GetPosition() > Length() - sizeof(INT16))
     {
         throw xException("End of file reached.  At: xDeviceFileStream::ReadInt16");
     }
@@ -104,11 +104,11 @@ short DeviceFileStream::ReadInt16( void )
 
 int DeviceFileStream::ReadInt32( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::ReadInt32");
     }
-    else if (Position() > Length() - sizeof(INT32))
+    else if (GetPosition() > Length() - sizeof(INT32))
     {
         throw xException("End of file reached.  At: xDeviceFileStream::ReadInt32");
     }
@@ -136,11 +136,11 @@ int DeviceFileStream::ReadInt32( void )
 
 INT64 DeviceFileStream::ReadInt64( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::ReadInt64");
     }
-    else if (Position() > Length() - sizeof(INT64))
+    else if (GetPosition() > Length() - sizeof(INT64))
     {
         throw xException("End of file reached.  At: xDeviceFileStream::ReadInt64");
     }
@@ -162,11 +162,11 @@ INT64 DeviceFileStream::ReadInt64( void )
 
 UINT16 DeviceFileStream::ReadUInt16( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::ReadUInt16");
     }
-    else if (Position() > Length() - sizeof(UINT16))
+    else if (GetPosition() > Length() - sizeof(UINT16))
     {
         throw xException("End of file reached.  At: xDeviceFileStream::ReadUInt16");
     }
@@ -188,11 +188,11 @@ UINT16 DeviceFileStream::ReadUInt16( void )
 
 UINT32 DeviceFileStream::ReadUInt32( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::ReadUInt32");
     }
-    else if (Position() > Length() - sizeof(UINT32))
+    else if (GetPosition() > Length() - sizeof(UINT32))
     {
         throw xException("End of file reached.  At: xDeviceFileStream::ReadUInt32");
     }
@@ -215,11 +215,11 @@ UINT32 DeviceFileStream::ReadUInt32( void )
 
 UINT64 DeviceFileStream::ReadUInt64( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::ReadUInt64");
     }
-    else if (Position() > Length() - sizeof(UINT64))
+    else if (GetPosition() > Length() - sizeof(UINT64))
     {
         throw xException("End of file reached.  At: xDeviceFileStream::ReadUInt64");
     }
@@ -241,7 +241,7 @@ UINT64 DeviceFileStream::ReadUInt64( void )
 
 int DeviceFileStream::Read( BYTE* DestBuff, int Count )
 {
-    SetPosition(Position());
+    SetPosition(GetPosition());
     // How many clusters the data we're reading is spread across
     int ClustersSpanned = Helpers::UpToNearestX(Count + (UserPosition - Helpers::DownToNearestX(UserPosition, xf->Volume->ClusterSize)), xf->Volume->ClusterSize) / xf->Volume->ClusterSize;
     // Read the first amount of data...
@@ -252,7 +252,7 @@ int DeviceFileStream::Read( BYTE* DestBuff, int Count )
         int tcount = 0;
         tcount += device->DeviceStream->Read(DestBuff, DataReadableInFirstCluster);
         offset += tcount;
-        SetPosition(Position() + tcount);
+        SetPosition(GetPosition() + tcount);
         Count -= tcount;
 
         int CurrentCluster = 0;
@@ -285,31 +285,31 @@ int DeviceFileStream::Read( BYTE* DestBuff, int Count )
             tcount = device->DeviceStream->Read(DestBuff + offset, xf->Volume->ClusterSize * ConsecutiveClusters);
             offset += tcount;
             Count -= tcount;
-            SetPosition(Position() + tcount);
+            SetPosition(GetPosition() + tcount);
             // So that we don't re-read these clusters...
             i += ConsecutiveClusters - 1;
         }
         // Read the last bit of data
         tcount = device->DeviceStream->Read(DestBuff + offset, Count);
-        SetPosition(Position() + tcount);
+        SetPosition(GetPosition() + tcount);
         offset += tcount;
         return offset;
     }
     else
     {
         int c = device->DeviceStream->Read(DestBuff, Count);
-        SetPosition(Position() + Count);
+        SetPosition(GetPosition() + Count);
         return c;
     }
 }
 
 std::string DeviceFileStream::ReadString( size_t Count )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::ReadString");
     }
-    if ((Position() + Count) > Length())
+    if ((GetPosition() + Count) > Length())
     {
         throw xException("Can not read beyond end of stream.  At: xDeviceFileStream::ReadString");
     }
@@ -325,7 +325,7 @@ std::string DeviceFileStream::ReadString( size_t Count )
 
 std::string DeviceFileStream::ReadCString( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::ReadCString");
     }
@@ -348,7 +348,7 @@ std::string DeviceFileStream::ReadCString( void )
         tempString[i] = temp.at(i);
     }
 
-    DetermineAndDoEndianSwap(tempString, temp.size() - 1, sizeof(char));
+    determineAndDoEndianSwap(tempString, temp.size() - 1, sizeof(char));
 
     std::string Return(tempString);
 
@@ -358,11 +358,11 @@ std::string DeviceFileStream::ReadCString( void )
 
 std::wstring DeviceFileStream::ReadUnicodeString( size_t Count )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::ReadUnicodeString");
     }
-    else if ((Position() + Count) > Length())
+    else if ((GetPosition() + Count) > Length())
     {
         throw xException("Can not read beyond end of stream.  At: xDeviceFileStream::ReadUnicodeString");
     }
@@ -373,7 +373,7 @@ std::wstring DeviceFileStream::ReadUnicodeString( size_t Count )
     Read(Buffer, Count);
     for (int i = 0; i < Count; i += sizeof(wchar_t))
     {
-        DetermineAndDoEndianSwap(Buffer + i, sizeof(wchar_t), sizeof(char));
+        determineAndDoEndianSwap(Buffer + i, sizeof(wchar_t), sizeof(char));
     }
     std::wstring ret((TCHAR*)Buffer);
     delete[] Buffer;
@@ -383,11 +383,11 @@ std::wstring DeviceFileStream::ReadUnicodeString( size_t Count )
 
 void DeviceFileStream::WriteByte( BYTE _Byte )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::WriteByte");
     }
-    else if (Position() + sizeof(BYTE) > Length())
+    else if (GetPosition() + sizeof(BYTE) > Length())
     {
         throw xException("End of file reached.  At: xDeviceFileStream::WriteByte");
     }
@@ -396,90 +396,90 @@ void DeviceFileStream::WriteByte( BYTE _Byte )
 
 void DeviceFileStream::WriteInt16( short _Int16 )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::WriteInt16");
     }
-    else if ((Position() + sizeof(short)) > Length())
+    else if ((GetPosition() + sizeof(short)) > Length())
     {
         throw xException("End of file reached.  At: xDeviceFileStream::WriteInt16");
     }
-    DetermineAndDoEndianSwap((BYTE*)&_Int16, sizeof(short), sizeof(BYTE));
+    determineAndDoEndianSwap((BYTE*)&_Int16, sizeof(short), sizeof(BYTE));
     Write((BYTE*)&_Int16, sizeof(short));
 }
 
 void DeviceFileStream::WriteInt32( int _Int32 )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::WriteInt32");
     }
-    else if ((Position() + sizeof(int)) > Length())
+    else if ((GetPosition() + sizeof(int)) > Length())
     {
         throw xException("End of file reached.  At: xDeviceFileStream::WriteInt16");
     }
 
-    DetermineAndDoEndianSwap((BYTE*)&_Int32, sizeof(int), sizeof(BYTE));
+    determineAndDoEndianSwap((BYTE*)&_Int32, sizeof(int), sizeof(BYTE));
     Write((BYTE*)&_Int32, sizeof(int));
 }
 
 void DeviceFileStream::WriteInt64( INT64 _Int64 )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::WriteInt64");
     }
-    else if ((Position() + sizeof(INT64)) > Length())
+    else if ((GetPosition() + sizeof(INT64)) > Length())
     {
         throw xException("End of file reached.  At: xDeviceFileStream::WriteInt64");
     }
 
-    DetermineAndDoEndianSwap((BYTE*)&_Int64, sizeof(INT64), sizeof(BYTE));
+    determineAndDoEndianSwap((BYTE*)&_Int64, sizeof(INT64), sizeof(BYTE));
     Write((BYTE*)&_Int64, sizeof(INT64));
 }
 
 void DeviceFileStream::WriteUInt16( UINT16 _UInt16 )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::WriteUInt16");
     }
-    else if ((Position() + sizeof(UINT16)) > Length())
+    else if ((GetPosition() + sizeof(UINT16)) > Length())
     {
         throw xException("End of file reached.  At: xDeviceFileStream::WriteUInt16");
     }
 
-    DetermineAndDoEndianSwap((BYTE*)&_UInt16, sizeof(UINT16), sizeof(BYTE));
+    determineAndDoEndianSwap((BYTE*)&_UInt16, sizeof(UINT16), sizeof(BYTE));
     Write((BYTE*)&_UInt16, sizeof(UINT16));
 }
 
 void DeviceFileStream::WriteUInt32( UINT32 _UInt32 )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::WriteUInt32");
     }
-    else if ((Position() + sizeof(UINT32)) > Length())
+    else if ((GetPosition() + sizeof(UINT32)) > Length())
     {
         throw xException("End of file reached.  At: xDeviceFileStream::WriteUInt32");
     }
 
-    DetermineAndDoEndianSwap((BYTE*)&_UInt32, sizeof(UINT32), sizeof(BYTE));
+    determineAndDoEndianSwap((BYTE*)&_UInt32, sizeof(UINT32), sizeof(BYTE));
     Write((BYTE*)&_UInt32, sizeof(UINT32));
 }
 
 void DeviceFileStream::WriteUInt64( UINT64 _UInt64 )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xDeviceFileStream::WriteUInt64");
     }
-    else if ((Position() + sizeof(UINT64)) > Length())
+    else if ((GetPosition() + sizeof(UINT64)) > Length())
     {
         throw xException("End of file reached.  At: xDeviceFileStream::WriteUInt64");
     }
 
-    DetermineAndDoEndianSwap((BYTE*)&_UInt64, sizeof(UINT64), sizeof(BYTE));
+    determineAndDoEndianSwap((BYTE*)&_UInt64, sizeof(UINT64), sizeof(BYTE));
     Write((BYTE*)&_UInt64, sizeof(UINT64));
 }
 
@@ -500,25 +500,25 @@ int DeviceFileStream::Write( BYTE* Buffer, int count )
         int tcount = 0;
         tcount += device->DeviceStream->Read(Buffer, DataWritableInFirstCluster);
         offset += tcount;
-        SetPosition(Position() + tcount);
+        SetPosition(GetPosition() + tcount);
         count -= tcount;
         for (int i = 1; i < ClustersSpanned - 1; i++)
         {
             tcount = device->DeviceStream->Read(Buffer + offset, count);
             offset += tcount;
             count -= tcount;
-            SetPosition(Position() + tcount);
+            SetPosition(GetPosition() + tcount);
         }
         // Read the last bit of data
         tcount = device->DeviceStream->Read(Buffer + offset, count);
-        SetPosition(Position() + tcount);
+        SetPosition(GetPosition() + tcount);
         offset += tcount;
         return offset;
     }
     else
     {
         int c = device->DeviceStream->Read(Buffer, count);
-        SetPosition(Position() + c);
+        SetPosition(GetPosition() + c);
         return c;
     }
 }

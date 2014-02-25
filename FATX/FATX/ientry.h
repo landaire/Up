@@ -23,7 +23,7 @@ class IEntry
     QDateTime DateAccessed;
 
 public:
-    IEntry(const Folder& parent, const FATXDirent);
+    IEntry(std::shared_ptr<Folder> parent, const FATXDirent &dirent);
 
     const std::string FullPath;
     QDateTime GetDateCreated();

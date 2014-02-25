@@ -26,7 +26,7 @@ class Drive : public QObject
     using std::string;
     using std::vector;
     using std::stringstream;
-    using shared_ptr;
+    using std::shared_ptr;
 
     Q_OBJECT
 

@@ -19,9 +19,9 @@ FileStream::FileStream(std::string FilePath, int Mode )
 void FileStream::Initialize(std::string FilePath, int Mode)
 {
     using namespace std;
-    _Length = 0;
-    _Endian = Big;
-    IsClosed = false;
+    length = 0;
+    endian = Big;
+    IsClosed() = false;
     int iosMode = std::ios::binary;
     const char* CharPath = FilePath.c_str();
     switch (Mode)
@@ -93,22 +93,22 @@ FileStream::~FileStream(void)
 
 void FileStream::Close( void )
 {
-    if (!IsClosed)
+    if (!IsClosed())
     {
         _FileStream.close();
-        IsClosed = true;
+        IsClosed() = true;
     }
 }
 
-INT64 FileStream::Position( void )
+INT64 FileStream::GetPosition( void )
 {
     int x = _FileStream.tellg();
-    return (IsClosed) ? 0 : (INT64)_FileStream.tellg();
+    return (IsClosed()) ? 0 : (INT64)_FileStream.tellg();
 }
 
 void FileStream::SetPosition( INT64 Position )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::SetPosition");
     }
@@ -120,15 +120,15 @@ void FileStream::SetPosition( INT64 Position )
 
 INT64 FileStream::Length( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::GetLength");
     }
     INT64 Position = _FileStream.tellg();
     _FileStream.seekg(0, std::ios::end);
-    _Length = _FileStream.tellg();
+    length = _FileStream.tellg();
     _FileStream.seekg((DWORD)Position, std::ios::beg);
-    return _Length;
+    return length;
 }
 
 std::string FileStream::ReadString( size_t Count )
@@ -147,7 +147,7 @@ std::wstring FileStream::ReadUnicodeString( size_t Count)
     char* buff = new char[Count + 1];
     memset(buff, 0, Count + 1);
     Read((BYTE*)buff, Count);
-    DetermineAndDoArraySwap((BYTE*)buff, Count, false);
+    determineAndDoArraySwap((BYTE*)buff, Count, false);
     std::wstring Return((TCHAR*)buff);
 
     delete[] buff;
@@ -175,7 +175,7 @@ std::string FileStream::ReadCString( void )
         tempString[i] = temp.at(i);
     }
 
-    DetermineAndDoEndianSwap(tempString, temp.size() - 1, sizeof(char));
+    determineAndDoEndianSwap(tempString, temp.size() - 1, sizeof(char));
 
     std::string Return(tempString);
 
@@ -186,7 +186,7 @@ std::string FileStream::ReadCString( void )
 
 BYTE FileStream::ReadByte( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::ReadByte");
     }
@@ -197,111 +197,111 @@ BYTE FileStream::ReadByte( void )
 
 short FileStream::ReadInt16( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::ReadInt16");
     }
     short Return;
     _FileStream.read((char*)&Return, sizeof(short));
 
-    DetermineAndDoEndianSwap(&Return, 1, sizeof(short));
+    determineAndDoEndianSwap(&Return, 1, sizeof(short));
 
     return Return;
 }
 
 int FileStream::ReadInt32( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::ReadInt32");
     }
     int Return;
     _FileStream.read((char*)&Return, sizeof(int));
 
-    DetermineAndDoEndianSwap(&Return, 1, sizeof(int));
+    determineAndDoEndianSwap(&Return, 1, sizeof(int));
 
     return Return;
 }
 
 INT64 FileStream::ReadInt64( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::ReadInt64");
     }
     INT64 Return;
     _FileStream.read((char*)&Return, sizeof(INT64));
 
-    DetermineAndDoEndianSwap(&Return, 1, sizeof(INT64));
+    determineAndDoEndianSwap(&Return, 1, sizeof(INT64));
 
     return Return;
 }
 
 UINT16 FileStream::ReadUInt16( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::ReadUInt16");
     }
     UINT16 Return;
     _FileStream.read((char*)&Return, sizeof(UINT16));
 
-    DetermineAndDoEndianSwap(&Return, 1, sizeof(UINT16));
+    determineAndDoEndianSwap(&Return, 1, sizeof(UINT16));
 
     return Return;
 }
 
 UINT32 FileStream::ReadUInt32( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::ReadUInt32");
     }
     UINT32 Return;
     _FileStream.read((char*)&Return, sizeof(UINT32));
 
-    DetermineAndDoEndianSwap(&Return, 1, sizeof(UINT32));
+    determineAndDoEndianSwap(&Return, 1, sizeof(UINT32));
 
     return Return;
 }
 
 UINT64 FileStream::ReadUInt64( void )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::ReadUInt64");
     }
     UINT64 Return;
     _FileStream.read((char*)&Return, sizeof(UINT64));
 
-    DetermineAndDoEndianSwap(&Return, 1, sizeof(UINT64));
+    determineAndDoEndianSwap(&Return, 1, sizeof(UINT64));
 
     return Return;
 }
 
 int FileStream::Read( BYTE* DestBuff, int Count )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::Read");
     }
 
     // Calculate the amount of data we can read
-    if ((Position() + Count) > Length())
+    if ((GetPosition() + Count) > Length())
     {
         // We can't read beyond the end of the stream, so let's just read as much as we can
-        Count = (DWORD)((Position() >= Length()) ? 0 : Length() - Position());
+        Count = (DWORD)((GetPosition() >= Length()) ? 0 : Length() - GetPosition());
     }
     _FileStream.read((char*)DestBuff, Count);
 
-    DetermineAndDoEndianSwap(DestBuff, Count, sizeof(BYTE));
+    determineAndDoEndianSwap(DestBuff, Count, sizeof(BYTE));
 
     return Count;
 }
 
 void FileStream::WriteByte( BYTE _Byte )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::WriteByte");
     }
@@ -310,84 +310,84 @@ void FileStream::WriteByte( BYTE _Byte )
 
 void FileStream::WriteInt16( short _Int16 )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::WriteInt16");
     }
 
-    DetermineAndDoEndianSwap(&_Int16, 1, sizeof(short));
+    determineAndDoEndianSwap(&_Int16, 1, sizeof(short));
 
     _FileStream.write((char*)&_Int16, sizeof(INT16));
 }
 
 void FileStream::WriteInt32( int _Int32 )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::WriteInt32");
     }
 
-    DetermineAndDoEndianSwap(&_Int32, 1, sizeof(int));
+    determineAndDoEndianSwap(&_Int32, 1, sizeof(int));
 
     _FileStream.write((char*)&_Int32, sizeof(INT32));
 }
 
 void FileStream::WriteInt64( INT64 _Int64 )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::WriteInt64");
     }
 
-    DetermineAndDoEndianSwap(&_Int64, 1, sizeof(INT64));
+    determineAndDoEndianSwap(&_Int64, 1, sizeof(INT64));
 
     _FileStream.write((char*)&_Int64, sizeof(INT64));
 }
 
 void FileStream::WriteUInt16( UINT16 _UInt16 )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::WriteUInt16");
     }
 
-    DetermineAndDoEndianSwap(&_UInt16, 1, sizeof(UINT16));
+    determineAndDoEndianSwap(&_UInt16, 1, sizeof(UINT16));
 
     _FileStream.write((char*)&_UInt16, sizeof(UINT16));
 }
 
 void FileStream::WriteUInt32( UINT32 _UInt32 )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::WriteUInt32");
     }
 
-    DetermineAndDoEndianSwap(&_UInt32, 1, sizeof(UINT32));
+    determineAndDoEndianSwap(&_UInt32, 1, sizeof(UINT32));
 
     _FileStream.write((char*)&_UInt32, sizeof(UINT32));
 }
 
 void FileStream::WriteUInt64( UINT64 _UInt64 )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::WriteUInt64");
     }
 
-    DetermineAndDoEndianSwap(&_UInt64, 1, sizeof(UINT64));
+    determineAndDoEndianSwap(&_UInt64, 1, sizeof(UINT64));
 
     _FileStream.write((char*)&_UInt64, sizeof(UINT64));
 }
 
 int FileStream::Write( BYTE* Buffer, int count )
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::Write");
     }
 
-    void* temp = DetermineAndDoEndianSwap(Buffer, count, sizeof(BYTE), true);
+    void* temp = determineAndDoEndianSwap(Buffer, count, sizeof(BYTE), true);
 
     if (!temp)
     {
@@ -405,12 +405,12 @@ int FileStream::Write( BYTE* Buffer, int count )
 
 size_t FileStream::Write( void* Buffer, size_t ElementSize, int count)
 {
-    if (IsClosed)
+    if (IsClosed())
     {
         throw xException("Stream is closed. At: xFileStream::Write (the one with more arguments and stuff)");
     }
 
-    void* temp = DetermineAndDoEndianSwap((BYTE*)Buffer, count * ElementSize, sizeof(Buffer), true);
+    void* temp = determineAndDoEndianSwap((BYTE*)Buffer, count * ElementSize, sizeof(Buffer), true);
 
     if (!temp)
     {

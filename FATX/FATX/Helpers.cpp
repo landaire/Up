@@ -7,7 +7,7 @@ using std::string;
 using std::vector;
 using std::stringstream;
 
-QDateTime Helpers::IntToQDateTime( FAT_TIME_STAMP date )
+QDateTime Helpers::IntToQDateTime( TimeStamp date )
 {
     QDateTime r(QDate(date.DateTime.Year, date.DateTime.Month, date.DateTime.Day),
                 QTime(date.DateTime.Hour, date.DateTime.Minute, date.DateTime.Seconds * 2));

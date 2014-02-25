@@ -542,14 +542,14 @@ void Drive::ReadDirectoryEntries(shard_ptr<Folder> directory)
         {
             FATXDirent entry;
             memset(&entry, 0, sizeof(entry));
-            entry.Offset = deviceStream->Position();
+            entry.Offset = deviceStream->GetPosition();
             // Would just read the entire header here, but since there's the endian swap...
             entry.NameSize = deviceStream->ReadByte();
 
             // For now, I'm not messing with deleted stuff
             if (entry.NameSize == FAT_DIRENT_DELETED)
             {
-                deviceStream->SetPosition(deviceStream->Position() + 0x3F);
+                deviceStream->SetPosition(deviceStream->GetPosition() + 0x3F);
                 continue;
             }
             if (entry.NameSize == FAT_DIRENT_NEVER_USED || entry.NameSize == FAT_DIRENT_NEVER_USED2)
@@ -560,7 +560,7 @@ void Drive::ReadDirectoryEntries(shard_ptr<Folder> directory)
             entry.Attributes = deviceStream->ReadByte();
             deviceStream->Read((uint8_t*)&entry.Name, entry.NameSize);
 
-            deviceStream->SetPosition((deviceStream->Position() + 0x2A) - entry.NameSize);
+            deviceStream->SetPosition((deviceStream->GetPosition() + 0x2A) - entry.NameSize);
 
             entry.ClusterStart              = deviceStream->ReadUInt32();
             entry.FileSize                  = deviceStream->ReadUInt32();

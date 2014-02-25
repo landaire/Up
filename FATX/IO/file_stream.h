@@ -20,8 +20,8 @@ namespace Streams
 
         void Initialize(std::string FilePath, int Mode);
 
-        uint64_t Position	( void );
-        void SetPosition	( uint64_t Position );
+        uint64_t GetPosition	( void );
+        void SetPosition	( uint64_t GetPosition );
         uint64_t Length		( void );
 
 		/* Writing Functions	 */
