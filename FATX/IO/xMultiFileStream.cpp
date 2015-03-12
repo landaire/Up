@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "xMultiFileStream.h"
 #include <QDebug>
 namespace Streams
@@ -54,7 +54,7 @@ void xMultiFileStream::SetPosition( INT64 Position )
     UserOffset = Position;
 
     // Find out which stream we can use
-    for (int i = 0; i < (int)FileStreams.size(); i++)
+    for (unsigned int i = 0; i < FileStreams.size(); i++)
     {
         if (Position >= FileStreams.at(i)->Length() && i != FileStreams.size() - 1)
         {
@@ -468,7 +468,7 @@ void xMultiFileStream::WriteUInt64( UINT64 _UInt64 )
 
 int xMultiFileStream::Write( BYTE* Buffer, int count )
 {
-    int offset;
+    int offset = 0;
     if (IsClosed)
     {
         throw xException("Stream is closed. At: xMultiFileStream::WriteBytes");

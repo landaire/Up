@@ -1,6 +1,6 @@
 #ifndef __DRIVE__HG
 #define __DRIVE__HG
-#include "../StdAfx.h"
+#include "../stdafx.h"
 #include <vector>
 #include "../IO/xDeviceStream.h"
 #include "../IO/xFileStream.h"
@@ -37,7 +37,7 @@ public:
 
     INT64 GetLength( void );
 
-    void    ReadClusterChain        (std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition, int Count=-1);
+    void    ReadClusterChain        (std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition, unsigned int Count=-1);
 
     Streams::IStream*       DeviceStream;
     std::vector<std::string>Partitions          ( void );

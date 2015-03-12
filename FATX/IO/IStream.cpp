@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "IStream.h"
 
+#include <string.h>
+
 namespace Streams
 {
 int IStream::GetEndianness()

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Drive.h"
 #include "../IO/xDeviceFileStream.h"
 #include <QMetaType>
@@ -236,7 +236,7 @@ void Drive::CopyFolderToLocalDisk(Folder *f, const std::string &Output)
         ReadDirectoryEntries(f);
 
     // For each folder, do an extract thingy
-    for (int i = 0; i < f->CachedFolders.size(); i++)
+    for (unsigned int i = 0; i < f->CachedFolders.size(); i++)
     {
         Folder *folder = f->CachedFolders[i];
         CopyFolderToLocalDisk(folder, Path);
@@ -244,7 +244,7 @@ void Drive::CopyFolderToLocalDisk(Folder *f, const std::string &Output)
 
     // Extract all the files from this dir
     // FUCK MAN ARE YOU KIDDING ME?  I CAN'T LIKE... USE C++11 RANGE-BASED LOOPS?!  FUCK MAN
-    for (int i = 0; i < f->CachedFiles.size(); i++)
+    for (unsigned int i = 0; i < f->CachedFiles.size(); i++)
     {
         File *file = f->CachedFiles[i];
         CopyFileToLocalDisk(file, (Path + "/") + file->Dirent.Name);
@@ -279,7 +279,7 @@ DWORD Drive::GetTotalFileCount(Folder *f)
     DWORD TotalCount = f->CachedFiles.size();
 
     // For each one of the folders within this folder, add that to our total count
-    for (int i = 0; i < f->CachedFolders.size(); i++)
+    for (unsigned int i = 0; i < f->CachedFolders.size(); i++)
         TotalCount += GetTotalFileCount(f->CachedFolders.at(i));
 
     // Return the total count
@@ -307,7 +307,7 @@ DWORD Drive::GetTotalFolderCount(Folder *f)
     DWORD TotalCount = f->CachedFolders.size();
 
     // For each one of the folders within this folder, add that to our total count
-    for (int i = 0; i < f->CachedFolders.size(); i++)
+    for (unsigned int i = 0; i < f->CachedFolders.size(); i++)
         TotalCount += GetTotalFolderCount(f->CachedFolders.at(i));
 
     // Return the total count
@@ -506,7 +506,7 @@ File *Drive::FileFromPath(std::string Path)
 
 
 // TODO: FINISH THIS FUNCTION AND MAKE SHIT WORK
-void Drive::FindFreeClusters(DWORD StartingCluster, DWORD ClusterCount, xVolume* Partition, std::vector<DWORD>& OutChain)
+void Drive::FindFreeClusters(DWORD /*StartingCluster*/, DWORD /*ClusterCount*/, xVolume* Partition, std::vector<DWORD>& /*OutChain*/)
 {
     // Set the stream position to the free cluster range start
     Streams::IStream* Stream = DeviceStream;
@@ -540,7 +540,7 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
         DeviceStream->SetPosition(Directory->Volume->DataStart +
                         ((UINT64)(Directory->ClusterChain.at(i) - 1)   * Directory->Volume->ClusterSize));
         // Loop for the maximum amount of entries per cluster
-        for (int j = 0; j < Directory->Volume->ClusterSize / 0x40; j++)
+        for (unsigned int j = 0; j < Directory->Volume->ClusterSize / 0x40; j++)
         {
             xDirent Entry;
             memset(&Entry, 0, sizeof(Entry));
@@ -605,7 +605,7 @@ void Drive::ReadDirectoryEntries(Folder* Directory)
     Directory->FatxEntriesRead = true;
 }
 
-void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition, int Count)
+void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume RelativePartition, unsigned int Count)
 {
     // Clear the chain
     Chain.clear();
@@ -640,7 +640,7 @@ void Drive::ReadClusterChain(std::vector<UINT32>& Chain, xDirent Entry, xVolume 
     if (Previous == FAT_CLUSTER_AVAILABLE)
     {
         char buffer[0x46];
-        sprintf(buffer, "Free block referenced in FAT cluster chain! Dirent offset: 0x%lX", Entry.Offset);
+        sprintf(buffer, "Free block referenced in FAT cluster chain! Dirent offset: 0x%llX", Entry.Offset);
         qDebug("Exception thrown at ReadClusterChain: Free block");
         throw xException(buffer);
     }
@@ -761,7 +761,7 @@ void Drive::SetValidPartitions( void )
             Data->Disk = this;
 
             DeviceStream->SetPosition(SysExt->Offset);
-            if (DeviceStream->ReadUInt32() == FatxMagic)
+            if (DeviceStream->ReadInt32() == FatxMagic)
             {
                 DiskVolumes.push_back(SysExt);
                 DiskVolumes.push_back(SysAux);
@@ -855,7 +855,7 @@ void Drive::InitializePartitions( void )
     {
         DeviceStream->SetPosition(0);
         // Dev hard disks have 0x00020000 at offset 0
-        UINT32 Magic = DeviceStream->ReadInt32();
+        INT32 Magic = DeviceStream->ReadInt32();
         if (Magic == 0x00020000)
         {
             IsDevKitDrive = true;
@@ -879,8 +879,8 @@ INT64 Drive::GetLength( void )
 DWORD Drive::GetSectorsFromSecuritySector( void )
 {
     static DWORD s_sectors = 0;
-    qDebug("s_sectors: 0x%LX", s_sectors);
-    qDebug("s_sectors * 0x200: 0x%LX", (INT64)s_sectors * 0x200LL);
+    qDebug("s_sectors: 0x%lX", s_sectors);
+    qDebug("s_sectors * 0x200: 0x%llX", (INT64)s_sectors * 0x200LL);
     if (s_sectors != 0)
         return s_sectors;
 
@@ -890,8 +890,8 @@ DWORD Drive::GetSectorsFromSecuritySector( void )
     DeviceStream->SetEndianness(Streams::Little);
     s_sectors = DeviceStream->ReadUInt32();
     DeviceStream->SetEndianness(Streams::Big);
-    qDebug("s_sectors: 0x%LX", s_sectors);
-    qDebug("s_sectors * 0x200: 0x%LX", (INT64)s_sectors * 0x200LL);
+    qDebug("s_sectors: 0x%lX", s_sectors);
+    qDebug("s_sectors * 0x200: 0x%llX", (INT64)s_sectors * 0x200LL);
     return s_sectors;
 }
 

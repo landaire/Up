@@ -6,6 +6,7 @@
 *.exe
 *.o
 *.so
+*.a
 
 # Packages #
 ############
@@ -42,8 +43,13 @@ Up-OSX
 Up-Win
 FATX-OSX
 FATX-Win
+ui_*.h
+qrc_*.cpp
+moc_*.cpp
 
 Up.icns
 
 Up/Up.pro.user.2.5pre1
 FATX/FATX.pro.user.2.5pre1
+
+Makefile

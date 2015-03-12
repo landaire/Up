@@ -3,8 +3,6 @@
 # Project created by QtCreator 2011-12-30T11:35:47
 #
 #-------------------------------------------------
-include(IO/include.pri)
-include(FATX/include.pri)
 
 QT       -= gui
 

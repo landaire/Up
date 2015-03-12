@@ -69,3 +69,18 @@ win32{
         DEPENDPATH += $$PWD/../FATX-Win/debug
     }
 }
+
+unix:!macx{
+    CONFIG(release, debug|release){
+        LIBS += -L$$PWD/../FATX -lFATX
+        #message("release")
+        INCLUDEPATH += $$PWD/../FATX
+        DEPENDPATH += $$PWD/../FATX
+    }
+    CONFIG(debug, debug|release){
+        LIBS += -L$$PWD/../FATX -lFATX
+        #message("debug")
+        INCLUDEPATH += $$PWD/../FATX
+        DEPENDPATH += $$PWD/../FATX
+    }
+}

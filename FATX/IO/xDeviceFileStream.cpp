@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "xDeviceFileStream.h"
 
 namespace Streams
@@ -56,7 +56,7 @@ void xDeviceFileStream::SetPosition( INT64 Position )
 
 INT64 xDeviceFileStream::GetPhysicalPosition(int FilePosition)
 {
-    int ClusterIndex = Helpers::DownToNearestX(FilePosition, xf->Volume->ClusterSize) / xf->Volume->ClusterSize;
+    unsigned int ClusterIndex = Helpers::DownToNearestX(FilePosition, xf->Volume->ClusterSize) / xf->Volume->ClusterSize;
     FilePosition -= (xf->Volume->ClusterSize * ClusterIndex);
     if (ClusterIndex >= xf->ClusterChain.size())
     {
@@ -259,7 +259,7 @@ int xDeviceFileStream::Read( BYTE* DestBuff, int Count )
         // The number of clusters that are consecutively aligned on the disk
         int ConsecutiveClusters = 1;
         // This will hold the value of the last cluster
-        int LastCluster = 0;
+        UINT32 LastCluster = 0;
 
         for (int i = 1; i < ClustersSpanned - 1; i++)
         {
@@ -371,7 +371,7 @@ std::wstring xDeviceFileStream::ReadUnicodeString( size_t Count )
     memset(Buffer, 0, Count + 1);
 
     Read(Buffer, Count);
-    for (int i = 0; i < Count; i += sizeof(wchar_t))
+    for (unsigned int i = 0; i < Count; i += sizeof(wchar_t))
     {
         DetermineAndDoEndianSwap(Buffer + i, sizeof(wchar_t), sizeof(char));
     }

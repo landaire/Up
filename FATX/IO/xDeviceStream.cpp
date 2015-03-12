@@ -1,5 +1,10 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "xDeviceStream.h"
+
+#if defined __linux
+#include <fcntl.h>
+#include <linux/fs.h>
+#endif
 
 namespace Streams
 {
@@ -124,6 +129,24 @@ INT64 xDeviceStream::Length( void )
                 (INT64)Geometry.TracksPerCylinder	*
                 (INT64)Geometry.SectorsPerTrack		*
                 (INT64)Geometry.BytesPerSector;
+#elif defined __linux
+        unsigned int* NumberOfSectors = new unsigned int;
+        *NumberOfSectors = 0;
+
+        int device = Device;
+
+        // Queue number of sectors
+	ioctl(device, BLKGETSIZE, &NumberOfSectors);
+
+        unsigned int* SectorSize = new unsigned int;
+        *SectorSize = 0;
+        ioctl(device, BLKBSZGET, SectorSize);
+
+        qDebug("#S: 0x%X, SS: 0x%X", *NumberOfSectors, *SectorSize);
+
+        _Length = (UINT64)*NumberOfSectors * (UINT64)*SectorSize;
+        delete NumberOfSectors;
+        delete SectorSize;
 #else
         unsigned int* NumberOfSectors = new unsigned int;
         *NumberOfSectors = 0;
@@ -374,7 +397,7 @@ int xDeviceStream::Read( BYTE* DestBuff, int Count )
                     &BytesRead,		// Pointer to the number of bytes read
                     &Offset);		// OVERLAPPED structure containing the offset to read from
 #else
-        read(Device, LastReadData, 0x200);
+        BytesRead = read(Device, LastReadData, 0x200);
 #endif
         LastReadOffset = RealPosition();
     }
@@ -401,7 +424,7 @@ int xDeviceStream::Read( BYTE* DestBuff, int Count )
                     &BytesRead,		// Pointer to the number of bytes read
                     &Offset);		// OVERLAPPED structure containing the offset to read from
 #else
-        read(Device, AllData, AllDataLength - 0x200);
+        BytesRead = read(Device, AllData, AllDataLength - 0x200);
 #endif
 
         SetPosition(Position() + (Count - BytesThatAreInLastDataRead));
@@ -640,7 +663,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
                     &BytesRead,		// Pointer to the number of bytes read
                     &Offset);		// OVERLAPPED structure containing the offset to read from
 #else
-        read(Device, LastReadData, 0x200);
+        BytesRead = read(Device, LastReadData, 0x200);
 #endif
         LastReadOffset = RealPosition();
     }
@@ -657,7 +680,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
                     &BytesRead,
                     &Offset);
 #else
-        read(Device, AllData, BytesWeNeedToRead);
+        BytesRead = read(Device, AllData, BytesWeNeedToRead);
 #endif
 
         // Write over the data in memory
@@ -677,7 +700,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
                     &BytesRead,			// Pointer to number of bytes written (ignore that it says BytesRead)
                     &Offset);			// OVERLAPPED structure containing the offset to write from
 #else
-        write(Device, AllData, BytesWeNeedToRead);
+        BytesRead = write(Device, AllData, BytesWeNeedToRead);
 #endif
 
         delete[] AllData;
@@ -699,7 +722,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
                         &BytesRead,			// Pointer to number of bytes written (ignore that it says BytesRead)
                         &Offset);			// OVERLAPPED structure containing the offset to write from
 #else
-            write(Device, LastReadData, BytesWeNeedToRead);
+            BytesRead = write(Device, LastReadData, BytesWeNeedToRead);
 #endif
         }
         else
@@ -713,7 +736,7 @@ int xDeviceStream::Write( BYTE* Buffer, int count )
                         &BytesRead,			// Pointer to number of bytes written (ignore that it says BytesRead)
                         &Offset);			// OVERLAPPED structure containing the offset to write from
 #else
-            write(Device, Data, BytesWeNeedToRead);
+            BytesRead = write(Device, Data, BytesWeNeedToRead);
 #endif
         }
     }

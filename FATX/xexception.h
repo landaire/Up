@@ -3,7 +3,7 @@
 
 #include <stdexcept>
 #include <string>
-#include <qDebug>
+#include <QDebug>
 
 enum Exceptions
 {

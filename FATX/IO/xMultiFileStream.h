@@ -1,9 +1,9 @@
 #ifndef __XMFS__HG
 #define __XMFS__HG
-#include "istream.h"
+#include "IStream.h"
 #include "xFileStream.h"
 #include <vector>
-#include "../xException.h"
+#include "../xexception.h"
 #include <exception>
 #include <stdexcept>
 namespace Streams

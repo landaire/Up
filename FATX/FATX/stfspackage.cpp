@@ -1,4 +1,4 @@
-#include "StfsPackage.h"
+#include "stfspackage.h"
 using namespace std;
 using namespace Streams;
 
@@ -7,11 +7,11 @@ StfsPackage::StfsPackage( Streams::IStream *Stream )
     this->Stream = Stream;
     checkedIfIsStfsPackage = false;
     _isStfsPackage = false;
-    _magic = NULL;
-    _contentType = NULL;
-    _titleId = NULL;
-    _consoleId = NULL;
-    _profileId = NULL;
+    _magic = 0;
+    _contentType = 0;
+    _titleId = 0;
+    _consoleId = 0;
+    _profileId = 0;
     _displayName = "";
     _description = "";
     _titleName = "";

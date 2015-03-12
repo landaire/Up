@@ -1,7 +1,7 @@
 #include "progressdialog.h"
 #include "ui_progressdialog.h"
 #include <QThread>
-#include <QtConcurrentRun.h>
+#include <qtconcurrentrun.h>
 #include <algorithm>
 
 using namespace std;
@@ -39,14 +39,14 @@ void ProgressDialog::CopyFileToLocalDisk(std::vector<std::string> Paths, std::st
     qRegisterMetaType<Progress>();
     std::vector<Drive*> ConnectedDrives;
     // For each top-level path
-    for (int i = 0; i < Paths.size(); i++)
+    for (unsigned int i = 0; i < Paths.size(); i++)
     {
         // Split the path so that we can get the disk name
         std::vector<std::string> Split;
         Helpers::split(Paths.at(i), '/', Split);
         Drive *d;
         // For each drive
-        for (int j = 0; j < Drives.size(); j++)
+        for (unsigned int j = 0; j < Drives.size(); j++)
         {
             // Set d, break when we've found the proper drive.
             // POSSIBLE BUG: we'll go ahead and trust that everything is handled properly in MainForm though

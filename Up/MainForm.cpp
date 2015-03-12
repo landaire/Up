@@ -281,7 +281,7 @@ void MainForm::SetTitleIdName(QTreeWidgetItem *Item)
 {
     if (Item->text(0) != "FFFE07D1")
     {
-        for (int i = 0; i < sizeof(KnownIds) / sizeof(KnownIds[0]); i++)
+        for (unsigned int i = 0; i < sizeof(KnownIds) / sizeof(KnownIds[0]); i++)
         {
             if (Item->text(0) == KnownIds[i])
             {
@@ -299,7 +299,7 @@ void MainForm::SetTitleIdName(QTreeWidgetItem *Item)
             continue;
 
         bool Known = false;
-        for (int i = 0; i < sizeof(KnownIds) / sizeof(KnownIds[0]); i++)
+        for (unsigned int i = 0; i < sizeof(KnownIds) / sizeof(KnownIds[0]); i++)
         {
             if (fItem->text(0) == KnownIds[i])
             {
@@ -335,7 +335,7 @@ void MainForm::SetTitleIdName(QTreeWidgetItem *Item)
             if (f->CachedFolders.size())
             {
                 // has subdirectories, check if one of them is a title id folder
-                for (int i = 0; i < f->CachedFolders.size(); i++)
+                for (unsigned int i = 0; i < f->CachedFolders.size(); i++)
                 {
                     if (((Folder*)f->CachedFolders.at(i))->IsTitleIDFolder())
                     {
@@ -349,7 +349,7 @@ void MainForm::SetTitleIdName(QTreeWidgetItem *Item)
 
                         bool StfsPackageFound = false;
                         // it's a title ID folder, get an STFS package from this guy
-                        for (int j = 0; j < id->CachedFiles.size(); j++)
+                        for (unsigned int j = 0; j < id->CachedFiles.size(); j++)
                         {
                             File *f = id->CachedFiles.at(j);
                             Streams::xDeviceFileStream *fs = new Streams::xDeviceFileStream(f, f->Volume->Disk);
@@ -397,7 +397,7 @@ void MainForm::OnTreeItemExpand( QTreeWidgetItem* Item)
         ui.textEdit->setText(Helpers::QStringFromStdString(pathNoDrive));
 
         int index = 0;
-        for (int i = 0; i < ActiveDrives.size(); i++)
+        for (unsigned int i = 0; i < ActiveDrives.size(); i++)
         {
             QString DeviceName = Helpers::QStringFromStdString(path.substr(0, path.find_first_of('/')));
             QString FriendlyName = QString::fromStdString(((Drive*)ActiveDrives.at(i))->FriendlyName);
@@ -420,7 +420,7 @@ void MainForm::OnTreeItemDoubleClick(QTreeWidgetItem *Item, int)
         ui.textEdit->setText(Helpers::QStringFromStdString(pathNoDrive));
 
         int index = 0;
-        for (int i = 0; i < ActiveDrives.size(); i++)
+        for (unsigned int i = 0; i < ActiveDrives.size(); i++)
         {
             QString DeviceName = Helpers::QStringFromStdString(path.substr(0, path.find_first_of('/')));
             QString FriendlyName = QString::fromStdString(((Drive*)ActiveDrives.at(i))->FriendlyName);
@@ -472,7 +472,7 @@ void MainForm::OnLoadDevicesClick( void )
         ActiveDrives.push_back(current);
         QTreeWidgetItem* item = new QTreeWidgetItem();
         item->setText(0, QString::fromStdString(current->FriendlyName)); // Drive name
-        char* Type = 0;
+        const char* Type = 0;
         switch (current->Type)
         {
         case DeviceUsb:
